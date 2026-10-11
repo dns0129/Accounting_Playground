@@ -1,0 +1,2487 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="HKU ACCT 2102 学习工具：录入交易，自动生成日记账、分类账、试算平衡表和 IFRS 财务报表，附第 1–4 章练习题。">
+<style>body{margin:0}img{max-width:100%}</style>
+<title>ACCT 2102 财报实验室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&display=swap">
+<style>
+:root{
+  --ground:#E8EEE8;
+  --sheet:#FBFCFA;
+  --sheet2:#F1F5F0;
+  --ink:#13201A;
+  --ink2:#3A4A42;
+  --muted:#65766E;
+  --rule:#D2DDD4;
+  --rule2:#A6B8AC;
+  --accent:#1B5A4A;
+  --accent-ink:#FFFFFF;
+  --accent-soft:#DAE9E1;
+  --dr:#1C5594;
+  --cr:#94520E;
+  --hl:#FBEC9E;
+  --ok:#2A7845;
+  --ok-soft:#DCEFE1;
+  --bad:#B42318;
+  --bad-soft:#FBE1DD;
+  --shadow:0 1px 2px rgba(19,32,26,.05),0 6px 20px rgba(19,32,26,.07);
+  --f-ui:"IBM Plex Sans","PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",system-ui,sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --f-doc:"Source Serif 4","Songti SC","Noto Serif SC","STSong",Georgia,serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#0E1512;--sheet:#151E1A;--sheet2:#1B2621;--ink:#E3EBE6;--ink2:#BAC8C0;--muted:#8C9E95;
+    --rule:#28352F;--rule2:#43564C;--accent:#6BC2A6;--accent-ink:#06231A;--accent-soft:#1B3A30;
+    --dr:#8DB9F2;--cr:#E6AC69;--hl:#4A4213;--ok:#72CF93;--ok-soft:#173A25;--bad:#F48B80;--bad-soft:#3F1B18;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0E1512;--sheet:#151E1A;--sheet2:#1B2621;--ink:#E3EBE6;--ink2:#BAC8C0;--muted:#8C9E95;
+  --rule:#28352F;--rule2:#43564C;--accent:#6BC2A6;--accent-ink:#06231A;--accent-soft:#1B3A30;
+  --dr:#8DB9F2;--cr:#E6AC69;--hl:#4A4213;--ok:#72CF93;--ok-soft:#173A25;--bad:#F48B80;--bad-soft:#3F1B18;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 20px rgba(0,0,0,.3);
+}
+[hidden]{display:none!important}
+*,*::before,*::after{box-sizing:border-box}
+html{background:var(--ground)}
+body{background:var(--ground);color:var(--ink);font:14px/1.55 var(--f-ui);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+h1,h2,h3,h4{text-wrap:balance}
+input,select,textarea{font:inherit;color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{max-width:1520px;margin:0 auto;padding-inline:16px;padding-block:18px 72px;display:flex;flex-direction:column;gap:14px}
+
+/* ---------- top ---------- */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+.eyebrow{font:500 11px/1.3 var(--f-num);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.brand h1{margin:3px 0 3px;font:600 30px/1.1 var(--f-doc);letter-spacing:-.01em}
+.brand h1 .sub{font:400 14px/1 var(--f-ui);color:var(--muted);margin-left:10px;letter-spacing:.02em}
+.co-line{font-size:13px;color:var(--ink2)}
+.co-line b{font-weight:600;color:var(--ink)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--rule2);border-radius:7px;background:var(--sheet);padding:2px;gap:2px}
+.seg button{border:0;background:none;border-radius:5px;padding:4px 10px;font-size:12.5px;color:var(--ink2);cursor:pointer;white-space:nowrap}
+.seg button:hover{background:var(--sheet2)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule2);background:var(--sheet);border-radius:7px;padding:5px 11px;font-size:12.5px;cursor:pointer;color:var(--ink);white-space:nowrap;line-height:1.4}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:500}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.small{padding:3px 8px;font-size:12px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
+.btn .kbd{font:500 10.5px var(--f-num);color:var(--muted)}
+
+.settings{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:12px 14px}
+.settings .field{min-width:110px}
+.settings .field.wide{flex:1 1 220px}
+.settings .field.narrow{flex:0 0 96px;min-width:0}
+.checkline{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2);padding-bottom:6px}
+
+/* ---------- equation ---------- */
+.eq{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 18px;box-shadow:var(--shadow)}
+.eq-terms{display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px 16px;flex:1 1 520px}
+.eq-term{display:flex;flex-direction:column;gap:1px;border-radius:6px;padding:2px 4px}
+.eq-term .k{font-size:11.5px;color:var(--muted);letter-spacing:.03em}
+.eq-term .v{font:600 27px/1.1 var(--f-doc);font-variant-numeric:tabular-nums lining-nums;white-space:nowrap}
+.eq-op{font:400 28px/1.2 var(--f-doc);color:var(--muted);padding-bottom:1px}
+.eq-flash{animation:flash 1.4s ease}
+@keyframes flash{0%{background:var(--hl)}100%{background:transparent}}
+.chips{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 360px;justify-content:flex-end}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--rule);background:var(--sheet2);border-radius:999px;padding:3px 10px 3px 5px;font-size:12px;cursor:pointer;color:var(--ink2)}
+.chip:hover{border-color:var(--rule2);color:var(--ink)}
+.chip .dot{width:16px;height:16px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;background:var(--ok);color:var(--sheet);flex:none}
+.chip.bad .dot{background:var(--bad)}
+
+/* ---------- workspace ---------- */
+.work{display:grid;grid-template-columns:minmax(300px,390px) minmax(0,1fr);gap:14px;align-items:start}
+.bench{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);position:sticky;top:calc(10px + env(safe-area-inset-top,0px));max-height:calc(100vh - 20px);overflow:auto;display:flex;flex-direction:column;min-width:0}
+.board{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);min-width:0}
+@media (max-width:1000px){.work{grid-template-columns:minmax(0,1fr)}.bench{position:static;max-height:none}}
+.bsec{padding:14px 16px;border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:10px}
+.bsec:last-child{border-bottom:0}
+.bhead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.h2{font:600 14px/1.3 var(--f-ui);margin:0}
+.h2 .count{font:500 11.5px var(--f-num);color:var(--muted);margin-left:4px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px}
+.field{display:flex;flex-direction:column;gap:3px;min-width:0}
+.field.full{grid-column:1/-1}
+.field label{font-size:12px;color:var(--ink2);font-weight:500}
+.field input,.field select,.field textarea{width:100%;min-width:0;font-size:13.5px;padding:6px 8px;border:1px solid var(--rule2);border-radius:6px;background:var(--sheet)}
+.field textarea{resize:vertical;line-height:1.5}
+.affix{display:flex;align-items:stretch;border:1px solid var(--rule2);border-radius:6px;background:var(--sheet);overflow:hidden}
+.affix .pre{font:12px var(--f-num);color:var(--muted);padding:0 6px;display:grid;place-items:center;background:var(--sheet2);border-right:1px solid var(--rule)}
+.affix input{border:0!important;border-radius:0!important;font-family:var(--f-num)!important;font-size:13px!important}
+.tdesc{font-size:12.5px;color:var(--ink2);margin:0}
+.hint{font-size:12px;color:var(--muted);background:var(--sheet2);border-radius:6px;padding:6px 8px;margin:0}
+.preview{border:1px dashed var(--rule2);border-radius:8px;padding:10px 10px 8px;background:var(--sheet2);display:flex;flex-direction:column;gap:6px}
+.preview .ph{font:500 11px var(--f-num);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.err{color:var(--bad);font-size:12.5px;margin:0}
+.calc{font:12px/1.5 var(--f-num);color:var(--ink2);margin:0}
+.note{font-size:12.5px;color:var(--ink2);margin:0;border-left:3px solid var(--accent);padding:2px 0 2px 8px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mini{width:100%;border-collapse:collapse;font-size:12.5px}
+.mini td{padding:1px 3px;vertical-align:baseline}
+.mini td.amt{font:12px var(--f-num);text-align:right;white-space:nowrap;width:84px}
+.mini td.ca{padding-left:24px}
+.mini tr.gs td{height:6px}
+
+.crow{display:grid;grid-template-columns:minmax(0,1fr) 78px 78px 26px;gap:5px;align-items:center}
+.crow select,.crow input{width:100%;min-width:0;font-size:12.5px;padding:5px 6px;border:1px solid var(--rule2);border-radius:5px;background:var(--sheet)}
+.crow input{font-family:var(--f-num);text-align:right}
+.crow .fnsel{grid-column:1/-2}
+.crow .x{border:0;background:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:4px}
+.crow .x:hover{color:var(--bad)}
+.chead{display:grid;grid-template-columns:minmax(0,1fr) 78px 78px 26px;gap:5px;font:500 11px var(--f-num);color:var(--muted)}
+.chead span:nth-child(2),.chead span:nth-child(3){text-align:right}
+.ctot{display:grid;grid-template-columns:minmax(0,1fr) 78px 78px 26px;gap:5px;font:600 12px var(--f-num);border-top:1px solid var(--rule2);padding-top:4px}
+.ctot span{text-align:right}
+.ctot span:first-child{text-align:left;font-family:var(--f-ui)}
+
+.txl{list-style:none;margin:0;padding:4px 8px 14px}
+.tx{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:1px 8px;align-items:baseline;padding:6px 8px;border-radius:6px;cursor:pointer}
+.tx:hover{background:var(--sheet2)}
+.tx.on{background:var(--hl)}
+.tx.editing{outline:2px solid var(--accent);outline-offset:-2px}
+.tx .no{font:600 11.5px var(--f-num);color:var(--accent)}
+.tx .memo{font-size:13px;line-height:1.35;overflow-wrap:anywhere}
+.tx .amt{font:12px var(--f-num);text-align:right;white-space:nowrap}
+.tx .meta{grid-column:2/4;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;font-size:11.5px;color:var(--muted)}
+.tx .meta .d{font-family:var(--f-num)}
+.tag{font-size:10.5px;line-height:1.5;border:1px solid var(--rule2);border-radius:4px;padding:0 5px;color:var(--ink2);background:var(--sheet)}
+.tag.adj{border-color:var(--accent);color:var(--accent)}
+.tag.oci,.tag.disc{border-style:dashed}
+.tx .acts{margin-left:auto;display:flex;gap:2px}
+.tx .acts button{border:0;background:none;color:var(--muted);font-size:11.5px;cursor:pointer;padding:1px 6px;border-radius:4px}
+.tx .acts button:hover{color:var(--ink);background:var(--sheet)}
+.empty{color:var(--muted);font-size:13px;padding:10px 8px}
+
+/* ---------- board ---------- */
+.tabs{display:flex;overflow-x:auto;border-bottom:1px solid var(--rule);padding-inline:8px;scrollbar-width:thin}
+.tabs button{flex:0 0 auto;display:flex;align-items:baseline;gap:6px;border:0;background:none;padding:12px 10px 10px;border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;color:var(--muted);font-size:13.5px}
+.tabs button:hover{color:var(--ink)}
+.tabs button .n{font:500 11px var(--f-num)}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+.tabs button[aria-selected="true"] .n{color:var(--accent)}
+.fp{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:var(--hl);padding:7px 16px;font-size:12.5px}
+.fp b{font-weight:600}
+.pane{padding:16px 18px 30px}
+.pane-bar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.tip{font-size:13px;color:var(--ink2);max-width:70ch;margin:0}
+.pane-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.score{font:500 12px var(--f-num);color:var(--ink2)}
+
+/* statements */
+.paper{background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:26px clamp(12px,3vw,34px) 22px;max-width:800px;margin:0 auto 18px}
+.st-head{text-align:center;margin-bottom:14px}
+.st-co{font:600 17px/1.3 var(--f-doc)}
+.st-head h3{margin:3px 0 2px;font:600 15.5px/1.35 var(--f-doc)}
+.st-head .zh{display:block;font:400 12.5px/1.4 var(--f-ui);color:var(--muted)}
+.st-per{font:italic 13px/1.4 var(--f-doc);color:var(--ink2)}
+.st-per .zh{font-style:normal}
+.scroll{overflow-x:auto}
+table.st{width:100%;border-collapse:collapse;font:14px/1.4 var(--f-doc);font-variant-numeric:tabular-nums lining-nums}
+.st th{font:500 11.5px var(--f-num);color:var(--muted);text-align:right;padding:4px 4px 6px;border-bottom:1px solid var(--rule);white-space:nowrap}
+.st td{padding:3.5px 4px;vertical-align:bottom}
+.st td.lab{padding-right:14px;min-width:200px}
+.st td.amt{text-align:right;white-space:nowrap;width:118px;min-width:92px}
+.st td.prior{color:var(--ink2)}
+.st .lab .zh,.wk .zh,.jt .zh,.tacc .zh{font:12px var(--f-ui);color:var(--muted);margin-left:6px}
+.lang-zh .st .lab .zh{margin-left:0}
+.ind1{padding-left:22px!important}.ind2{padding-left:40px!important}
+.r-h td.lab{font-weight:600;padding-top:12px}
+.r-s td.lab{font-weight:600}
+.r-g td.lab{font-weight:700}
+.r-g td{padding-top:6px}
+tr.ul td.has{border-bottom:1px solid var(--ink2)}
+tr.r-g td.has{border-bottom:3px double var(--ink)}
+tr.tr{cursor:pointer}
+tr.tr:hover td{background:var(--sheet2)}
+tr.hit td{background:var(--hl)!important}
+.rp.ghost{visibility:hidden}
+.st-notes{font:13px/1.6 var(--f-ui);color:var(--ink2);margin:16px 0 0;padding-top:12px;border-top:1px dashed var(--rule2);display:flex;flex-direction:column;gap:6px}
+.st-notes p{margin:0}
+.st-notes b{color:var(--ink)}
+.guess{width:100%;max-width:112px;text-align:right;font:13px var(--f-num);padding:1px 4px;border:1px dashed var(--rule2);border-radius:3px;background:var(--sheet2)}
+.guess.right{border:1px solid var(--ok);background:var(--ok-soft)}
+.guess.wrong{border:1px solid var(--bad);background:var(--bad-soft)}
+.ans{display:block;font:11px var(--f-num);color:var(--bad)}
+.soce td.amt{width:auto;min-width:96px}
+.soce th{white-space:normal;vertical-align:bottom;min-width:96px}
+.soce th .zh{display:block;font:11px var(--f-ui)}
+
+/* journal */
+.jlegend{display:grid;grid-template-columns:minmax(0,1fr) 48px 110px 110px;font:500 11px var(--f-num);color:var(--muted);border-bottom:1px solid var(--rule2);padding:0 4px 5px;gap:0 4px}
+.jlegend span:nth-child(3),.jlegend span:nth-child(4){text-align:right}
+.je{border-top:1px solid var(--rule);padding:10px 4px 10px;border-radius:0;scroll-margin-top:80px}
+.je:first-of-type{border-top:0}
+.je.hit{background:var(--hl);border-radius:6px;border-top-color:transparent}
+.je-h{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;margin-bottom:4px}
+.je-no{font:600 12px var(--f-num);color:var(--accent)}
+.je-date{font:12px var(--f-num);color:var(--muted)}
+.je-memo{font-size:13.5px;font-weight:500}
+table.jt{width:100%;border-collapse:collapse;font-size:13.5px}
+.jt td{padding:2px 4px;vertical-align:baseline}
+.jt td.ref{font:11.5px var(--f-num);color:var(--muted);width:48px}
+.jt td.amt{font:13px var(--f-num);text-align:right;width:110px;white-space:nowrap}
+.jt td.cra{padding-left:36px}
+.jt tr.gs td{height:8px}
+.fn{font-size:10.5px;border:1px solid var(--rule2);border-radius:3px;padding:0 4px;color:var(--muted);margin-left:6px;white-space:nowrap}
+.dr-amt,.dr{color:var(--dr)}
+.cr-amt,.cr{color:var(--cr)}
+details.why{margin-top:6px;font-size:12.5px;color:var(--ink2)}
+details.why summary{cursor:pointer;color:var(--accent);font-weight:500;width:max-content;max-width:100%}
+.why-b{display:flex;flex-direction:column;gap:6px;padding:6px 0 2px}
+.why-b ul{margin:0;padding-left:18px}
+.why-b li{margin:2px 0}
+.eqline{font:12px var(--f-num);background:var(--sheet2);border:1px solid var(--rule);border-radius:5px;padding:4px 8px;width:max-content;max-width:100%;overflow-wrap:anywhere}
+.veil{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12.5px;color:var(--ink2);background:var(--sheet2);border:1px dashed var(--rule2);border-radius:6px;padding:8px 10px}
+
+/* ledger */
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.tacc{border:1px solid var(--rule);border-radius:6px;padding:10px 12px 8px;background:var(--sheet)}
+.tacc.hit{border-color:var(--ink2);box-shadow:0 0 0 2px var(--hl)}
+.tacc h4{margin:0;text-align:center;font:600 13px/1.3 var(--f-ui)}
+.tacc h4 .code{font:500 11px var(--f-num);color:var(--muted);margin-right:5px}
+.tacc .en2{display:block;text-align:center;font-size:11px;color:var(--muted);margin:1px 0 6px}
+.tsides{display:grid;grid-template-columns:1fr 1fr;border-top:2px solid var(--ink)}
+.tside{padding:4px 6px 2px;min-height:34px;min-width:0}
+.tside:first-child{border-right:2px solid var(--ink)}
+.trow{display:flex;justify-content:space-between;gap:6px;font:12px/1.65 var(--f-num);border-radius:3px;padding:0 2px}
+.trow .r{color:var(--muted);border:0;background:none;padding:0;cursor:pointer;font:inherit;text-decoration:underline dotted;text-underline-offset:2px}
+.trow .r.ob{cursor:default;text-decoration:none}
+.trow.hit{background:var(--hl)}
+.tfoot{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--rule2);font:600 12px/1.8 var(--f-num)}
+.tfoot div{display:flex;justify-content:space-between;gap:6px;padding:0 8px}
+.tfoot div:first-child{border-right:2px solid var(--ink)}
+.tfoot .lbl{color:var(--muted);font-weight:500}
+
+/* worksheet */
+table.wk{border-collapse:collapse;width:100%;font:12.5px var(--f-num);min-width:760px}
+.wk th{font:600 11.5px/1.35 var(--f-ui);color:var(--ink2);padding:6px 8px;border-bottom:1px solid var(--rule2);text-align:right;vertical-align:bottom}
+.wk th.a{text-align:left}
+.wk thead tr:first-child th{text-align:center;border-bottom:1px solid var(--rule)}
+.wk td{padding:4px 8px;border-bottom:1px solid var(--rule);text-align:right;white-space:nowrap}
+.wk td.a{text-align:left;font-family:var(--f-ui);white-space:normal}
+.wk td.a .c{font:11px var(--f-num);color:var(--muted);margin-right:6px}
+.wk .gl{border-left:1px solid var(--rule2)}
+.wk tfoot td{font-weight:600;border-top:2px solid var(--ink);border-bottom:3px double var(--ink)}
+.wk tr.hit td{background:var(--hl)}
+.wk td.adjc{color:var(--accent)}
+.okbad{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;padding:3px 10px;border-radius:999px;background:var(--ok-soft);color:var(--ok)}
+.okbad.bad{background:var(--bad-soft);color:var(--bad)}
+.subh{font:600 14px var(--f-ui);margin:22px 0 8px}
+.ob-in{width:120px;text-align:right;font:12.5px var(--f-num);padding:3px 6px;border:1px solid var(--rule2);border-radius:5px;background:var(--sheet)}
+
+/* trace */
+.trace{position:fixed;z-index:30;right:16px;top:calc(16px + env(safe-area-inset-top,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:min(420px,calc(100vw - 32px));background:var(--sheet);border:1px solid var(--rule2);border-radius:12px;box-shadow:0 12px 44px rgba(0,0,0,.2);display:flex;flex-direction:column;overflow:hidden}
+.trace-h{padding:14px 16px 12px;border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:4px;position:relative}
+.trace-h h3{margin:0;font:600 16px/1.3 var(--f-doc);padding-right:28px}
+.trace-h .zh{font-size:12px;color:var(--muted)}
+.trace-h .big{font:600 24px/1.2 var(--f-doc);font-variant-numeric:tabular-nums}
+.trace-x{position:absolute;right:10px;top:10px;border:0;background:none;font-size:20px;line-height:1;cursor:pointer;color:var(--muted);padding:4px 6px;border-radius:6px}
+.trace-x:hover{background:var(--sheet2);color:var(--ink)}
+.trace-b{padding:12px 16px 18px;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.why-f{font:13px/1.6 var(--f-ui);color:var(--ink);background:var(--sheet2);border-radius:8px;padding:8px 10px;margin:0}
+.tl{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+.tl li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:baseline;border-bottom:1px solid var(--rule);padding:5px 0}
+.tl li button{border:0;background:none;text-align:left;cursor:pointer;padding:0;display:grid;grid-template-columns:36px 42px minmax(0,1fr);gap:6px;align-items:baseline;font-size:12.5px}
+.tl li button:hover .m{text-decoration:underline}
+.tl .no{font:600 11.5px var(--f-num);color:var(--accent)}
+.tl .d{font:11.5px var(--f-num);color:var(--muted)}
+.tl .v{font:12.5px var(--f-num);text-align:right;white-space:nowrap}
+.tl li.tot{font-weight:600;border-bottom:3px double var(--rule2)}
+.tl li.ps span:first-child{font-size:12.5px;color:var(--ink2)}
+@media (max-width:700px){.trace{left:0;right:0;bottom:0;top:auto;width:auto;max-height:74vh;border-radius:14px 14px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}}
+
+/* modal / toast */
+.modal{position:fixed;inset:0;z-index:40;background:rgba(10,16,13,.45);display:grid;place-items:center;padding:16px}
+.modal-box{background:var(--sheet);border:1px solid var(--rule2);border-radius:12px;padding:18px;width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;display:flex;flex-direction:column;gap:12px}
+.modal-box h3{margin:0;font:600 17px var(--f-doc)}
+.modal-box textarea{width:100%;min-height:120px;font:12px var(--f-num);padding:8px;border:1px solid var(--rule2);border-radius:6px;background:var(--sheet2)}
+.toast{position:fixed;z-index:50;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--sheet);border-radius:8px;padding:8px 10px 8px 14px;display:flex;gap:12px;align-items:center;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:calc(100vw - 32px)}
+.toast button{border:0;background:var(--sheet);color:var(--ink);border-radius:5px;padding:3px 10px;cursor:pointer;font-size:12.5px;font-weight:500}
+.ai-out{white-space:pre-wrap}
+.spin{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px solid var(--rule2);border-top-color:var(--accent);animation:sp 0.8s linear infinite;vertical-align:-1px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.btn.ghost{border-color:transparent;background:none;color:var(--muted)}
+.btn.ghost:hover{color:var(--ink);border-color:var(--rule2)}
+
+/* ---------- practice questions ---------- */
+.labban{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;background:var(--hl);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--ink)}
+.quiz{display:grid;grid-template-columns:280px minmax(0,1fr);gap:14px;align-items:start}
+.qside{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);position:sticky;top:calc(10px + env(safe-area-inset-top,0px));max-height:calc(100vh - 20px);overflow:auto}
+.qsec{padding:14px 16px;border-bottom:1px solid var(--rule);display:flex;flex-direction:column;gap:8px}
+.qsec:last-child{border-bottom:0}
+.qsec h3{margin:0;font:600 12.5px var(--f-ui);color:var(--ink2);letter-spacing:.02em}
+.qbig{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.qbig .n{font:600 32px/1 var(--f-doc);font-variant-numeric:tabular-nums}
+.qbig .of{font-size:12.5px;color:var(--muted)}
+.qbar{height:6px;border-radius:3px;background:var(--rule);display:flex;overflow:hidden}
+.qbar i{display:block;height:100%;background:var(--ok)}
+.qbar i.w{background:var(--bad)}
+.chb{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 8px;align-items:baseline;border:1px solid transparent;background:none;border-radius:7px;padding:6px 8px;cursor:pointer;text-align:left;width:100%}
+.chb:hover{background:var(--sheet2)}
+.chb[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.chb .t{font-size:13px;font-weight:500}
+.chb .c{font:12px var(--f-num);color:var(--muted)}
+.chb .qbar{grid-column:1/-1;height:4px}
+.qlist{display:flex;flex-direction:column;gap:12px;min-width:0}
+.qcard{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;scroll-margin-top:16px;min-width:0}
+.qhead{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.qno{font:600 12px var(--f-num);color:var(--accent)}
+.qtitle{font:600 15.5px/1.35 var(--f-doc)}
+.qmeta{font-size:11.5px;color:var(--muted)}
+.qst{margin-left:auto;font-size:12px;font-weight:600;padding:1px 10px;border-radius:999px;background:var(--sheet2);color:var(--ink2);white-space:nowrap}
+.qst.ok{background:var(--ok-soft);color:var(--ok)}
+.qst.bad{background:var(--bad-soft);color:var(--bad)}
+.qprompt{font-size:14.5px;line-height:1.75;margin:0;max-width:74ch}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{display:grid;grid-template-columns:auto 18px minmax(0,1fr);gap:8px;align-items:baseline;border:1px solid var(--rule);border-radius:7px;padding:8px 10px;cursor:pointer;font-size:14px;line-height:1.5}
+.opt:hover{border-color:var(--rule2)}
+.opt input{margin:0;accent-color:var(--accent)}
+.opt .ol{font:600 12px var(--f-num);color:var(--muted)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.mrows{display:flex;flex-direction:column}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(170px,250px) 20px;gap:6px 10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--rule);font-size:14px;line-height:1.5}
+.mrow:last-child{border-bottom:0}
+.mrow select,.qje select,.qje input{font-size:13.5px;padding:6px 8px;border:1px solid var(--rule2);border-radius:6px;background:var(--sheet);width:100%;min-width:0}
+.mk{font-weight:700;text-align:center}
+.mk.ok{color:var(--ok)}.mk.bad{color:var(--bad)}
+.mans{grid-column:1/-1;font-size:12.5px;color:var(--ok)}
+.qblanks{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px 14px}
+.qblank{display:flex;flex-direction:column;gap:4px}
+.qblank label{font-size:12.5px;color:var(--ink2);font-weight:500}
+.qblank .affix input{font-family:var(--f-num);background:transparent;padding:6px 8px;width:100%;min-width:0;font-size:13.5px}
+.qblank.ok .affix{border-color:var(--ok);background:var(--ok-soft)}
+.qblank.bad .affix{border-color:var(--bad);background:var(--bad-soft)}
+.qblank .ans{font:12px var(--f-num);color:var(--ok)}
+.qje{display:flex;flex-direction:column;gap:6px;max-width:620px}
+.qje .crow,.qje .chead,.qje .ctot{grid-template-columns:minmax(0,1fr) 96px 96px 26px}
+.qje input{font-family:var(--f-num);text-align:right}
+.qfb{display:flex;flex-direction:column;gap:8px}
+.qmsg{font-size:13.5px;font-weight:600;margin:0}
+.qmsg.ok{color:var(--ok)}.qmsg.bad{color:var(--bad)}
+.qexp{background:var(--sheet2);border:1px solid var(--rule);border-radius:8px;padding:10px 12px;font-size:13.5px;line-height:1.7;display:flex;flex-direction:column;gap:6px;max-width:80ch}
+.qexp p{margin:0}.qexp ul{margin:0;padding-left:18px}.qexp li{margin:2px 0}
+.qexp .calc{font:12.5px/1.75 var(--f-num);color:var(--ink)}
+.qexp .eh{font:500 11px var(--f-num);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.qact{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.qempty{background:var(--sheet);border:1px dashed var(--rule2);border-radius:10px;padding:24px;color:var(--muted);text-align:center}
+@media (max-width:900px){.quiz{grid-template-columns:minmax(0,1fr)}.qside{position:static;max-height:none}}
+@media (max-width:600px){.mrow{grid-template-columns:minmax(0,1fr) 20px}.mrow select{grid-column:1}.qje .crow,.qje .chead,.qje .ctot{grid-template-columns:minmax(0,1fr) 72px 72px 24px}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:520px){.fields{grid-template-columns:1fr}.eq-term .v{font-size:22px}.brand h1{font-size:25px}}
+</style>
+
+</head>
+<body>
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow">ACCT 2102 · Intermediate Accounting I · IFRS</div>
+      <h1>财报实验室<span class="sub">Statement Lab</span></h1>
+      <div class="co-line" id="coLine"></div>
+    </div>
+    <div class="toolbar" id="toolbar"></div>
+  </header>
+  <div id="settingsBar"></div>
+  <div class="labban" id="labBanner" hidden></div>
+  <section class="eq" id="eqBox" aria-label="会计恒等式与勾稽检查"></section>
+  <section class="quiz" id="quiz" hidden aria-label="练习题"></section>
+  <div class="work" id="work">
+    <aside class="bench" id="bench" aria-label="录入交易"></aside>
+    <main class="board" id="board">
+      <nav class="tabs" id="tabs" role="tablist" aria-label="会计循环步骤"></nav>
+      <div id="fpBar"></div>
+      <div class="pane" id="pane"></div>
+    </main>
+  </div>
+</div>
+<aside class="trace" id="trace" hidden aria-live="polite"></aside>
+<div class="modal" id="modal" hidden></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+'use strict';
+const KEY = 'acct2102-statement-lab-v1';
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ================= Chart of accounts =================
+   t: A asset · XA contra-asset · L liability · E equity · XE dividends · R revenue/gain · X expense/loss · O OCI
+   cf: cash · wc (operating working capital) · pl · oci · inv · fin                                        */
+const COA = [
+  {c:'1000',t:'A',en:'Cash and cash equivalents',zh:'现金及现金等价物',cf:'cash'},
+  {c:'1100',t:'A',en:'Accounts receivable',zh:'应收账款',cf:'wc',op:'customers',wc:'ar'},
+  {c:'1105',t:'XA',en:'Allowance for doubtful accounts',zh:'坏账准备',cf:'wc',op:'customers',wc:'ar'},
+  {c:'1110',t:'A',en:'Interest receivable',zh:'应收利息',cf:'wc',op:'intRec',wc:'1110'},
+  {c:'1200',t:'A',en:'Inventories',zh:'存货',cf:'wc',op:'suppliers',wc:'1200'},
+  {c:'1300',t:'A',en:'Prepaid expenses',zh:'预付费用',cf:'wc',op:'otherOpex',wc:'1300'},
+  {c:'1450',t:'A',en:'Assets held for sale',zh:'持有待售资产',cf:'inv',k:'hfs'},
+  {c:'1500',t:'A',en:'Land',zh:'土地',cf:'inv',k:'ppe'},
+  {c:'1510',t:'A',en:'Equipment',zh:'设备',cf:'inv',k:'ppe'},
+  {c:'1515',t:'XA',en:'Accumulated depreciation – equipment',zh:'累计折旧—设备',cf:'inv',k:'ppe'},
+  {c:'1600',t:'A',en:'Investments at FVOCI',zh:'FVOCI 股权投资',cf:'inv',k:'invest'},
+  {c:'2000',t:'L',en:'Accounts payable',zh:'应付账款',cf:'wc',op:'suppliers',wc:'2000'},
+  {c:'2100',t:'L',en:'Salaries payable',zh:'应付职工薪酬',cf:'wc',op:'employees',wc:'2100'},
+  {c:'2150',t:'L',en:'Interest payable',zh:'应付利息',cf:'wc',op:'intPaid',wc:'2150'},
+  {c:'2200',t:'L',en:'Income tax payable',zh:'应交所得税',cf:'wc',op:'tax',wc:'2200'},
+  {c:'2300',t:'L',en:'Unearned revenue',zh:'预收收入（合同负债）',cf:'wc',op:'customers',wc:'2300'},
+  {c:'2400',t:'L',en:'Dividends payable',zh:'应付股利',cf:'fin',k:'div'},
+  {c:'2500',t:'L',en:'Long-term borrowings',zh:'长期借款',cf:'fin',k:'borrow'},
+  {c:'3000',t:'E',en:'Share capital',zh:'股本',cf:'fin',k:'shares'},
+  {c:'3100',t:'E',en:'Retained earnings',zh:'留存收益',cf:'fin',k:'otherEq'},
+  {c:'3200',t:'E',en:'Revaluation surplus',zh:'重估盈余',cf:'fin',k:'otherEq'},
+  {c:'3210',t:'E',en:'Fair value reserve',zh:'公允价值储备',cf:'fin',k:'otherEq'},
+  {c:'3300',t:'XE',en:'Dividends',zh:'股利',cf:'fin',k:'div',temp:true},
+  {c:'3900',t:'E',en:'Income summary',zh:'本年利润（汇总）',cf:'fin',k:'otherEq',hidden:true,temp:true},
+  {c:'4000',t:'R',en:'Sales revenue',zh:'销售收入',pl:'rev',cf:'pl',op:'customers'},
+  {c:'4100',t:'R',en:'Service revenue',zh:'服务收入',pl:'rev',cf:'pl',op:'customers'},
+  {c:'4500',t:'R',en:'Interest income',zh:'利息收入',pl:'oth',cf:'pl',op:'intRec'},
+  {c:'4600',t:'R',en:'Gain on disposal of equipment',zh:'处置设备利得',pl:'oth',cf:'pl',adj:'ppe'},
+  {c:'5000',t:'X',en:'Cost of goods sold',zh:'销售成本',pl:'opx',fn:'cos',cf:'pl',op:'suppliers',natEn:'Changes in inventories (goods used)',natZh:'耗用的存货（商品成本）'},
+  {c:'6000',t:'X',en:'Salaries and wages expense',zh:'工资薪酬费用',pl:'opx',fn:'admin',cf:'pl',op:'employees',natEn:'Employee benefits expense',natZh:'员工福利费用'},
+  {c:'6100',t:'X',en:'Rent expense',zh:'租金费用',pl:'opx',fn:'admin',cf:'pl',op:'otherOpex'},
+  {c:'6200',t:'X',en:'Advertising expense',zh:'广告费用',pl:'opx',fn:'sell',cf:'pl',op:'otherOpex'},
+  {c:'6300',t:'X',en:'Utilities expense',zh:'水电费用',pl:'opx',fn:'admin',cf:'pl',op:'otherOpex'},
+  {c:'6400',t:'X',en:'Insurance expense',zh:'保险费用',pl:'opx',fn:'admin',cf:'pl',op:'otherOpex'},
+  {c:'6500',t:'X',en:'Depreciation expense',zh:'折旧费用',pl:'opx',fn:'admin',cf:'pl',adj:'dep'},
+  {c:'6600',t:'X',en:'Bad debt expense',zh:'坏账费用（应收款减值）',pl:'opx',fn:'admin',cf:'pl',op:'customers'},
+  {c:'6700',t:'X',en:'Restructuring costs',zh:'重组费用',pl:'opx',fn:'other',cf:'pl',op:'otherOpex'},
+  {c:'6800',t:'X',en:'Revaluation loss on land',zh:'土地重估损失',pl:'opx',fn:'other',cf:'pl',adj:'reval'},
+  {c:'6900',t:'X',en:'Other operating expenses',zh:'其他营业费用',pl:'opx',fn:'other',cf:'pl',op:'otherOpex'},
+  {c:'7000',t:'X',en:'Interest expense',zh:'利息费用',pl:'oth',cf:'pl',op:'intPaid'},
+  {c:'7100',t:'X',en:'Loss on disposal of equipment',zh:'处置设备损失',pl:'oth',cf:'pl',adj:'ppe'},
+  {c:'8000',t:'X',en:'Income tax expense',zh:'所得税费用',pl:'tax',cf:'pl',op:'tax'},
+  {c:'8500',t:'X',en:'Discontinued operations – profit/(loss) before tax',zh:'终止经营税前损益',pl:'disc',cf:'pl',op:'discOps',adj:'disc'},
+  {c:'8510',t:'X',en:'Discontinued operations – income tax',zh:'终止经营所得税',pl:'discTax',cf:'pl',op:'tax'},
+  {c:'9000',t:'O',en:'OCI – revaluation gain on land',zh:'OCI：土地重估利得',cf:'oci',res:'3200'},
+  {c:'9100',t:'O',en:'OCI – fair value gain/(loss) on FVOCI investments',zh:'OCI：FVOCI 投资公允价值变动',cf:'oci',res:'3210'},
+];
+const ACC = {}; COA.forEach(a => ACC[a.c] = a);
+const VISIBLE = COA.filter(a => !a.hidden);
+const TYPE_ZH = {A:'资产',XA:'资产备抵',L:'负债',E:'权益',XE:'股利（权益减项）',R:'收入/利得',X:'费用/损失',O:'其他综合收益'};
+const TYPE_EN = {A:'asset',XA:'contra-asset',L:'liability',E:'equity',XE:'dividends (contra-equity)',R:'revenue/gain',X:'expense/loss',O:'other comprehensive income'};
+const FN_LABEL = {cos:['Cost of sales','销售成本'],sell:['Selling and distribution expenses','销售及分销费用'],admin:['Administrative expenses','管理费用'],other:['Other operating expenses','其他营业费用']};
+const FN_OPTS = [['cos','销售成本 Cost of sales'],['sell','销售费用 Selling'],['admin','管理费用 Administrative'],['other','其他营业费用 Other']];
+const normFn = (a, fn) => ACC[a].pl !== 'opx' ? null : (FN_LABEL[fn] ? fn : (ACC[a].fn || 'other'));
+
+const OP_LABEL = {customers:['Cash receipts from customers','从客户收到的现金'],intRec:['Interest received','收到的利息'],suppliers:['Cash paid to suppliers','支付给供应商的现金'],employees:['Cash paid to employees','支付给员工的现金'],otherOpex:['Cash paid for other operating expenses','支付的其他营业费用'],intPaid:['Interest paid','支付的利息'],tax:['Income taxes paid','支付的所得税'],discOps:['Operating cash flows of discontinued operations','终止经营的经营现金流量']};
+const OP_ORDER = ['customers','intRec','suppliers','employees','otherOpex','intPaid','tax','discOps'];
+const IF_LABEL = {'ppe:out':['Purchase of property, plant and equipment','购置物业、厂房及设备'],'ppe:in':['Proceeds from disposal of property, plant and equipment','处置物业、厂房及设备所得'],'invest:out':['Purchase of investments','购买投资'],'invest:in':['Proceeds from sale of investments','出售投资所得'],'hfs:in':['Proceeds from disposal of discontinued operation','处置终止经营业务所得'],'hfs:out':['Payments relating to assets held for sale','持有待售资产相关支出'],'shares:in':['Proceeds from issue of ordinary shares','发行普通股所得'],'shares:out':['Payments to repurchase shares','回购股份支付'],'borrow:in':['Proceeds from borrowings','取得借款所得'],'borrow:out':['Repayment of borrowings','偿还借款'],'div:out':['Dividends paid','支付的股利'],'div:in':['Dividends received back','退回的股利'],'otherEq:in':['Other contributions from owners','其他所有者投入'],'otherEq:out':['Other distributions to owners','其他对所有者的分配']};
+const INV_ORDER = ['ppe:out','ppe:in','invest:out','invest:in','hfs:in','hfs:out'];
+const FIN_ORDER = ['shares:in','shares:out','borrow:in','borrow:out','div:out','div:in','otherEq:in','otherEq:out'];
+const ADJ_LABEL = {dep:['Depreciation expense','折旧费用'],ppe:['(Gain)/loss on disposal of equipment','处置设备（利得）/损失'],disc:['Impairment and (gain)/loss on disposal – discontinued operations','终止经营减值及处置（利得）/损失'],reval:['Revaluation loss on land','土地重估损失'],other:['Other non-cash items','其他非现金项目']};
+const WC_LABEL = {ar:['trade receivables (net)','应收账款（净额）'],'1110':['interest receivable','应收利息'],'1200':['inventories','存货'],'1300':['prepaid expenses','预付费用'],'2000':['accounts payable','应付账款'],'2100':['salaries payable','应付职工薪酬'],'2150':['interest payable','应付利息'],'2200':['income tax payable','应交所得税'],'2300':['unearned revenue','预收收入']};
+
+/* ================= numbers ================= */
+function money(v){
+  if (v == null) return NaN;
+  let s = String(v).trim(); if (!s) return NaN;
+  let neg = false;
+  if (/^\(.*\)$/.test(s)) { neg = true; s = s.slice(1, -1); }
+  s = s.replace(/HK\$/gi, '').replace(/[,\s$]/g, '');
+  if (s.startsWith('-')) { neg = !neg; s = s.slice(1); }
+  if (!/^(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+  const c = Math.round(parseFloat(s) * 100);
+  return neg ? -c : c;
+}
+const num = v => { const n = parseFloat(String(v ?? '').replace(/[,\s]/g, '')); return Number.isFinite(n) ? n : NaN; };
+const pos = v => Number.isFinite(v) && v > 0;
+function fmt(c){
+  if (c == null || !Number.isFinite(c)) return '';
+  const neg = c < 0, a = Math.abs(Math.round(c)), d = a % 100 !== 0;
+  const s = (a / 100).toLocaleString('en-US', {minimumFractionDigits: d ? 2 : 0, maximumFractionDigits: 2});
+  return neg ? `(${s})` : s;
+}
+let CUR_OVR = null;
+const cur = () => CUR_OVR || (typeof S !== 'undefined' && S && S.company && S.company.cur) || 'HK$';
+const m$ = c => `${cur()}${fmt(c)}`;
+function amtHTML(c){
+  if (c == null) return '';
+  if (c === 0) return '–<span class="rp ghost">)</span>';
+  const neg = c < 0;
+  return `${neg ? '(' : ''}${fmt(Math.abs(c))}<span class="rp${neg ? '' : ' ghost'}">)</span>`;
+}
+function epsHTML(v){
+  if (v == null || !isFinite(v)) return '';
+  const neg = v < -0.0000001;
+  return `${neg ? '(' : ''}${Math.abs(v).toFixed(2)}<span class="rp${neg ? '' : ' ghost'}">)</span>`;
+}
+function allocate(total, w){
+  const W = w.reduce((a, b) => a + b, 0); if (!W) return w.map(() => 0);
+  const raw = w.map(x => total * x / W), fl = raw.map(Math.floor);
+  let rem = total - fl.reduce((a, b) => a + b, 0);
+  const order = raw.map((x, i) => [x - fl[i], i]).sort((a, b) => b[0] - a[0]);
+  for (let k = 0; k < rem; k++) fl[order[k % order.length][1]]++;
+  return fl;
+}
+function monthsOut(date){
+  const [y, m, d] = date.split('-').map(Number);
+  const dim = new Date(y, m, 0).getDate();
+  return 12 - (m - 1) - (d - 1) / dim;
+}
+const fmtMo = m => (Math.round(m * 100) / 100).toString();
+
+/* ================= journal helpers ================= */
+const D = (a, v, fn) => ({a, s: v, fn});
+const C = (a, v, fn) => ({a, s: -v, fn});
+const ok = (groups, o = {}) => ({groups, ...o});
+const bad = msg => ({err: msg || '请填写金额'});
+const F = {
+  amt: (label = '金额', k = 'amt') => ({k, t: 'money', label}),
+  pay: (def = 'cash', credit = '赊账') => ({k: 'pay', t: 'sel', label: '结算方式', opts: [['cash', '现金'], ['credit', credit]], def}),
+  fn: (def = 'admin', auto = false, show) => ({k: 'fn', t: 'sel', label: '费用功能（按功能列报时归入）', opts: (auto ? [['auto', '按费用类型默认']] : []).concat(FN_OPTS), def, show}),
+};
+const FNZ = f => (FN_LABEL[f] || FN_LABEL.other)[1];
+
+/* ================= transaction templates ================= */
+const TPL_CATS = [['op','日常经营 Operating'],['inv','投资活动 Investing'],['fin','筹资活动 Financing'],['adj','期末调整 Adjusting'],['oci','其他综合收益 OCI'],['disc','终止经营 Discontinued operations']];
+const TEMPLATES = [
+  // ---- operating
+  {id:'sale',cat:'op',zh:'销售商品',
+    fields:[F.amt('售价（确认收入）','price'),F.amt('商品成本（结转成本）','cost'),F.pay('credit','赊销（应收账款）')],
+    memo:p=>`${p.pay==='cash'?'现销':'赊销'}商品，售价 ${m$(money(p.price))}，成本 ${m$(money(p.cost))}`,
+    note:'永续盘存制下一次销售记两笔分录：① 确认收入；② 结转销售成本。收入在商品控制权转移时确认（IFRS 15），与是否收到现金无关，这就是权责发生制。',
+    build(p){const pr=money(p.price),c=money(p.cost);if(!pos(pr))return bad('请输入售价');const g=[[D(p.pay==='cash'?'1000':'1100',pr),C('4000',pr)]];if(pos(c))g.push([D('5000',c,'cos'),C('1200',c)]);return ok(g);}},
+  {id:'purchaseInv',cat:'op',zh:'采购存货',
+    fields:[F.amt('采购成本'),F.pay('credit','赊购（应付账款）')],
+    memo:p=>`${p.pay==='cash'?'现购':'赊购'}存货 ${m$(money(p.amt))}`,
+    note:'存货是资产。买进时不是费用，卖出时才通过「销售成本」转为费用（配比）。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad('请输入采购金额');return ok([[D('1200',a),C(p.pay==='cash'?'1000':'2000',a)]]);}},
+  {id:'collectAR',cat:'op',zh:'收回应收账款',fields:[F.amt('收款金额')],
+    hint:(p,ctx)=>`应收账款当前余额 ${m$(ctx.bal('1100'))}`,
+    memo:p=>`收回客户欠款 ${m$(money(p.amt))}`,
+    note:'只是资产形式的转换（应收 → 现金），不影响利润。收入早在赊销时已经确认。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D('1000',a),C('1100',a)]]);}},
+  {id:'payAP',cat:'op',zh:'支付应付账款',fields:[F.amt('付款金额')],
+    hint:(p,ctx)=>`应付账款当前余额 ${m$(-ctx.bal('2000'))}`,
+    memo:p=>`支付供应商货款 ${m$(money(p.amt))}`,
+    note:'资产和负债同时减少，不影响利润。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D('2000',a),C('1000',a)]]);}},
+  {id:'advance',cat:'op',zh:'预收客户款项',fields:[F.amt('预收金额')],
+    memo:p=>`预收客户服务款 ${m$(money(p.amt))}`,
+    note:'还没有履行履约义务，不能确认收入，先记为合同负债（IFRS 15）。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D('1000',a),C('2300',a)]]);}},
+  {id:'service',cat:'op',zh:'提供服务',fields:[F.amt('服务收入'),F.pay('cash','赊账（应收账款）')],
+    memo:p=>`提供服务，收入 ${m$(money(p.amt))}${p.pay==='cash'?'（已收现）':'（赊账）'}`,
+    note:'履约义务完成即确认收入。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D(p.pay==='cash'?'1000':'1100',a),C('4100',a)]]);}},
+  {id:'paySalaries',cat:'op',zh:'支付工资',
+    fields:[{k:'what',t:'sel',label:'支付内容',opts:[['expense','本期工资（直接计入费用）'],['payable','以前期间已计提的应付工资']],def:'expense'},F.amt('支付金额'),F.fn('admin',false,p=>p.what!=='payable')],
+    hint:(p,ctx)=>p.what==='payable'?`应付职工薪酬当前余额 ${m$(-ctx.bal('2100'))}`:'',
+    memo:p=>p.what==='payable'?`支付上期应计工资 ${m$(money(p.amt))}`:`支付${FNZ(p.fn).replace('费用','')}人员工资 ${m$(money(p.amt))}`,
+    note:p=>p.what==='payable'?'这笔工资的费用在上一期已经计提，本期付款只减少负债，不再确认费用。':'工资按员工所属部门归入「功能」：销售人员 → 销售费用，行政人员 → 管理费用。按性质列报时它们都叫「员工福利费用」。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[p.what==='payable'?D('2100',a):D('6000',a,p.fn),C('1000',a)]]);}},
+  {id:'payExpense',cat:'op',zh:'支付营业费用',
+    fields:[{k:'acct',t:'sel',label:'费用类型',opts:[['6100','租金 Rent'],['6200','广告 Advertising'],['6300','水电 Utilities'],['6700','重组费用 Restructuring'],['6900','其他 Other']],def:'6100'},F.amt('金额'),F.pay('cash','赊账（应付账款）'),F.fn('auto',true)],
+    memo:p=>`${p.pay==='cash'?'支付':'赊欠'}${ACC[p.acct].zh} ${m$(money(p.amt))}`,
+    note:p=>p.acct==='6700'?'重组费用列在营业利润内，但未必会重复发生，分析盈利质量时要留意（第 3 章）。':'营业费用按功能归类后列在「营业费用」下。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();const fn=p.fn==='auto'?ACC[p.acct].fn:p.fn;return ok([[D(p.acct,a,fn),C(p.pay==='cash'?'1000':'2000',a)]]);}},
+  {id:'prepay',cat:'op',zh:'预付费用',fields:[{k:'what',t:'sel',label:'预付内容',opts:[['insurance','保险费'],['rent','租金']],def:'insurance'},F.amt('预付金额')],
+    memo:p=>`预付${p.what==='rent'?'租金':'保险费'} ${m$(money(p.amt))}`,
+    note:'预付款是资产（未来受益）。期末再用调整分录把已耗用部分转为费用。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D('1300',a),C('1000',a)]]);}},
+  {id:'interestRecv',cat:'op',zh:'收到利息',fields:[F.amt('利息金额')],
+    memo:p=>`收到利息 ${m$(money(p.amt))}`,
+    note:'利息收入列在「其他收益」，不属于营业利润。IFRS 允许收到的利息列为经营或投资活动现金流量，这里按课件列为经营活动。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D('1000',a),C('4500',a)]]);}},
+  {id:'payInterest',cat:'op',zh:'支付利息',fields:[{k:'what',t:'sel',label:'支付内容',opts:[['expense','本期利息（直接计入费用）'],['payable','以前期间已计提的应付利息']],def:'expense'},F.amt('利息金额')],
+    memo:p=>p.what==='payable'?`支付已计提利息 ${m$(money(p.amt))}`:`支付借款利息 ${m$(money(p.amt))}`,
+    note:'利息费用是非经营项目，列在营业利润之后。IFRS 允许支付的利息列为经营或筹资活动，这里按课件示例列为经营活动。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D(p.what==='payable'?'2150':'7000',a),C('1000',a)]]);}},
+  {id:'payTax',cat:'op',zh:'缴纳所得税',fields:[F.amt('缴税金额')],
+    hint:(p,ctx)=>`应交所得税当前余额 ${m$(-ctx.bal('2200'))}（不含本年末自动计提）`,
+    memo:p=>`缴纳所得税 ${m$(money(p.amt))}`,
+    note:'缴税只是清偿负债。本年的所得税费用在年末按税前利润自动计提。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D('2200',a),C('1000',a)]]);}},
+  {id:'writeOff',cat:'op',zh:'核销坏账',fields:[F.amt('核销金额')],
+    hint:(p,ctx)=>`坏账准备当前余额 ${m$(-ctx.bal('1105'))}`,
+    memo:p=>`核销无法收回的应收账款 ${m$(money(p.amt))}`,
+    note:'备抵法下，核销只同时冲减坏账准备和应收账款：应收账款净额不变，也不产生费用。费用在计提准备时已经确认。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D('1105',a),C('1100',a)]]);}},
+  // ---- investing
+  {id:'buyPPE',cat:'inv',zh:'购置设备或土地',
+    fields:[{k:'acct',t:'sel',label:'资产',opts:[['1510','设备 Equipment'],['1500','土地 Land']],def:'1510'},F.amt('成本'),{k:'pay',t:'sel',label:'支付方式',opts:[['cash','现金'],['note','签发长期应付票据（非现金）']],def:'cash'}],
+    memo:p=>`${p.pay==='note'?'签发长期票据':'以现金'}购置${ACC[p.acct].zh} ${m$(money(p.amt))}`,
+    note:p=>p.pay==='note'?'没有现金流动，这是「非现金投资及筹资活动」：不进入现金流量表正文，在附注中披露。':'购置长期资产的现金流出属于投资活动。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D(p.acct,a),C(p.pay==='note'?'2500':'1000',a)]]);}},
+  {id:'sellPPE',cat:'inv',zh:'出售设备',
+    fields:[F.amt('设备原始成本','cost'),F.amt('已提累计折旧','accDep'),F.amt('出售所得现金','proceeds')],
+    hint:(p,ctx)=>`账上设备成本 ${m$(ctx.bal('1510'))}，累计折旧 ${m$(-ctx.bal('1515'))}`,
+    memo:p=>`出售旧设备，售价 ${m$(money(p.proceeds)||0)}`,
+    note:'出售所得全部列为投资活动现金流入。利得或损失不是现金，间接法下要从净利润中剔除。',
+    build(p){const c=money(p.cost),d=money(p.accDep)||0,pr=money(p.proceeds)||0;if(!pos(c))return bad('请输入设备成本');if(d<0||pr<0)return bad('金额不能为负');if(d>c)return bad('累计折旧不能超过成本');const bv=c-d,g=pr-bv,L=[];if(pr)L.push(D('1000',pr));if(d)L.push(D('1515',d));if(g<0)L.push(D('7100',-g));L.push(C('1510',c));if(g>0)L.push(C('4600',g));return ok([L],{calc:`账面价值 = ${m$(c)} − ${m$(d)} = ${m$(bv)}；${g>=0?'利得':'损失'} = 售价 ${m$(pr)} − 账面价值 ${m$(bv)} = ${m$(Math.abs(g))}`});}},
+  {id:'buyInvest',cat:'inv',zh:'购买 FVOCI 股权投资',fields:[F.amt('投资成本')],
+    memo:p=>`购买股权投资（指定为 FVOCI）${m$(money(p.amt))}`,
+    note:'指定为 FVOCI 的股权投资，以后的公允价值变动计入 OCI，而且不会重分类到损益。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D('1600',a),C('1000',a)]]);}},
+  // ---- financing
+  {id:'issueShares',cat:'fin',zh:'发行普通股',fields:[{k:'shares',t:'int',label:'发行股数',def:'10000'},F.amt('每股发行价','price')],
+    memo:p=>`发行 ${Math.round(num(p.shares)).toLocaleString('en-US')} 股普通股，每股 ${m$(money(p.price))}`,
+    note:'股东投入资本记入股本（香港公司股份无面值，全部计入股本）。股数会用来计算加权平均股数和 EPS。',
+    build(p){const sh=Math.round(num(p.shares)),pr=money(p.price);if(!(sh>0))return bad('请输入股数');if(!pos(pr))return bad('请输入发行价');const a=sh*pr;return ok([[D('1000',a),C('3000',a)]],{shares:sh,calc:`${sh.toLocaleString('en-US')} 股 × ${m$(pr)} = ${m$(a)}`});}},
+  {id:'borrow',cat:'fin',zh:'取得长期借款',fields:[F.amt('借款本金')],
+    memo:p=>`取得银行长期借款 ${m$(money(p.amt))}`,note:'借款本金的收付属于筹资活动。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D('1000',a),C('2500',a)]]);}},
+  {id:'repayLoan',cat:'fin',zh:'偿还借款本金',fields:[F.amt('还款金额')],
+    hint:(p,ctx)=>`长期借款当前余额 ${m$(-ctx.bal('2500'))}`,
+    memo:p=>`偿还借款本金 ${m$(money(p.amt))}`,note:'偿还本金是筹资活动；利息另记，列为利息费用。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D('2500',a),C('1000',a)]]);}},
+  {id:'declareDiv',cat:'fin',zh:'宣告现金股利',fields:[F.amt('股利总额')],
+    memo:p=>`宣告现金股利 ${m$(money(p.amt))}`,
+    note:'股利是对股东的分配，不是费用：不进损益表，而在权益变动表中减少留存收益。宣告当天就产生负债。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D('3300',a),C('2400',a)]]);}},
+  {id:'payDiv',cat:'fin',zh:'支付股利',fields:[F.amt('支付金额')],
+    hint:(p,ctx)=>`应付股利当前余额 ${m$(-ctx.bal('2400'))}`,
+    memo:p=>`支付股利 ${m$(money(p.amt))}`,note:'支付股利是筹资活动（IFRS 也允许列为经营活动，这里按课件列为筹资）。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D('2400',a),C('1000',a)]]);}},
+  // ---- adjusting
+  {id:'depreciation',cat:'adj',zh:'计提折旧',
+    fields:[{k:'method',t:'sel',label:'计算方式',opts:[['sl','直线法计算'],['manual','直接输入金额']],def:'sl'},
+      {k:'cost',t:'money',label:'资产成本',show:p=>p.method==='sl'},{k:'residual',t:'money',label:'预计残值',def:'0',show:p=>p.method==='sl'},
+      {k:'life',t:'num',label:'使用年限（年）',def:'5',show:p=>p.method==='sl'},{k:'months',t:'int',label:'本年计提月数',def:'12',show:p=>p.method==='sl'},
+      {k:'amt',t:'money',label:'折旧金额',show:p=>p.method==='manual'},F.fn('admin')],
+    memo:p=>`计提折旧（${FNZ(p.fn)}）`,
+    note:'折旧把资产成本分摊到各受益期间（配比），不涉及现金，所以间接法里要加回。修改使用年限或残值属于会计估计变更，未来适用（第 3 章）。',
+    build(p){let a,calc='';if(p.method==='manual'){a=money(p.amt);}else{const c=money(p.cost),r=money(p.residual)||0,l=num(p.life),m=num(p.months);if(!pos(c))return bad('请输入资产成本');if(!(l>0))return bad('请输入使用年限');if(!(m>0&&m<=12))return bad('计提月数应在 1–12 之间');a=Math.round((c-r)/l*m/12);calc=`(${m$(c)} − ${m$(r)}) ÷ ${l} 年 × ${m}/12 = ${m$(a)}`;}if(!pos(a))return bad('请输入折旧金额');return ok([[D('6500',a,p.fn),C('1515',a)]],{calc});}},
+  {id:'accrueSalaries',cat:'adj',zh:'计提应付工资',fields:[F.amt('已发生未支付的工资'),F.fn('admin')],
+    memo:p=>`计提年末未付工资 ${m$(money(p.amt))}`,
+    note:'员工已经提供服务，费用必须计入本期（权责发生制），哪怕下期才付款。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D('6000',a,p.fn),C('2100',a)]]);}},
+  {id:'accrueInterest',cat:'adj',zh:'计提应付利息',
+    fields:[{k:'method',t:'sel',label:'计算方式',opts:[['calc','本金 × 利率 × 时间'],['manual','直接输入金额']],def:'calc'},
+      {k:'principal',t:'money',label:'借款本金',show:p=>p.method==='calc'},{k:'rate',t:'num',label:'年利率 %',def:'8',show:p=>p.method==='calc'},{k:'months',t:'int',label:'应计月数',def:'3',show:p=>p.method==='calc'},
+      {k:'amt',t:'money',label:'利息金额',show:p=>p.method==='manual'}],
+    memo:p=>`计提年末应付利息`,
+    note:'利息随时间发生，年末把已发生、未支付的部分计入费用和负债。',
+    build(p){let a,calc='';if(p.method==='manual')a=money(p.amt);else{const pr=money(p.principal),r=num(p.rate),m=num(p.months);if(!pos(pr))return bad('请输入本金');if(!(r>0))return bad('请输入利率');if(!(m>0))return bad('请输入月数');a=Math.round(pr*r/100*m/12);calc=`${m$(pr)} × ${r}% × ${m}/12 = ${m$(a)}`;}if(!pos(a))return bad();return ok([[D('7000',a),C('2150',a)]],{calc});}},
+  {id:'accrueIntIncome',cat:'adj',zh:'计提应收利息',fields:[F.amt('已赚取未收到的利息')],
+    memo:p=>`计提应收利息 ${m$(money(p.amt))}`,note:'利息已经赚取但还没收到现金：确认收入和应收款。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D('1110',a),C('4500',a)]]);}},
+  {id:'expirePrepaid',cat:'adj',zh:'预付费用摊销',
+    fields:[{k:'acct',t:'sel',label:'转为哪项费用',opts:[['6400','保险费 Insurance'],['6100','租金 Rent']],def:'6400'},
+      {k:'method',t:'sel',label:'计算方式',opts:[['ratio','按月份比例'],['manual','直接输入金额']],def:'ratio'},
+      {k:'total',t:'money',label:'预付总额',show:p=>p.method==='ratio'},{k:'covered',t:'int',label:'覆盖月数',def:'12',show:p=>p.method==='ratio'},{k:'used',t:'int',label:'本年已耗用月数',def:'8',show:p=>p.method==='ratio'},
+      {k:'amt',t:'money',label:'本期费用',show:p=>p.method==='manual'},F.fn('auto',true)],
+    hint:(p,ctx)=>`预付费用当前余额 ${m$(ctx.bal('1300'))}`,
+    memo:p=>`预付${ACC[p.acct].zh.replace('费用','')}到期部分转为费用`,
+    note:'预付款随时间耗用：已耗用部分从资产转为费用，剩余部分仍是资产。',
+    build(p){let a,calc='';if(p.method==='manual')a=money(p.amt);else{const t=money(p.total),c=num(p.covered),u=num(p.used);if(!pos(t))return bad('请输入预付总额');if(!(c>0)||!(u>0))return bad('请输入月数');if(u>c)return bad('已耗用月数不能超过覆盖月数');a=Math.round(t*u/c);calc=`${m$(t)} × ${u}/${c} = ${m$(a)}`;}if(!pos(a))return bad();const fn=p.fn==='auto'?ACC[p.acct].fn:p.fn;return ok([[D(p.acct,a,fn),C('1300',a)]],{calc});}},
+  {id:'earnUnearned',cat:'adj',zh:'确认已赚取的预收收入',fields:[F.amt('已完成履约的部分')],
+    hint:(p,ctx)=>`预收收入当前余额 ${m$(-ctx.bal('2300'))}`,
+    memo:p=>`履约完成，预收款转为服务收入 ${m$(money(p.amt))}`,
+    note:'履约义务完成时，合同负债转为收入（IFRS 15）。现金早就收到了，这一步不涉及现金。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[D('2300',a),C('4100',a)]]);}},
+  {id:'badDebt',cat:'adj',zh:'计提坏账准备',
+    fields:[{k:'method',t:'sel',label:'估计方法',opts:[['pct','应收账款余额百分比法'],['manual','直接输入本期费用']],def:'pct'},
+      {k:'pct',t:'num',label:'估计无法收回 %',def:'5',show:p=>p.method==='pct'},{k:'amt',t:'money',label:'本期坏账费用',show:p=>p.method==='manual'},F.fn('admin')],
+    hint:(p,ctx)=>`应收账款 ${m$(ctx.bal('1100'))}，坏账准备现有余额 ${m$(-ctx.bal('1105'))}`,
+    memo:p=>p.method==='pct'?`按应收账款 ${p.pct}% 计提坏账准备`:'计提坏账准备',
+    note:'坏账率是会计估计。估计改变属于会计估计变更，未来适用，不追溯调整（第 3 章）。',
+    build(p,ctx){let x,calc='';if(p.method==='manual'){x=money(p.amt);if(!pos(x))return bad();}else{const pc=num(p.pct);if(!(pc>=0))return bad('请输入百分比');const ar=ctx.bal('1100'),al=-ctx.bal('1105'),tg=Math.round(ar*pc/100);x=tg-al;calc=`目标准备 = 应收 ${m$(ar)} × ${pc}% = ${m$(tg)}；已有准备 ${m$(al)}；本期应${x>=0?'计提':'冲回'} ${m$(Math.abs(x))}`;if(!x)return bad('准备余额已经等于目标，无需调整');}return ok([x>0?[D('6600',x,p.fn),C('1105',x)]:[D('1105',-x),C('6600',-x,p.fn)]],{calc});}},
+  // ---- OCI
+  {id:'revalueLand',cat:'oci',adj:true,zh:'土地重估（重估模型）',fields:[F.amt('重估后公允价值','fv')],
+    hint:(p,ctx)=>`土地当前账面价值 ${m$(ctx.bal('1500'))}`,
+    memo:p=>`土地重估至公允价值 ${m$(money(p.fv))}`,
+    note:'IAS 16 重估模型：增值计入 OCI 并累积在「重估盈余」；减值先冲减已有重估盈余，不足部分计入损益。这里 OCI 按税后金额列示，简化处理，不另算递延所得税。',
+    build(p,ctx){const fv=money(p.fv);if(!Number.isFinite(fv)||fv<0)return bad('请输入公允价值');const ca=ctx.bal('1500');if(ca<=0)return bad('账上没有土地');const d=fv-ca;if(!d)return bad('公允价值等于账面价值，无需调整');if(d>0)return ok([[D('1500',d),C('9000',d)]],{calc:`重估增值 = ${m$(fv)} − 账面 ${m$(ca)} = ${m$(d)} → 计入 OCI`});const sur=Math.max(-(ctx.bal('3200')+ctx.bal('9000')),0),x=Math.min(-d,sur),y=-d-x,L=[];if(x)L.push(D('9000',x));if(y)L.push(D('6800',y,'other'));L.push(C('1500',-d));return ok([L],{calc:`重估减值 ${m$(-d)}：先冲减已有重估盈余 ${m$(x)}（OCI），其余 ${m$(y)} 计入损益`});}},
+  {id:'fvociChange',cat:'oci',adj:true,zh:'FVOCI 投资公允价值变动',fields:[F.amt('期末公允价值','fv')],
+    hint:(p,ctx)=>`FVOCI 投资当前账面价值 ${m$(ctx.bal('1600'))}`,
+    memo:p=>`FVOCI 投资按期末公允价值 ${m$(money(p.fv))} 计量`,
+    note:'未实现持有利得或损失计入 OCI，累积在「公允价值储备」，不影响净利润。这里按税后金额列示。',
+    build(p,ctx){const fv=money(p.fv);if(!Number.isFinite(fv)||fv<0)return bad('请输入公允价值');const ca=ctx.bal('1600'),d=fv-ca;if(!d)return bad('公允价值没有变化');return ok([d>0?[D('1600',d),C('9100',d)]:[D('9100',-d),C('1600',-d)]],{calc:`公允价值变动 = ${m$(fv)} − 账面 ${m$(ca)} = ${fmt(d)} → OCI`});}},
+  // ---- discontinued operations
+  {id:'discOps',cat:'disc',zh:'终止经营部门本期经营损益',
+    fields:[{k:'kind',t:'sel',label:'本期结果',opts:[['loss','经营亏损'],['profit','经营利润']],def:'loss'},F.amt('税前金额')],
+    memo:p=>`终止经营部门年初至处置日经营${p.kind==='profit'?'利润':'亏损'} ${m$(money(p.amt))}`,
+    note:'部门从年初到处置日（或年末）的经营损益，记入终止经营，与持续经营分开。简化：假设以现金结算。',
+    build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([p.kind==='profit'?[D('1000',a),C('8500',a)]:[D('8500',a),C('1000',a)]]);}},
+  {id:'heldForSale',cat:'disc',zh:'部门资产划分为持有待售',fields:[F.amt('部门设备成本','cost'),F.amt('已提累计折旧','accDep')],
+    hint:(p,ctx)=>`账上设备成本 ${m$(ctx.bal('1510'))}，累计折旧 ${m$(-ctx.bal('1515'))}`,
+    memo:p=>`管理层决定出售部门，资产转为持有待售`,
+    note:'IFRS 5：符合条件的部门资产单独列为「持有待售资产」，按账面价值与公允价值减出售成本孰低计量，并停止计提折旧。',
+    build(p){const c=money(p.cost),d=money(p.accDep)||0;if(!pos(c))return bad('请输入成本');if(d>c||d<0)return bad('累计折旧应在 0 与成本之间');return ok([[D('1450',c-d),D('1515',d),C('1510',c)]],{calc:`账面价值 = ${m$(c)} − ${m$(d)} = ${m$(c-d)}`});}},
+  {id:'hfsImpair',cat:'disc',adj:true,zh:'持有待售资产减值（年末未售出）',fields:[F.amt('公允价值减出售成本','fvlcs')],
+    hint:(p,ctx)=>`持有待售资产当前账面价值 ${m$(ctx.bal('1450'))}`,
+    memo:p=>`持有待售资产减记至公允价值减出售成本 ${m$(money(p.fvlcs))}`,
+    note:'年末还没卖出：终止经营损益 = 本年经营损益 + 减值损失。',
+    build(p,ctx){const f=money(p.fvlcs);if(!Number.isFinite(f)||f<0)return bad('请输入金额');const ca=ctx.bal('1450');if(ca<=0)return bad('没有持有待售资产：请先做「部门资产划分为持有待售」');if(f>=ca)return bad(`公允价值减出售成本 ${m$(f)} ≥ 账面价值 ${m$(ca)}：按孰低计量，不确认减值，也不确认利得（课件的课堂练习就是这种情况）。`);const x=ca-f;return ok([[D('8500',x),C('1450',x)]],{calc:`减值 = 账面 ${m$(ca)} − ${m$(f)} = ${m$(x)}`});}},
+  {id:'hfsSell',cat:'disc',zh:'出售终止经营部门资产',fields:[F.amt('出售所得现金','proceeds')],
+    hint:(p,ctx)=>`持有待售资产当前账面价值 ${m$(ctx.bal('1450'))}`,
+    memo:p=>`出售终止经营部门资产，所得 ${m$(money(p.proceeds))}`,
+    note:'已出售：终止经营损益 = 经营损益 + 处置利得/损失，扣税后以单一金额列在持续经营利润之下。',
+    build(p,ctx){const pr=money(p.proceeds);if(!Number.isFinite(pr)||pr<0)return bad('请输入出售所得');const ca=ctx.bal('1450');if(ca<=0)return bad('没有持有待售资产：请先做「部门资产划分为持有待售」');const g=pr-ca,L=[];if(pr)L.push(D('1000',pr));if(g<0)L.push(D('8500',-g));L.push(C('1450',ca));if(g>0)L.push(C('8500',g));return ok([L],{calc:`处置${g>=0?'利得':'损失'} = 售价 ${m$(pr)} − 账面价值 ${m$(ca)} = ${m$(Math.abs(g))}（并入终止经营损益）`});}},
+];
+const TPL = {}; TEMPLATES.forEach(t => TPL[t.id] = t);
+const isAdjTpl = t => t.cat === 'adj' || t.adj === true;
+const noteOf = (t, p) => typeof t.note === 'function' ? t.note(p) : (t.note || '');
+
+/* ================= sample data ================= */
+const SAMPLE_OB = {'1000':120000,'1100':60000,'1105':-3000,'1200':80000,'1500':200000,'1510':300000,'1515':-90000,'1600':50000,'2000':-45000,'2100':-8000,'2200':-12000,'2500':-150000,'3000':-300000,'3100':-190000,'3210':-12000};
+const SAMPLE = [
+  ['2026-01-10','paySalaries',{what:'payable',amt:'8000',fn:'admin'}],
+  ['2026-02-01','purchaseInv',{amt:'300000',pay:'credit'}],
+  ['2026-03-10','sale',{price:'420000',cost:'252000',pay:'credit'}],
+  ['2026-03-20','sale',{price:'130000',cost:'78000',pay:'cash'}],
+  ['2026-04-05','collectAR',{amt:'380000'}],
+  ['2026-04-30','payTax',{amt:'12000'}],
+  ['2026-04-30','payAP',{amt:'290000'}],
+  ['2026-05-01','prepay',{what:'insurance',amt:'12000'}],
+  ['2026-05-31','paySalaries',{what:'expense',amt:'36000',fn:'sell'}],
+  ['2026-05-31','paySalaries',{what:'expense',amt:'28000',fn:'admin'}],
+  ['2026-06-01','payExpense',{acct:'6100',amt:'24000',pay:'cash',fn:'auto'}],
+  ['2026-06-01','payExpense',{acct:'6200',amt:'15000',pay:'cash',fn:'auto'}],
+  ['2026-06-01','payExpense',{acct:'6300',amt:'6000',pay:'cash',fn:'auto'}],
+  ['2026-06-30','sellPPE',{cost:'40000',accDep:'30000',proceeds:'14000'}],
+  ['2026-07-01','issueShares',{shares:'20000',price:'6'}],
+  ['2026-08-01','buyPPE',{acct:'1510',amt:'80000',pay:'cash'}],
+  ['2026-08-15','writeOff',{amt:'2000'}],
+  ['2026-09-01','buyPPE',{acct:'1510',amt:'30000',pay:'note'}],
+  ['2026-09-30','repayLoan',{amt:'50000'}],
+  ['2026-09-30','payInterest',{what:'expense',amt:'9000'}],
+  ['2026-10-01','heldForSale',{cost:'60000',accDep:'20000'}],
+  ['2026-11-01','advance',{amt:'10000'}],
+  ['2026-11-20','declareDiv',{amt:'25000'}],
+  ['2026-12-01','interestRecv',{amt:'2000'}],
+  ['2026-12-15','discOps',{kind:'loss',amt:'18000'}],
+  ['2026-12-18','hfsSell',{proceeds:'46000'}],
+  ['2026-12-20','payDiv',{amt:'20000'}],
+  ['2026-12-31','depreciation',{method:'manual',amt:'12000',fn:'sell',cost:'',residual:'0',life:'5',months:'12'}],
+  ['2026-12-31','depreciation',{method:'sl',cost:'160000',residual:'0',life:'10',months:'12',fn:'admin',amt:''}],
+  ['2026-12-31','expirePrepaid',{acct:'6400',method:'ratio',total:'12000',covered:'12',used:'8',amt:'',fn:'auto'}],
+  ['2026-12-31','accrueSalaries',{amt:'6000',fn:'admin'}],
+  ['2026-12-31','accrueInterest',{method:'manual',amt:'2000',principal:'',rate:'8',months:'3'}],
+  ['2026-12-31','earnUnearned',{amt:'6000'}],
+  ['2026-12-31','badDebt',{method:'pct',pct:'5',amt:'',fn:'admin'}],
+  ['2026-12-31','revalueLand',{fv:'230000'}],
+  ['2026-12-31','fvociChange',{fv:'46000'}],
+];
+
+/* ================= state ================= */
+let S, R, TRACES = [];
+const UI = {mode:'tpl', tpl:'sale', params:null, editing:null, sel:null, custom:null, lf:'all', revealed:new Set(), openWhy:new Set(),
+  guesses:{}, marks:{}, showAns:false, showSettings:false, lastDate:null, ai:{text:'',status:'idle',res:null,err:'',ctl:null},
+  sample:null, dl:null, undo:null, lastEq:null, labFrom:null, qai:{ch:3, type:'mc', status:'idle', err:'', ctl:null}};
+
+function blankState(){
+  return {v:1, seq:0, company:{name:'New Company Limited', year:2026, cur:'HK$'},
+    settings:{tax:20, autoTax:true, lang:'both', plMethod:'function', plPres:'single', cfMethod:'indirect', practice:false, tab:'pl', view:'lab'},
+    openingShares:0, opening:{}, txns:[]};
+}
+function balancesOf(s, excludeId){
+  const b = {...s.opening};
+  for (const t of s.txns) { if (t.id === excludeId) continue; for (const g of t.groups) for (const l of g) b[l.a] = (b[l.a] || 0) + l.s; }
+  return b;
+}
+function runTpl(s, id, p, excludeId){
+  const t = TPL[id]; if (!t) return {err:'未知的交易类型'};
+  const b = balancesOf(s, excludeId);
+  const ctx = {bal: a => b[a] || 0, year: s.company.year};
+  let r;
+  try { r = t.build(p, ctx) || {err:'无法生成分录'}; } catch (e) { r = {err:'输入有误：' + e.message}; }
+  if (r.err) return r;
+  r.groups = r.groups.map(g => g.filter(l => l.s).map(l => { const fn = normFn(l.a, l.fn); return fn ? {a:l.a, s:Math.round(l.s), fn} : {a:l.a, s:Math.round(l.s)}; })).filter(g => g.length);
+  if (!r.groups.length) return {err:'金额为零，不需要记账'};
+  for (const g of r.groups) if (g.reduce((x, l) => x + l.s, 0) !== 0) return {err:'分录借贷不平衡'};
+  return r;
+}
+function buildState(def){
+  const s = blankState();
+  s.company = {name:def.name, year:2026, cur:def.cur || 'HK$'};
+  s.openingShares = def.shares || 0;
+  for (const k in def.ob) s.opening[k] = def.ob[k] * 100;
+  CUR_OVR = s.company.cur;
+  try {
+    for (const [date, id, p] of def.tx) {
+      const r = runTpl(s, id, p, null);
+      if (r.err) { console.warn(id, r.err); continue; }
+      const t = TPL[id]; s.seq++;
+      s.txns.push({id:'T' + s.seq, seq:s.seq, date, tpl:id, p:{...p}, memoUser:'', memo:t.memo(p), adj:isAdjTpl(t), groups:r.groups, calc:r.calc || '', shares:r.shares || 0});
+    }
+  } finally { CUR_OVR = null; }
+  return s;
+}
+function sampleState(){ return buildState({name:'Lantern Bay Trading Limited', cur:'HK$', ob:SAMPLE_OB, shares:100000, tx:SAMPLE}); }
+function normalize(s){
+  const b = blankState();
+  const out = {...b, ...s, company:{...b.company, ...(s.company || {})}, settings:{...b.settings, ...(s.settings || {})}};
+  out.opening = s.opening && typeof s.opening === 'object' ? s.opening : {};
+  out.txns = (Array.isArray(s.txns) ? s.txns : []).filter(t => t && Array.isArray(t.groups) && t.date && t.groups.every(g => Array.isArray(g) && g.every(l => ACC[l.a] && Number.isFinite(l.s))));
+  out.seq = Math.max(out.seq || 0, ...out.txns.map(t => t.seq || 0), 0);
+  out.txns.forEach((t, i) => { if (!t.id) t.id = 'T' + (++out.seq); if (!t.seq) t.seq = ++out.seq; });
+  return out;
+}
+function load(){
+  try { const raw = localStorage.getItem(KEY); if (raw) { const s = JSON.parse(raw); if (s && s.company && Array.isArray(s.txns)) return normalize(s); } } catch (e) {}
+  return sampleState();
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+/* ================= engine ================= */
+function taxEntry(entries){
+  const rate = (+S.settings.tax || 0) / 100;
+  let pbt = 0, disc = 0;
+  for (const e of entries) for (const g of e.groups) for (const l of g) {
+    const p = ACC[l.a].pl;
+    if (p === 'rev' || p === 'oth' || p === 'opx') pbt -= l.s; else if (p === 'disc') disc -= l.s;
+  }
+  const t1 = Math.round(pbt * rate), t2 = Math.round(disc * rate);
+  if (!t1 && !t2) return null;
+  const g = [];
+  if (t1) g.push({a:'8000', s:t1});
+  if (t2) g.push({a:'8510', s:t2});
+  if (t1 + t2) g.push({a:'2200', s:-(t1 + t2)});
+  const pct = S.settings.tax;
+  return {id:'TAX', auto:true, adj:true, date:`${S.company.year}-12-31`, seq:1e9,
+    memo:`计提本年所得税（税率 ${pct}%，系统自动）`, groups:[g],
+    calc:`持续经营税前利润 ${m$(pbt)} × ${pct}% = ${m$(t1)}${disc?`；终止经营税前损益 ${fmt(disc)} × ${pct}% = ${fmt(t2)}（${t2<0?'所得税利益':'所得税费用'}）`:''}`,
+    note:'「期间内所得税分配」：持续经营的税列为所得税费用；终止经营的税并入终止经营，最终以税后单一金额列报。可在「设置」里关闭自动计提。'};
+}
+
+function compute(){
+  const yr = +S.company.year;
+  const txs = [...S.txns].sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : a.seq - b.seq);
+  const entries = txs.map(t => ({...t}));
+  const taxE = S.settings.autoTax ? taxEntry(entries) : null;
+  if (taxE) entries.push(taxE);
+  entries.forEach((e, i) => e.no = i + 1);
+  const byId = {}; entries.forEach(e => byId[e.id] = e);
+  const POST = [];
+  entries.forEach(e => e.groups.forEach((g, gi) => g.forEach(l => POST.push({id:e.id, g:gi, a:l.a, s:l.s, fn:l.fn || null, adj:!!e.adj}))));
+  const OB = S.opening, MV = {};
+  POST.forEach(p => { MV[p.a] = (MV[p.a] || 0) + p.s; });
+  const bal = a => (OB[a] || 0) + (MV[a] || 0);
+  const col = (pred, sign = 1) => { let amt = 0; const ids = new Map(); for (const p of POST) if (pred(p)) { const v = p.s * sign; amt += v; ids.set(p.id, (ids.get(p.id) || 0) + v); } return {amt, ids}; };
+  const acol = (c, sign) => col(p => p.a === c, sign);
+  const X = {yr, entries, byId, POST, OB, MV, bal, col, acol, taxE};
+
+  // ---- profit or loss
+  const P = {};
+  const fnOf = p => p.fn || ACC[p.a].fn || 'other';
+  P.rev = COA.filter(a => a.pl === 'rev').map(a => ({a, ...acol(a.c, -1)}));
+  P.revTot = P.rev.reduce((x, y) => x + y.amt, 0);
+  for (const f of ['cos', 'sell', 'admin', 'other']) P[f] = col(p => ACC[p.a].pl === 'opx' && fnOf(p) === f, 1);
+  P.opx = COA.filter(a => a.pl === 'opx').map(a => ({a, ...acol(a.c, 1)}));
+  P.opxTot = P.sell.amt + P.admin.amt + P.other.amt;
+  P.gp = P.revTot - P.cos.amt;
+  P.opProfit = P.gp - P.opxTot;
+  P.oth = COA.filter(a => a.pl === 'oth').map(a => ({a, ...acol(a.c, -1)}));
+  P.othTot = P.oth.reduce((x, y) => x + y.amt, 0);
+  P.pbt = P.opProfit + P.othTot;
+  P.tax = acol('8000', 1);
+  P.cont = P.pbt - P.tax.amt;
+  P.disc = acol('8500', -1); P.discTax = acol('8510', -1);
+  P.discNet = P.disc.amt + P.discTax.amt;
+  P.hasDisc = P.disc.ids.size > 0 || P.discTax.ids.size > 0;
+  P.np = P.cont + P.discNet;
+  P.oci = COA.filter(a => a.t === 'O').map(a => ({a, ...acol(a.c, -1)}));
+  P.ociOf = c => P.oci.find(x => x.a.c === c);
+  P.ociTot = P.oci.reduce((x, y) => x + y.amt, 0);
+  P.tci = P.np + P.ociTot;
+  P.plHits = new Set(POST.filter(p => ACC[p.a].pl).map(p => p.id));
+  P.ociHits = new Set(POST.filter(p => ACC[p.a].t === 'O').map(p => p.id));
+  // EPS
+  let w = +S.openingShares || 0;
+  const parts = [`期初 ${w.toLocaleString('en-US')} 股 × 12/12`];
+  for (const t of S.txns) if (t.shares > 0 && String(t.date).slice(0, 4) === String(yr)) {
+    const mo = monthsOut(t.date); w += t.shares * mo / 12;
+    parts.push(`${t.date.slice(5)} 发行 ${t.shares.toLocaleString('en-US')} 股 × ${fmtMo(mo)}/12`);
+  }
+  P.wSh = w; P.wParts = parts;
+  P.eps = v => w > 0 ? v / 100 / w : null;
+  X.P = P;
+
+  // ---- financial position
+  const assetCodes = COA.filter(a => a.t === 'A' || a.t === 'XA').map(a => a.c);
+  const liabCodes = COA.filter(a => a.t === 'L').map(a => a.c);
+  const sumB = cs => cs.reduce((x, c) => x + bal(c), 0);
+  const sumO = cs => cs.reduce((x, c) => x + (OB[c] || 0), 0);
+  X.totA = sumB(assetCodes); X.totL = -sumB(liabCodes);
+  X.scEnd = -bal('3000');
+  X.reEnd = -(bal('3100') + bal('3300')) + P.np;
+  X.revalEnd = -bal('3200') + P.ociOf('9000').amt;
+  X.fvrEnd = -bal('3210') + P.ociOf('9100').amt;
+  X.totE = X.scEnd + X.reEnd + X.revalEnd + X.fvrEnd;
+  X.oA = sumO(assetCodes); X.oL = -sumO(liabCodes); X.oE = -sumO(['3000', '3100', '3200', '3210', '3300']);
+  let obDr = 0, obCr = 0; for (const k in OB) { if (!ACC[k]) continue; if (OB[k] > 0) obDr += OB[k]; else obCr -= OB[k]; }
+  X.obDr = obDr; X.obCr = obCr;
+  let tbDr = 0, tbCr = 0; for (const a of COA) { const b = bal(a.c); if (b > 0) tbDr += b; else tbCr -= b; }
+  X.tbDr = tbDr; X.tbCr = tbCr;
+
+  X.CF = computeCF(X);
+  X.CL = computeClosing(X);
+  X.checks = [
+    {k:'ob', ok: obDr === obCr, zh:'期初平衡', why:`期初余额：借方合计 ${m$(obDr)}，贷方合计 ${m$(obCr)}。${obDr===obCr?'两者相等。':'两者不等，请在「期初余额」页修正，否则财务状况表不会平衡。'}`},
+    {k:'tb', ok: tbDr === tbCr, zh:'试算平衡', why:`调整后试算平衡表：借方 ${m$(tbDr)}，贷方 ${m$(tbCr)}。每笔分录借贷相等，所以只要期初平衡，试算表一定平衡。`},
+    {k:'eq', ok: X.totA === X.totL + X.totE, zh:'资产 = 负债 + 权益', why:`资产 ${m$(X.totA)} = 负债 ${m$(X.totL)} + 权益 ${m$(X.totE)}。`},
+    {k:'np', ok: true, zh:'净利润 → 留存收益', why:`损益表的净利润 ${m$(P.np)} 进入权益变动表的留存收益栏：期初 ${m$(-(OB['3100']||0))} + 净利润 ${m$(P.np)} − 股利 ${m$(bal('3300'))} + 其他 ${m$(-(MV['3100']||0))} = 期末 ${m$(X.reEnd)}，再列入财务状况表。`},
+    {k:'cash', ok: X.CF.closeCash === bal('1000') && X.CF.openCash + X.CF.net === X.CF.closeCash, zh:'现金对得上', why:`现金流量表：期初现金 ${m$(X.CF.openCash)} + 现金净增加 ${m$(X.CF.net)} = 期末现金 ${m$(X.CF.openCash + X.CF.net)}；财务状况表的现金 ${m$(bal('1000'))}。`},
+    {k:'cfm', ok: X.CF.opTot === X.CF.indirectTot, zh:'间接法 = 直接法', why:`经营活动现金流量：直接法 ${m$(X.CF.opTot)}，间接法 ${m$(X.CF.indirectTot)}。两种方法只是呈现方式不同，结果必须相同。`},
+  ];
+  return X;
+}
+
+function computeCF(X){
+  const items = [], adjs = [], nonCash = [];
+  for (const e of X.entries) e.groups.forEach(g => {
+    let invfin = 0;
+    const cashL = g.filter(l => ACC[l.a].cf === 'cash');
+    for (const cl of cashL) {
+      const s = cl.s; if (!s) continue;
+      const opp = g.filter(l => ACC[l.a].cf !== 'cash' && Math.sign(l.s) === -Math.sign(s));
+      const nc = opp.filter(l => ACC[l.a].cf === 'inv' || ACC[l.a].cf === 'fin');
+      const pool = nc.length ? nc : opp;
+      if (!pool.length) continue;
+      const parts = allocate(Math.abs(s), pool.map(l => Math.abs(l.s)));
+      pool.forEach((l, i) => {
+        const amt = Math.sign(s) * parts[i]; if (!amt) return;
+        const A = ACC[l.a];
+        if (A.cf === 'inv' || A.cf === 'fin') { items.push({id:e.id, cat:A.cf, key:A.k + ':' + (amt > 0 ? 'in' : 'out'), amt}); invfin += amt; }
+        else items.push({id:e.id, cat:'op', key:A.op || 'otherOpex', amt});
+      });
+    }
+    let sNC = 0, sOCI = 0;
+    for (const l of g) { const cf = ACC[l.a].cf; if (cf === 'inv' || cf === 'fin') sNC += l.s; else if (cf === 'oci') sOCI += l.s; }
+    const adj = -invfin - sNC - sOCI;
+    if (adj) {
+      const pls = g.filter(l => ACC[l.a].pl && ACC[l.a].adj).sort((a, b) => Math.abs(b.s) - Math.abs(a.s));
+      adjs.push({id:e.id, key: pls.length ? ACC[pls[0].a].adj : 'other', amt:adj});
+    }
+    if (!cashL.length && !g.some(l => ['pl', 'oci', 'wc'].includes(ACC[l.a].cf))) {
+      const cats = new Set(g.map(l => ACC[l.a].cf)), keys = new Set(g.map(l => ACC[l.a].k));
+      if (!keys.has('div') && ((cats.has('inv') && cats.has('fin')) || (cats.size === 1 && cats.has('fin') && keys.size > 1)))
+        nonCash.push({id:e.id, amt:g.filter(l => l.s > 0).reduce((x, l) => x + l.s, 0)});
+    }
+  });
+  const agg = (list, order) => {
+    const m = new Map();
+    for (const it of list) { if (!m.has(it.key)) m.set(it.key, {key:it.key, amt:0, ids:new Map()}); const o = m.get(it.key); o.amt += it.amt; o.ids.set(it.id, (o.ids.get(it.id) || 0) + it.amt); }
+    const arr = [...m.values()];
+    arr.sort((a, b) => { const ia = order.indexOf(a.key), ib = order.indexOf(b.key); return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); });
+    return arr;
+  };
+  const opD = agg(items.filter(i => i.cat === 'op'), OP_ORDER);
+  const inv = agg(items.filter(i => i.cat === 'inv'), INV_ORDER);
+  const fin = agg(items.filter(i => i.cat === 'fin'), FIN_ORDER);
+  const adjAgg = agg(adjs, ['dep', 'reval', 'ppe', 'disc', 'other']);
+  // working capital
+  const groups = {};
+  COA.filter(a => a.cf === 'wc').forEach(a => (groups[a.wc] = groups[a.wc] || []).push(a.c));
+  const wc = [];
+  for (const [k, codes] of Object.entries(groups)) {
+    const open = codes.reduce((x, c) => x + (X.OB[c] || 0), 0), close = codes.reduce((x, c) => x + X.bal(c), 0);
+    const ids = new Map();
+    for (const p of X.POST) if (codes.includes(p.a)) ids.set(p.id, (ids.get(p.id) || 0) - p.s);
+    if (open === close) continue;
+    wc.push({k, codes, open, close, amt:-(close - open), ids, isAsset: ACC[codes[0]].t === 'A'});
+  }
+  const sum = a => a.reduce((x, y) => x + y.amt, 0);
+  const opTot = sum(opD), invTot = sum(inv), finTot = sum(fin);
+  const indirectTot = X.P.np + sum(adjAgg) + sum(wc);
+  const pick = k => -(opD.find(x => x.key === k)?.amt || 0);
+  return {items, opD, inv, fin, adjAgg, wc, nonCash, nonCashIds:new Set(nonCash.map(n => n.id)), opTot, invTot, finTot, indirectTot,
+    net: opTot + invTot + finTot, openCash: X.OB['1000'] || 0, closeCash: X.bal('1000'), intPaid: pick('intPaid'), taxPaid: pick('tax'), intRec: -pick('intRec')};
+}
+
+function computeClosing(X){
+  const plA = COA.filter(a => a.pl), E = [];
+  const crb = plA.filter(a => X.bal(a.c) < 0), drb = plA.filter(a => X.bal(a.c) > 0);
+  if (crb.length) { const tot = crb.reduce((x, a) => x - X.bal(a.c), 0); E.push({id:'C1', no:'C1', memo:'结转贷方余额的收入、利得类账户 → 本年利润汇总', groups:[[...crb.map(a => ({a:a.c, s:-X.bal(a.c)})), {a:'3900', s:-tot}]]}); }
+  if (drb.length) { const tot = drb.reduce((x, a) => x + X.bal(a.c), 0); E.push({id:'C2', no:'C2', memo:'结转借方余额的费用、损失类账户 → 本年利润汇总', groups:[[{a:'3900', s:tot}, ...drb.map(a => ({a:a.c, s:-X.bal(a.c)}))]]}); }
+  const np = X.P.np;
+  if (np) E.push({id:'C3', no:'C3', memo: np > 0 ? '本年利润汇总的贷方余额（净利润）→ 留存收益' : '本年利润汇总的借方余额（净亏损）→ 留存收益', groups:[np > 0 ? [{a:'3900', s:np}, {a:'3100', s:-np}] : [{a:'3100', s:-np}, {a:'3900', s:np}]]});
+  const dv = X.bal('3300');
+  if (dv) E.push({id:'C4', no:'C4', memo:'结转股利账户 → 留存收益（股利不经过本年利润汇总）', groups:[[{a:'3100', s:dv}, {a:'3300', s:-dv}]]});
+  const oc = [];
+  for (const a of COA.filter(a => a.t === 'O')) { const b = X.bal(a.c); if (b) oc.push({a:a.c, s:-b}, {a:a.res, s:b}); }
+  if (oc.length) E.push({id:'C5', no:'C5', memo:'结转 OCI → 权益中的储备（累计其他综合收益）', groups:[oc]});
+  const pc = {};
+  for (const a of COA) pc[a.c] = X.bal(a.c);
+  for (const e of E) for (const g of e.groups) for (const l of g) pc[l.a] = (pc[l.a] || 0) + l.s;
+  return {E, pc};
+}
+
+/* ================= labels ================= */
+const lang = () => S.settings.lang;
+function lab(en, zh){
+  const l = lang();
+  if (l === 'en') return `<span class="en">${esc(en)}</span>`;
+  if (l === 'zh') return `<span class="en">${esc(zh)}</span>`;
+  return `<span class="en">${esc(en)}</span><span class="zh">${esc(zh)}</span>`;
+}
+const acctLab = a => lab(ACC[a].en, ACC[a].zh);
+const acctZh = a => ACC[a].zh;
+
+/* ================= trace objects ================= */
+function T(ids, why, o = {}){
+  const hits = new Set();
+  if (ids) for (const [k, v] of ids) if (v !== 0 && k !== 'OB' && k !== 'NP') hits.add(k);
+  if (o.hits) for (const k of o.hits) hits.add(k);
+  return {...o, ids, why, hits};
+}
+function Tsum(why, ...trs){
+  const hits = new Set();
+  trs.forEach(t => t && t.hits && t.hits.forEach(k => hits.add(k)));
+  return {ids:null, why, hits};
+}
+const withOB = (ids, ob) => { const m = new Map(); if (ob) m.set('OB', ob); for (const [k, v] of ids) m.set(k, v); return m; };
+
+/* ================= statement row builder ================= */
+function RB(){
+  const rows = [];
+  const last = () => { for (let i = rows.length - 1; i >= 0; i--) { const r = rows[i]; if (r.k === 'l' || r.k === 's' || r.k === 'g') return r; if (r.k === 'h') return null; } return null; };
+  return {rows,
+    h(en, zh, ind = 0){ rows.push({k:'h', en, zh, ind}); },
+    l(en, zh, v, tr, col = 'out', ind = 1, o = {}){ rows.push({k:'l', en, zh, v, tr, col, ind, ...o}); },
+    s(en, zh, v, tr, col = 'out', ind = 0, o = {}){ const p = last(); if (p) p.ul = true; rows.push({k:'s', en, zh, v, tr, col, ind, ...o}); },
+    g(en, zh, v, tr, col = 'out', o = {}){ const p = last(); if (p) p.ul = true; rows.push({k:'g', en, zh, v, tr, col, ind:0, ...o}); },
+    sp(){ rows.push({k:'sp'}); },
+  };
+}
+const nz = x => x && (x.amt !== 0 || (x.ids && x.ids.size > 0));
+const acctWhy = (a, what = '本期发生额') => `${ACC[a].zh}（${ACC[a].c}）${what}合计。下面是构成这个数字的每一笔分录。`;
+
+/* ---------- P&L ---------- */
+function plRows(part){
+  const P = R.P, b = RB(), method = S.settings.plMethod;
+  const trNP = T(null, '', {hits:P.plHits});
+  const trNPw = Tsum(`净利润 = 持续经营利润 ${m$(P.cont)}${P.hasDisc ? ` + 终止经营税后损益 ${m$(P.discNet)}` : ''} = ${m$(P.np)}`, trNP);
+  if (part !== 'oci') {
+    let trRev, trPBT;
+    if (method === 'function') {
+      const revs = P.rev.filter(nz);
+      if (revs.length <= 1) {
+        const x = revs[0] || P.rev[0];
+        trRev = T(x.ids, acctWhy(x.a.c, '贷方发生额'));
+        b.l(x.a.en, x.a.zh, x.amt, trRev, 'out', 0);
+      } else {
+        const trs = revs.map(x => T(x.ids, acctWhy(x.a.c, '贷方发生额')));
+        revs.forEach((x, i) => b.l(x.a.en, x.a.zh, x.amt, trs[i], 'in', 1));
+        trRev = Tsum(`营业收入 = ${revs.map(x => `${x.a.zh} ${m$(x.amt)}`).join(' + ')} = ${m$(P.revTot)}`, ...trs);
+        b.s('Revenue', '营业收入合计', P.revTot, trRev, 'out', 0);
+      }
+      const trCos = T(P.cos.ids, '按功能归入「销售成本」的所有费用分录（主要是结转的商品成本）。');
+      b.l('Cost of sales', '销售成本', P.cos.amt, trCos, 'out', 0);
+      const trGP = Tsum(`毛利 = 营业收入 ${m$(P.revTot)} − 销售成本 ${m$(P.cos.amt)} = ${m$(P.gp)}`, trRev, trCos);
+      b.s('Gross profit', '毛利', P.gp, trGP, 'out', 0);
+      b.h('Operating expenses:', '营业费用：');
+      const fx = ['sell', 'admin', 'other'].filter(f => nz(P[f]));
+      const fts = fx.map(f => T(P[f].ids, `按功能归入「${FN_LABEL[f][1]}」的所有费用分录。同一个费用账户（例如工资、折旧）可以按部门分别归入不同功能。`));
+      fx.forEach((f, i) => b.l(FN_LABEL[f][0], FN_LABEL[f][1], P[f].amt, fts[i], 'in', 1));
+      const trOpx = Tsum(`营业费用合计 = ${fx.map(f => `${FN_LABEL[f][1]} ${m$(P[f].amt)}`).join(' + ') || '0'} = ${m$(P.opxTot)}`, ...fts);
+      b.s('Total operating expenses', '营业费用合计', P.opxTot, trOpx, 'out', 1);
+      const trOP = Tsum(`营业利润 = 毛利 ${m$(P.gp)} − 营业费用 ${m$(P.opxTot)} = ${m$(P.opProfit)}`, trGP, trOpx);
+      b.s('Operating profit', '营业利润', P.opProfit, trOP, 'out', 0);
+      const oth = P.oth.filter(nz);
+      let trOth = null;
+      if (oth.length) {
+        b.h('Other income (expense):', '其他收益（费用）：');
+        const ots = oth.map(x => T(x.ids, acctWhy(x.a.c) + '（收益为正，费用在括号内）'));
+        oth.forEach((x, i) => b.l(x.a.en, x.a.zh, x.amt, ots[i], 'in', 1));
+        trOth = Tsum(`其他收益净额 = ${oth.map(x => `${x.a.zh} ${fmt(x.amt)}`).join(' + ')} = ${m$(P.othTot)}。这些是非经营项目，盈利质量分析时通常看得比营业利润轻。`, ...ots);
+        b.s('Total other income (expense), net', '其他收益净额', P.othTot, trOth, 'out', 1);
+      }
+      trPBT = Tsum(`持续经营税前利润 = 营业利润 ${m$(P.opProfit)} + 其他收益净额 ${m$(P.othTot)} = ${m$(P.pbt)}`, trOP, trOth);
+    } else {
+      b.h('Revenue and other income:', '收入及其他收益：');
+      const inc = [...P.rev.filter(nz), ...P.oth.filter(x => x.a.t === 'R' && nz(x))];
+      const its = inc.map(x => T(x.ids, acctWhy(x.a.c, '贷方发生额')));
+      inc.forEach((x, i) => b.l(x.a.en, x.a.zh, x.amt, its[i], 'in', 1));
+      const incTot = inc.reduce((s, x) => s + x.amt, 0);
+      const trInc = Tsum(`收入及其他收益 = ${inc.map(x => `${x.a.zh} ${m$(x.amt)}`).join(' + ')} = ${m$(incTot)}`, ...its);
+      b.s('Total revenue and other income', '收入及其他收益合计', incTot, trInc, 'out', 1);
+      b.h('Expenses:', '费用：');
+      const exps = [...P.opx.filter(nz), ...P.oth.filter(x => x.a.t === 'X' && nz(x)).map(x => ({...x, amt:-x.amt, ids:new Map([...x.ids].map(([k, v]) => [k, -v]))}))];
+      const ets = exps.map(x => T(x.ids, `按性质列报：${x.a.natZh || x.a.zh}，不管属于哪个部门都合并在这一行。`));
+      exps.forEach((x, i) => b.l(x.a.natEn || x.a.en, x.a.natZh || x.a.zh, x.amt, ets[i], 'in', 1));
+      const expTot = exps.reduce((s, x) => s + x.amt, 0);
+      const trExp = Tsum(`费用合计 = ${m$(expTot)}`, ...ets);
+      b.s('Total expenses', '费用合计', expTot, trExp, 'out', 1);
+      trPBT = Tsum(`持续经营税前利润 = 收入及其他收益 ${m$(incTot)} − 费用 ${m$(expTot)} = ${m$(P.pbt)}`, trInc, trExp);
+    }
+    b.s('Profit from continuing operations before income tax', '持续经营税前利润', P.pbt, trPBT, 'out', 0);
+    const trTax = T(P.tax.ids, `所得税费用（持续经营部分）。${R.taxE ? R.taxE.calc : ''}`);
+    b.l('Income tax expense', '所得税费用', P.tax.amt, trTax, 'out', 0);
+    const trCont = Tsum(`持续经营利润 = 税前利润 ${m$(P.pbt)} − 所得税 ${m$(P.tax.amt)} = ${m$(P.cont)}`, trPBT, trTax);
+    b.s('Profit from continuing operations', '持续经营利润', P.cont, trCont, 'out', 0);
+    if (P.hasDisc) {
+      b.h('Discontinued operations:', '终止经营：');
+      const td = T(P.disc.ids, '终止经营部门的税前损益：已出售时 = 经营损益 + 处置利得/损失；年末持有待售时 = 经营损益 + 减值损失。');
+      const tt = T(P.discTax.ids, `终止经营应承担的所得税（亏损时是税收利益）。${R.taxE ? R.taxE.calc : ''}`);
+      b.l('Profit/(loss) from operations of discontinued component (incl. gain/loss on disposal or impairment)', '终止经营部门税前损益（含处置损益或减值）', P.disc.amt, td, 'in', 1);
+      b.l(P.discTax.amt >= 0 ? 'Income tax benefit' : 'Income tax expense', P.discTax.amt >= 0 ? '所得税利益' : '所得税费用', P.discTax.amt, tt, 'in', 1);
+      b.s(`${P.discNet < 0 ? 'Loss' : 'Profit'} on discontinued operations, net of tax`, '终止经营税后损益（单一金额）', P.discNet, Tsum(`终止经营税后 = ${fmt(P.disc.amt)} + ${fmt(P.discTax.amt)} = ${fmt(P.discNet)}`, td, tt), 'out', 1);
+    }
+    const npEn = `Net ${P.np < 0 ? 'loss' : 'profit'} for the year`;
+    if (part === 'pl') b.g(npEn, '本年净利润', P.np, trNPw); else b.s(npEn, '本年净利润', P.np, trNPw, 'out', 0);
+    if (part === 'pl') epsRows(b);
+  }
+  if (part !== 'pl') {
+    if (part === 'oci') b.l(`Net ${P.np < 0 ? 'loss' : 'profit'} for the year`, '本年净利润（来自损益表）', P.np, trNPw, 'out', 0);
+    b.h('Other comprehensive income:', '其他综合收益：');
+    b.h('Items that will not be reclassified to profit or loss:', '不会重分类至损益的项目：', 1);
+    const ocis = P.oci.filter(nz);
+    const ots = ocis.map(x => T(x.ids, `${x.a.zh}：${x.a.c === '9000' ? '土地重估增值，累积在权益的「重估盈余」' : 'FVOCI 股权投资的公允价值变动，累积在「公允价值储备」'}，不进净利润。`));
+    const ociName = {'9000':['Revaluation surplus on land','土地重估盈余'], '9100':['Fair value gain/(loss) on investments at FVOCI','FVOCI 投资公允价值变动']};
+    ocis.forEach((x, i) => b.l(ociName[x.a.c][0], ociName[x.a.c][1], x.amt, ots[i], 'in', 2));
+    if (!ocis.length) b.l('None this year', '本年没有', 0, null, 'in', 2);
+    const trOCI = Tsum(`本年 OCI 合计 = ${m$(P.ociTot)}（税后）`, ...ots);
+    b.s('Other comprehensive income for the year, net of tax', '本年其他综合收益（税后）', P.ociTot, trOCI, 'out', 1);
+    b.g('Total comprehensive income for the year', '本年综合收益总额', P.tci, Tsum(`综合收益总额 = 净利润 ${m$(P.np)} + OCI ${m$(P.ociTot)} = ${m$(P.tci)}`, trNP, trOCI));
+    if (part === 'all') epsRows(b);
+  }
+  return b.rows;
+}
+function epsRows(b){
+  const P = R.P; if (!(P.wSh > 0)) return;
+  const wtxt = `加权平均股数 = ${P.wParts.join(' + ')} = ${Math.round(P.wSh).toLocaleString('en-US')} 股`;
+  const tr = v => T(null, `EPS = ${m$(v)} ÷ ${Math.round(P.wSh).toLocaleString('en-US')} 股 = ${(v / 100 / P.wSh).toFixed(4)}，四舍五入到两位小数。${wtxt}`);
+  b.sp();
+  b.h('Earnings per share (basic)', '每股收益（基本）');
+  if (P.hasDisc) {
+    b.l('Profit from continuing operations', '持续经营', P.eps(P.cont), tr(P.cont), 'out', 1, {fmt:'eps'});
+    b.l(`${P.discNet < 0 ? 'Loss' : 'Profit'} from discontinued operations`, '终止经营', P.eps(P.discNet), tr(P.discNet), 'out', 1, {fmt:'eps'});
+    b.s(`Net ${P.np < 0 ? 'loss' : 'profit'}`, '净利润', P.eps(P.np), tr(P.np), 'out', 1, {fmt:'eps'});
+  } else b.l(`Net ${P.np < 0 ? 'loss' : 'profit'}`, '净利润', P.eps(P.np), tr(P.np), 'out', 1, {fmt:'eps'});
+}
+
+/* ---------- financial position ---------- */
+function sfpRows(){
+  const b = RB(), P = R.P;
+  const line = (codes, sign, en, zh, ind = 2) => {
+    const open = codes.reduce((x, c) => x + (R.OB[c] || 0), 0) * sign;
+    const close = codes.reduce((x, c) => x + R.bal(c), 0) * sign;
+    const c = R.col(p => codes.includes(p.a), sign);
+    if (!open && !close && !c.ids.size) return null;
+    let dr = 0, cr = 0; for (const p of R.POST) if (codes.includes(p.a)) { if (p.s > 0) dr += p.s; else cr -= p.s; }
+    const tr = T(withOB(c.ids, open), `期末余额 = 期初 ${m$(open)} + 本期借方 ${m$(dr)} − 本期贷方 ${m$(cr)}${sign < 0 ? '（贷方余额账户，所以取相反符号）' : ''} = ${m$(close)}`);
+    b.l(en, zh, close, tr, 'out', ind, {v2:open});
+    return {close, open, tr};
+  };
+  const tot = (arr, en, zh, ind, grand) => {
+    const xs = arr.filter(Boolean);
+    const close = xs.reduce((s, x) => s + x.close, 0), open = xs.reduce((s, x) => s + x.open, 0);
+    const tr = Tsum(`${zh} = ${xs.length ? '上面各项之和' : '0'} = ${m$(close)}（上年 ${m$(open)}）`, ...xs.map(x => x.tr));
+    if (grand) b.g(en, zh, close, tr, 'out', {v2:open}); else b.s(en, zh, close, tr, 'out', ind, {v2:open});
+    return {close, open, tr};
+  };
+  b.h('ASSETS', '资产');
+  b.h('Non-current assets', '非流动资产', 1);
+  const land = line(['1500'], 1, 'Land', '土地');
+  const eqp = line(['1510'], 1, 'Equipment, at cost', '设备（成本）');
+  const ad = line(['1515'], 1, 'Less: accumulated depreciation', '减：累计折旧');
+  let ppe;
+  if (eqp && ad) ppe = tot([eqp, ad], 'Equipment, net', '设备净额', 2); else ppe = eqp || ad;
+  const inv = line(['1600'], 1, 'Investments at FVOCI', 'FVOCI 股权投资');
+  const nca = tot([land, ppe, inv], 'Total non-current assets', '非流动资产合计', 1);
+  b.h('Current assets', '流动资产', 1);
+  const invt = line(['1200'], 1, 'Inventories', '存货');
+  const ar = line(['1100'], 1, 'Accounts receivable', '应收账款');
+  const al = line(['1105'], 1, 'Less: allowance for doubtful accounts', '减：坏账准备');
+  let arN; if (ar && al) arN = tot([ar, al], 'Accounts receivable, net', '应收账款净额', 2); else arN = ar || al;
+  const ir = line(['1110'], 1, 'Interest receivable', '应收利息');
+  const pp = line(['1300'], 1, 'Prepaid expenses', '预付费用');
+  const cash = line(['1000'], 1, 'Cash and cash equivalents', '现金及现金等价物');
+  const hfs = line(['1450'], 1, 'Assets held for sale', '持有待售资产');
+  const ca = tot([invt, arN, ir, pp, cash, hfs], 'Total current assets', '流动资产合计', 1);
+  const ta = tot([nca, ca], 'TOTAL ASSETS', '资产总计', 0, true);
+  b.sp();
+  b.h('EQUITY AND LIABILITIES', '权益及负债');
+  b.h('Equity', '权益', 1);
+  const sc = line(['3000'], -1, 'Share capital', '股本');
+  // retained earnings (pre-closing: opening + profit − dividends)
+  const reOpen = -((R.OB['3100'] || 0) + (R.OB['3300'] || 0));
+  const reIds = new Map(); if (reOpen) reIds.set('OB', reOpen); reIds.set('NP', P.np);
+  for (const p of R.POST) if (p.a === '3100' || p.a === '3300') reIds.set(p.id, (reIds.get(p.id) || 0) - p.s);
+  const reTr = T(reIds, `期末留存收益 = 期初 ${m$(reOpen)} + 本年净利润 ${m$(P.np)} − 宣告股利 ${m$(R.bal('3300'))}${R.MV['3100'] ? ` + 其他直接变动 ${m$(-R.MV['3100'])}` : ''} = ${m$(R.reEnd)}。结账前，净利润还停留在收入费用账户里，所以这里要把它加进来。`, {hits:P.plHits});
+  b.l('Retained earnings', '留存收益', R.reEnd, reTr, 'out', 2, {v2:reOpen});
+  const re = {close:R.reEnd, open:reOpen, tr:reTr};
+  const resv = (code, ociCode, en, zh) => {
+    const open = -(R.OB[code] || 0), oc = P.ociOf(ociCode), close = -R.bal(code) + oc.amt;
+    if (!open && !close && !oc.ids.size && !(R.MV[code])) return null;
+    const ids = new Map(); if (open) ids.set('OB', open);
+    for (const [k, v] of oc.ids) ids.set(k, (ids.get(k) || 0) + v);
+    for (const p of R.POST) if (p.a === code) ids.set(p.id, (ids.get(p.id) || 0) - p.s);
+    const tr = T(ids, `期末 = 期初 ${m$(open)} + 本年 OCI ${m$(oc.amt)} = ${m$(close)}。这就是「累计其他综合收益」。`);
+    b.l(en, zh, close, tr, 'out', 2, {v2:open});
+    return {close, open, tr};
+  };
+  const rv = resv('3200', '9000', 'Revaluation surplus', '重估盈余');
+  const fv = resv('3210', '9100', 'Fair value reserve', '公允价值储备');
+  const te = tot([sc, re, rv, fv], 'Total equity', '权益合计', 1);
+  b.h('Non-current liabilities', '非流动负债', 1);
+  const ltb = line(['2500'], -1, 'Long-term borrowings', '长期借款');
+  const ncl = tot([ltb], 'Total non-current liabilities', '非流动负债合计', 1);
+  b.h('Current liabilities', '流动负债', 1);
+  const cls = [['2000','Accounts payable','应付账款'],['2100','Salaries payable','应付职工薪酬'],['2150','Interest payable','应付利息'],['2200','Income tax payable','应交所得税'],['2300','Unearned revenue (contract liability)','预收收入（合同负债）'],['2400','Dividends payable','应付股利']].map(([c, en, zh]) => line([c], -1, en, zh));
+  const cl = tot(cls, 'Total current liabilities', '流动负债合计', 1);
+  const tl = tot([ncl, cl], 'Total liabilities', '负债合计', 1);
+  const tel = tot([te, tl], 'TOTAL EQUITY AND LIABILITIES', '权益及负债总计', 0, true);
+  return {rows:b.rows, ta, tel};
+}
+
+/* ---------- cash flows ---------- */
+function scfRows(){
+  const b = RB(), CF = R.CF, P = R.P, method = S.settings.cfMethod;
+  const netLab = (v, act, zh) => [`Net cash ${v < 0 ? 'used in' : 'from'} ${act} activities`, `${zh}活动产生的现金流量净额`];
+  b.h('Cash flows from operating activities', '经营活动现金流量');
+  let trOp;
+  if (method === 'indirect') {
+    const trNP = T(new Map([['NP', P.np]]), '间接法从净利润（包括终止经营）出发，再把权责发生制下的非现金项目和营运资本变动调整掉。', {hits:P.plHits});
+    b.l(`Net ${P.np < 0 ? 'loss' : 'profit'} for the year`, '本年净利润', P.np, trNP, 'in', 1);
+    const trs = [trNP];
+    if (CF.adjAgg.length) {
+      b.h('Adjustments for non-cash and investing items:', '调整非现金及投资类项目：', 1);
+      for (const a of CF.adjAgg) { const L = ADJ_LABEL[a.key] || ADJ_LABEL.other; const t = T(a.ids, `${L[1]}：影响了净利润但没有经营现金流动（或者现金已经整笔列入投资活动），所以${a.amt > 0 ? '加回' : '减去'}。`); trs.push(t); b.l(L[0], L[1], a.amt, t, 'in', 2); }
+    }
+    if (CF.wc.length) {
+      b.h('Changes in working capital:', '营运资本变动：', 1);
+      for (const w of CF.wc) {
+        const L = WC_LABEL[w.k] || [w.k, w.k];
+        const d = w.close - w.open, up = w.isAsset ? d > 0 : d < 0;
+        const en = `${up ? 'Increase' : 'Decrease'} in ${L[0]}`, zh = `${L[1]}${up ? '增加' : '减少'}`;
+        const openS = w.isAsset ? w.open : -w.open, closeS = w.isAsset ? w.close : -w.close;
+        const t = T(w.ids, `${L[1]}：期初 ${m$(openS)} → 期末 ${m$(closeS)}。${w.isAsset ? (up ? '经营性资产增加，说明收入/费用里有一部分还没收到现金或已提前付出现金，所以减去' : '经营性资产减少，释放出现金，所以加回') : (up ? '经营性负债增加，说明费用已确认但现金还没付，所以加回' : '经营性负债减少，说明本期多付了现金，所以减去')}。`);
+        trs.push(t); b.l(en, zh, w.amt, t, 'in', 2);
+      }
+    }
+    trOp = Tsum(`间接法：净利润 ${m$(P.np)} + 调整项 ${m$(CF.adjAgg.reduce((s, x) => s + x.amt, 0))} + 营运资本变动 ${m$(CF.wc.reduce((s, x) => s + x.amt, 0))} = ${m$(CF.indirectTot)}；和直接法 ${m$(CF.opTot)} ${CF.indirectTot === CF.opTot ? '相等 ✓' : '不相等 ✗'}`, ...trs);
+    const [en, zh] = netLab(CF.indirectTot, 'operating', '经营');
+    b.s(en, zh, CF.indirectTot, trOp, 'out', 0);
+  } else {
+    const trs = CF.opD.map(x => { const L = OP_LABEL[x.key] || OP_LABEL.otherOpex; const t = T(x.ids, `直接法：${L[1]}。把现金账户里所有属于这一类的收付款加总。`); b.l(L[0], L[1], x.amt, t, 'in', 1); return t; });
+    if (!CF.opD.length) b.l('No operating cash flows', '没有经营现金流量', 0, null, 'in', 1);
+    trOp = Tsum(`直接法经营现金流量 = ${m$(CF.opTot)}`, ...trs);
+    const [en, zh] = netLab(CF.opTot, 'operating', '经营');
+    b.s(en, zh, CF.opTot, trOp, 'out', 0);
+  }
+  const sec = (list, labels, act, en0, zh0) => {
+    b.h(en0, zh0);
+    const trs = list.map(x => { const L = IF_LABEL[x.key] || [x.key, x.key]; const t = T(x.ids, `${L[1]}：投资和筹资活动总是用直接法，并且流入、流出分别列示（不能互相抵销）。`); b.l(L[0], L[1], x.amt, t, 'in', 1); return t; });
+    if (!list.length) b.l('None', '无', 0, null, 'in', 1);
+    const tot = list.reduce((s, x) => s + x.amt, 0);
+    const [en, zh] = netLab(tot, act, labels);
+    const tr = Tsum(`${zh} = ${m$(tot)}`, ...trs);
+    b.s(en, zh, tot, tr, 'out', 0);
+    return tr;
+  };
+  const trInv = sec(R.CF.inv, '投资', 'investing', 'Cash flows from investing activities', '投资活动现金流量');
+  const trFin = sec(R.CF.fin, '筹资', 'financing', 'Cash flows from financing activities', '筹资活动现金流量');
+  b.s(`Net ${CF.net < 0 ? 'decrease' : 'increase'} in cash and cash equivalents`, '现金及现金等价物净增加额', CF.net, Tsum(`经营 ${m$(CF.opTot)} + 投资 ${m$(CF.invTot)} + 筹资 ${m$(CF.finTot)} = ${m$(CF.net)}`, trOp, trInv, trFin), 'out', 0);
+  b.l(`Cash and cash equivalents at 1 January ${R.yr}`, '年初现金及现金等价物', CF.openCash, T(new Map([['OB', CF.openCash]]), '来自期初余额（上年末财务状况表）。'), 'out', 0);
+  b.g(`Cash and cash equivalents at 31 December ${R.yr}`, '年末现金及现金等价物', CF.closeCash, Tsum(`期初 ${m$(CF.openCash)} + 净增加 ${m$(CF.net)} = ${m$(CF.openCash + CF.net)}，与财务状况表中的现金 ${m$(R.bal('1000'))} ${CF.openCash + CF.net === R.bal('1000') ? '一致 ✓' : '不一致 ✗'}`, trOp, trInv, trFin));
+  return b.rows;
+}
+
+/* ---------- changes in equity ---------- */
+function soceData(){
+  const P = R.P;
+  const colsAll = [{c:'3000', en:'Share capital', zh:'股本'}, {c:'3100', en:'Retained earnings', zh:'留存收益'}, {c:'3200', en:'Revaluation surplus', zh:'重估盈余', oci:'9000'}, {c:'3210', en:'Fair value reserve', zh:'公允价值储备', oci:'9100'}];
+  const cols = colsAll.filter(c => c.c === '3000' || c.c === '3100' || R.OB[c.c] || R.MV[c.c] || (c.oci && P.ociOf(c.oci).ids.size));
+  const cell = (v, tr) => ({v, tr});
+  const rows = [];
+  const open = cols.map(c => { const v = -((R.OB[c.c] || 0) + (c.c === '3100' ? (R.OB['3300'] || 0) : 0)); return cell(v, T(new Map(v ? [['OB', v]] : []), `${c.zh}期初余额（上年末财务状况表）。`)); });
+  rows.push({k:'l', en:`Balance at 1 January ${R.yr}`, zh:`${R.yr} 年 1 月 1 日余额`, cells:open});
+  const npRow = cols.map(c => c.c === '3100' ? cell(P.np, T(new Map([['NP', P.np]]), '本年净利润（来自损益表）进入留存收益。', {hits:P.plHits})) : cell(null));
+  rows.push({k:'l', en:`${P.np < 0 ? 'Loss' : 'Profit'} for the year`, zh:'本年净利润', cells:npRow, ind:1});
+  const ociRow = cols.map(c => { if (!c.oci) return cell(null); const o = P.ociOf(c.oci); return cell(o.amt, T(o.ids, `本年 OCI 进入${c.zh}。`)); });
+  rows.push({k:'l', en:'Other comprehensive income', zh:'其他综合收益', cells:ociRow, ind:1});
+  const tciRow = cols.map((c, i) => { const a = npRow[i].v || 0, o = ociRow[i].v || 0; return cell(npRow[i].v == null && ociRow[i].v == null ? null : a + o, Tsum('净利润 + OCI', npRow[i].tr, ociRow[i].tr)); });
+  rows.push({k:'s', en:'Total comprehensive income for the year', zh:'本年综合收益总额', cells:tciRow});
+  rows.push({k:'h', en:'Transactions with owners:', zh:'与所有者的交易：'});
+  const own = [];
+  const shc = R.acol('3000', -1);
+  if (shc.ids.size) own.push({k:'l', en:'Issue of ordinary shares', zh:'发行普通股', ind:1, cells:cols.map(c => c.c === '3000' ? cell(shc.amt, T(shc.ids, '本年发行股份，股本增加。')) : cell(null))});
+  const dv = R.acol('3300', -1);
+  if (dv.ids.size) own.push({k:'l', en:'Dividends declared', zh:'宣告股利', ind:1, cells:cols.map(c => c.c === '3100' ? cell(dv.amt, T(dv.ids, '宣告股利减少留存收益。股利是分配，不是费用。')) : cell(null))});
+  const oth = cols.map(c => { const x = R.acol(c.c, -1); return x.ids.size && c.c !== '3000' ? cell(x.amt, T(x.ids, `直接记入${c.zh}的其他分录。`)) : cell(null); });
+  if (oth.some(x => x.v != null)) own.push({k:'l', en:'Other movements', zh:'其他变动', ind:1, cells:oth});
+  if (!own.length) own.push({k:'l', en:'None this year', zh:'本年没有', ind:1, cells:cols.map(() => cell(null))});
+  rows.push(...own);
+  const close = cols.map((c, i) => { let v = 0; const trs = []; for (const r of rows) if (r.cells && r.k === 'l') { v += r.cells[i].v || 0; trs.push(r.cells[i].tr); } return cell(v, Tsum(`${c.zh}期末 = 期初 + 本年各项变动 = ${m$(v)}，与财务状况表一致。`, ...trs)); });
+  rows.push({k:'g', en:`Balance at 31 December ${R.yr}`, zh:`${R.yr} 年 12 月 31 日余额`, cells:close});
+  // total column
+  for (const r of rows) if (r.cells) { const vs = r.cells.filter(x => x.v != null); r.cells.push(cell(vs.length ? vs.reduce((s, x) => s + x.v, 0) : null, Tsum('各栏合计', ...r.cells.map(x => x.tr)))); }
+  return {cols:[...cols, {c:'tot', en:'Total equity', zh:'权益合计'}], rows};
+}
+
+/* ================= rendering: statements ================= */
+function pushTrace(o){ TRACES.push(o); return TRACES.length - 1; }
+const practice = () => !!S.settings.practice;
+function amtCell(v, key, f, quiz){
+  if (v === undefined) return '<td class="amt"></td>';
+  if (v === null) return '<td class="amt"></td>';
+  if (quiz && practice()) {
+    const mk = UI.marks[key];
+    const ans = UI.showAns && mk === false ? `<span class="ans">${f === 'eps' ? epsHTML(v) : amtHTML(v)}</span>` : '';
+    return `<td class="amt has"><input class="guess${mk === true ? ' right' : mk === false ? ' wrong' : ''}" id="g-${esc(key)}" data-g="${esc(key)}" data-v="${v}" data-f="${f || ''}" value="${esc(UI.guesses[key] || '')}" inputmode="decimal" autocomplete="off" aria-label="填写金额">${ans}</td>`;
+  }
+  return `<td class="amt has">${f === 'eps' ? epsHTML(v) : amtHTML(v)}</td>`;
+}
+function rowHTML(key, r, i, yy){
+  if (r.k === 'sp') return `<tr class="r-sp"><td colspan="3" style="height:8px"></td></tr>`;
+  const ti = r.tr ? pushTrace({en:r.en, zh:r.zh, v:r.v, fmt:r.fmt, tr:r.tr}) : -1;
+  const hit = UI.sel && r.tr && r.tr.hits && r.tr.hits.has(UI.sel);
+  const clickable = ti >= 0 && !practice();
+  const cls = ['r-' + r.k, r.ul ? 'ul' : '', hit ? 'hit' : '', clickable ? 'tr' : ''].filter(Boolean).join(' ');
+  const labCell = `<td class="lab ind${r.ind || 0}">${lab(r.en, r.zh)}</td>`;
+  let cells;
+  if (r.k === 'h') cells = '<td class="amt"></td><td class="amt"></td>';
+  else if (yy) cells = amtCell(r.v, `${key}:${i}`, r.fmt, true) + (r.v2 === undefined ? '<td class="amt prior"></td>' : amtCell(r.v2, '', r.fmt, false).replace('class="amt has"', 'class="amt has prior"'));
+  else { const inn = r.col === 'in'; cells = (inn ? amtCell(r.v, `${key}:${i}`, r.fmt, true) : '<td class="amt"></td>') + (!inn ? amtCell(r.v, `${key}:${i}`, r.fmt, true) : '<td class="amt"></td>'); }
+  return `<tr class="${cls}"${clickable ? ` data-t="${ti}" tabindex="0"` : ''}>${labCell}${cells}</tr>`;
+}
+function perLine(){ return lab(`For the year ended 31 December ${R.yr}`, `截至 ${R.yr} 年 12 月 31 日止年度`); }
+function stmtHTML(key, en, zh, per, rows, opt = {}){
+  const yy = !!opt.yy;
+  const head = yy ? `<tr><th></th><th>${R.yr}<br>${esc(cur())}</th><th>${R.yr - 1}<br>${esc(cur())}</th></tr>` : `<tr><th></th><th colspan="2">${esc(cur())}</th></tr>`;
+  return `<div class="paper"><header class="st-head"><div class="st-co">${esc(S.company.name)}</div><h3>${lab(en, zh)}</h3><div class="st-per">${per}</div></header>
+    <div class="scroll"><table class="st"><thead>${head}</thead><tbody>${rows.map((r, i) => rowHTML(key, r, i, yy)).join('')}</tbody></table></div>${opt.notes ? `<div class="st-notes">${opt.notes}</div>` : ''}</div>`;
+}
+function practiceBar(){
+  if (!practice()) return '';
+  const inputs = Object.keys(UI.marks).length;
+  return `<button class="btn primary small" data-act="check">检查答案</button><button class="btn small" data-act="showAns" aria-pressed="${UI.showAns}">显示错题答案</button><button class="btn small" data-act="clearGuess">清空</button>${inputs ? `<span class="score" id="score"></span>` : ''}`;
+}
+
+/* ---------- panes ---------- */
+const TABS = [['opening','0','期初余额'],['journal','1','日记账'],['ledger','2','分类账'],['tb','3','试算平衡表'],['pl','4','损益及OCI表'],['soce','5','权益变动表'],['sfp','6','财务状况表'],['scf','7','现金流量表'],['closing','8','结账']];
+const TIPS = {
+  opening:'期初余额就是上年 12 月 31 日的财务状况表，也是今年报表的比较数字。资产类填借方；负债、权益和备抵账户填贷方。借贷合计必须相等。',
+  journal:'日记账按时间顺序记录每笔交易：借方合计 = 贷方合计，贷方账户缩进书写。点「为什么这样记？」可以看到每一行对应哪个要素，以及会计恒等式怎样变化。',
+  ledger:'过账：把日记账的每一行搬到对应账户的 T 字账。左边是借方，右边是贷方，余额落在正常余额一侧。点 J 编号可以回到那笔分录。',
+  tb:'工作底稿：未调整试算表 + 期末调整分录 = 调整后试算表，报表就从调整后余额编制。借贷平衡只说明记账算术没错；记错账户、漏记整笔交易，它都发现不了。',
+  pl:'按课件格式（IAS 1）：持续经营与终止经营分开，终止经营以税后单一金额列报；OCI 不进净利润，但进综合收益。点任意数字可以查看它由哪些分录构成。',
+  soce:'权益变动表把损益表和财务状况表连起来：净利润流入留存收益，OCI 流入储备，与股东的交易（发股、分红）单独列示。',
+  sfp:'IFRS 常见排列：非流动资产在前，权益在负债之前。右栏的比较数字就是期初余额。',
+  scf:'现金流量表要把权责发生制还原为现金收付。投资、筹资活动一律用直接法；经营活动可以用直接法或间接法，两种方法的结果必须相同。',
+  closing:'结账把临时性账户（收入、费用、股利、OCI）清零，转入留存收益和储备，下一年从零开始。结账后的试算表只剩永久性账户。',
+};
+function paneBar(tab, ctl = ''){
+  return `<div class="pane-bar"><p class="tip">${TIPS[tab]}</p><div class="pane-ctl">${ctl}</div></div>`;
+}
+const seg = (act, cur, opts) => `<div class="seg" role="group">${opts.map(([v, l]) => `<button type="button" data-act="${act}" data-v="${v}" aria-pressed="${cur === v}">${l}</button>`).join('')}</div>`;
+
+function panePL(){
+  const P = R.P, st = S.settings;
+  const ctl = seg('plMethod', st.plMethod, [['function', '按功能'], ['nature', '按性质']]) + seg('plPres', st.plPres, [['single', '单一报表'], ['two', '两张报表']]) + practiceBar();
+  const notes = [];
+  notes.push(`<p><b>${st.plMethod === 'function' ? '按功能（function of expense）' : '按性质（nature of expense）'}：</b>${st.plMethod === 'function' ? '费用按用途归入销售成本、销售费用、管理费用，所以能看到毛利和营业利润。换成「按性质」看看：同样的费用改按工资、折旧、租金等性质排列，没有毛利这一行，但税前利润完全相同。' : '费用按工资、折旧、租金等性质列示，没有「毛利」和「营业利润」小计。换回「按功能」对比一下，持续经营税前利润都是 ' + m$(P.pbt) + '。IFRS 允许两种方法任选其一。'}</p>`);
+  if (P.hasDisc) notes.push(`<p><b>盈利质量：</b>持续经营利润 ${m$(P.cont)} 比净利润 ${m$(P.np)} 更能预测未来，因为终止经营以后不会再发生。</p>`);
+  notes.push(`<p><b>综合收益 = 净利润 + OCI：</b>${m$(P.np)} + ${m$(P.ociTot)} = ${m$(P.tci)}。</p>`);
+  let body;
+  if (st.plPres === 'single') body = stmtHTML('pl', 'Statement of Profit or Loss and Other Comprehensive Income', '损益及其他综合收益表', perLine(), plRows('all'), {notes:notes.join('')});
+  else body = stmtHTML('pl', 'Statement of Profit or Loss', '损益表', perLine(), plRows('pl')) + stmtHTML('oci', 'Statement of Comprehensive Income', '综合收益表', perLine(), plRows('oci'), {notes:notes.join('')});
+  return paneBar('pl', ctl) + body;
+}
+function paneSFP(){
+  const d = sfpRows();
+  const okb = d.ta.close === d.tel.close;
+  const notes = `<p><span class="okbad${okb ? '' : ' bad'}">${okb ? '✓' : '✗'} 资产总计 ${m$(d.ta.close)} ${okb ? '=' : '≠'} 权益及负债总计 ${m$(d.tel.close)}</span></p>
+    <p><b>为什么留存收益不等于试算表里的数？</b>结账前，本年净利润还在收入和费用账户里，留存收益账户只有期初余额。编表时要用「期初 + 净利润 − 股利」。到「结账」页看结账分录做完之后的余额。</p>`;
+  return paneBar('sfp', practiceBar()) + stmtHTML('sfp', 'Statement of Financial Position', '财务状况表', lab(`As at 31 December ${R.yr}`, `于 ${R.yr} 年 12 月 31 日`), d.rows, {yy:true, notes});
+}
+function paneSCF(){
+  const CF = R.CF, st = S.settings;
+  const ctl = seg('cfMethod', st.cfMethod, [['indirect', '间接法'], ['direct', '直接法']]) + practiceBar();
+  const notes = [];
+  const same = CF.opTot === CF.indirectTot;
+  notes.push(`<p><span class="okbad${same ? '' : ' bad'}">${same ? '✓' : '✗'} 经营活动现金流量：直接法 ${m$(CF.opTot)} ${same ? '=' : '≠'} 间接法 ${m$(CF.indirectTot)}</span></p>`);
+  if (st.cfMethod === 'indirect') notes.push(`<p><b>补充披露：</b>支付的利息 ${m$(CF.intPaid)}，支付的所得税 ${m$(CF.taxPaid)}${CF.intRec ? `，收到的利息 ${m$(CF.intRec)}` : ''}。间接法看不到这些金额，所以要另外披露。</p>`);
+  if (CF.nonCash.length) notes.push(`<p><b>附注：非现金投资及筹资活动</b></p><ul style="margin:0;padding-left:18px">${CF.nonCash.map(n => { const e = R.byId[n.id]; return `<li>${esc(e.memo)}（J${e.no}）${e.memo.includes(fmt(n.amt)) ? '' : '：' + m$(n.amt)}</li>`; }).join('')}</ul>`);
+  notes.push(`<p><b>分类口径：</b>收到和支付的利息、支付的所得税列为经营活动；支付的股利列为筹资活动（IFRS 允许选择，这里跟课件示例一致）。</p>`);
+  return paneBar('scf', ctl) + stmtHTML('scf', 'Statement of Cash Flows', '现金流量表', perLine(), scfRows(), {notes:notes.join('')});
+}
+function paneSOCE(){
+  const d = soceData();
+  const head = `<tr><th></th>${d.cols.map(c => `<th>${esc(lang() === 'zh' ? c.zh : c.en)}${lang() === 'both' ? `<span class="zh">${esc(c.zh)}</span>` : ''}</th>`).join('')}</tr>`;
+  const body = d.rows.map((r, ri) => {
+    if (r.k === 'h') return `<tr class="r-h"><td class="lab">${lab(r.en, r.zh)}</td>${d.cols.map(() => '<td class="amt"></td>').join('')}</tr>`;
+    const cls = ['r-' + r.k, (d.rows[ri + 1] && d.rows[ri + 1].k !== 'h' && (d.rows[ri + 1].k === 's' || d.rows[ri + 1].k === 'g')) ? 'ul' : ''].filter(Boolean).join(' ');
+    const cells = r.cells.map((c, ci) => {
+      if (c.v == null) return '<td class="amt"></td>';
+      const hit = UI.sel && c.tr && c.tr.hits && c.tr.hits.has(UI.sel);
+      const ti = c.tr && !practice() ? pushTrace({en:`${r.en} · ${d.cols[ci].en}`, zh:`${r.zh} · ${d.cols[ci].zh}`, v:c.v, tr:c.tr}) : -1;
+      const inner = amtCell(c.v, `soce:${ri}:${ci}`, '', true).replace(/^<td class="amt has">|<\/td>$/g, '');
+      return `<td class="amt has${hit ? ' hitc' : ''}"${ti >= 0 ? ` data-t="${ti}" tabindex="0" style="cursor:pointer"` : ''}${hit ? ' style="background:var(--hl)"' : ''}>${inner}</td>`;
+    }).join('');
+    return `<tr class="${cls}"><td class="lab ind${r.ind || 0}">${lab(r.en, r.zh)}</td>${cells}</tr>`;
+  }).join('');
+  const reOk = d.rows[d.rows.length - 1].cells[1].v === R.reEnd;
+  return paneBar('soce', practiceBar()) + `<div class="paper" style="max-width:940px"><header class="st-head"><div class="st-co">${esc(S.company.name)}</div><h3>${lab('Statement of Changes in Equity', '权益变动表')}</h3><div class="st-per">${perLine()} · ${esc(cur())}</div></header>
+    <div class="scroll"><table class="st soce"><thead>${head}</thead><tbody>${body}</tbody></table></div>
+    <div class="st-notes"><p><span class="okbad${reOk ? '' : ' bad'}">${reOk ? '✓' : '✗'} 期末留存收益 ${m$(R.reEnd)} 与财务状况表一致</span></p><p><b>看点：</b>净利润和 OCI 合起来是「本年综合收益总额」${m$(R.P.tci)}；发股和分红是与所有者的交易，不属于综合收益。点击任一单元格查看来源。</p></div></div>`;
+}
+function jeHTML(e, opt = {}){
+  const hidden = practice() && !opt.closing && !UI.revealed.has(e.id);
+  const tags = opt.closing ? '' : tagsOf(e).map(([t, c]) => `<span class="tag ${c}">${t}</span>`).join(' ');
+  const hit = !opt.closing && UI.sel === e.id;
+  let lines = '';
+  if (!hidden) {
+    lines = e.groups.map((g, gi) => {
+      const ordered = [...g.filter(l => l.s > 0), ...g.filter(l => l.s < 0)];
+      return ordered.map(l => `<tr><td class="${l.s < 0 ? 'cra' : ''}">${acctLab(l.a)}${l.fn ? `<span class="fn">${FNZ(l.fn)}</span>` : ''}</td><td class="ref">${l.a}</td><td class="amt dr-amt">${l.s > 0 ? fmt(l.s) : ''}</td><td class="amt cr-amt">${l.s < 0 ? fmt(-l.s) : ''}</td></tr>`).join('') + (gi < e.groups.length - 1 ? '<tr class="gs"><td colspan="4"></td></tr>' : '');
+    }).join('');
+    lines = `<table class="jt"><tbody>${lines}</tbody></table>`;
+  } else lines = `<div class="veil">练习模式：先在纸上写出这笔分录（借哪个账户、贷哪个账户、金额），再核对。<button class="btn small" data-act="revealJE" data-id="${e.id}">显示分录</button></div>`;
+  const whyOpen = UI.openWhy.has(e.id) ? ' open' : '';
+  const why = hidden ? '' : `<details class="why" data-why="${e.id}"${whyOpen}><summary>为什么这样记？</summary>${explainHTML(e)}</details>`;
+  return `<article class="je${hit ? ' hit' : ''}" id="je-${e.id}"><div class="je-h"><span class="je-no">${opt.closing ? e.no : 'J' + e.no}</span>${opt.closing ? '' : `<span class="je-date">${e.date}</span>`}<span class="je-memo">${esc(e.memo)}</span>${tags}</div>${lines}${why}</article>`;
+}
+function lineWhy(l){
+  const A = ACC[l.a], dr = l.s > 0, n = A.zh;
+  switch (A.t) {
+    case 'A': return dr ? `${n}（资产）增加，记借方` : `${n}（资产）减少，记贷方`;
+    case 'XA': return dr ? `${n}（资产备抵账户）减少，记借方` : `${n}（资产备抵账户）增加，使资产净额减少，记贷方`;
+    case 'L': return dr ? `${n}（负债）减少，记借方` : `${n}（负债）增加，记贷方`;
+    case 'E': return dr ? `${n}（权益）减少，记借方` : `${n}（权益）增加，记贷方`;
+    case 'XE': return dr ? `${n}增加（对股东的分配，减少权益），记借方` : `${n}减少，记贷方`;
+    case 'R': return dr ? `${n}（收入/利得）减少，记借方` : `${n}（收入/利得）增加，最终使权益增加，记贷方`;
+    case 'X': return dr ? `${n}（费用/损失）增加，最终使权益减少，记借方` : `${n}减少或为收益，最终使权益增加，记贷方`;
+    case 'O': return dr ? `${n}：OCI 损失，不进净利润但减少综合收益，记借方` : `${n}：OCI 利得，不进净利润但增加综合收益，记贷方`;
+  }
+  return '';
+}
+function eqDelta(groups){
+  let dA = 0, dL = 0, dE = 0;
+  for (const g of groups) for (const l of g) { const t = ACC[l.a].t; if (t === 'A' || t === 'XA') dA += l.s; else if (t === 'L') dL -= l.s; else dE -= l.s; }
+  const sg = v => v > 0 ? '+' + fmt(v) : v < 0 ? '−' + fmt(-v) : '0';
+  return `资产 ${sg(dA)} = 负债 ${sg(dL)} + 权益 ${sg(dE)}`;
+}
+function explainHTML(e){
+  const t = e.tpl && TPL[e.tpl];
+  const note = e.note || (t ? noteOf(t, e.p || {}) : '');
+  return `<div class="why-b"><ul>${e.groups.flat().map(l => `<li><b class="${l.s > 0 ? 'dr' : 'cr'}">${l.s > 0 ? '借 Dr' : '贷 Cr'}</b> ${esc(lineWhy(l))}</li>`).join('')}</ul>
+    <div class="eqline">${eqDelta(e.groups)}</div>${e.calc ? `<p class="calc">${esc(e.calc)}</p>` : ''}${note ? `<p class="note">${esc(note)}</p>` : ''}</div>`;
+}
+function tagsOf(e){
+  const t = [];
+  if (e.auto) t.push(['自动', 'auto']);
+  if (e.adj) t.push(['调整', 'adj']);
+  const acs = e.groups.flat().map(l => ACC[l.a]);
+  if (acs.some(a => a.t === 'O')) t.push(['OCI', 'oci']);
+  if (acs.some(a => a.pl === 'disc')) t.push(['终止经营', 'disc']);
+  if (R && R.CF && R.CF.nonCashIds.has(e.id)) t.push(['非现金', 'nc']);
+  if (e.src === 'ai') t.push(['AI', 'ai']);
+  return t;
+}
+function paneJournal(){
+  if (!R.entries.length) return paneBar('journal') + `<p class="empty">还没有交易。用左侧的模板录入第一笔交易。</p>`;
+  const ctl = practice() ? `<button class="btn small" data-act="revealAll">全部显示</button><button class="btn small" data-act="hideAll">全部隐藏</button>` : `<button class="btn small" data-act="whyAll">${UI.openWhy.size ? '收起全部解释' : '展开全部解释'}</button>`;
+  return paneBar('journal', ctl) + `<div class="jlegend"><span>Account titles and explanation · 会计科目</span><span>Ref</span><span>Debit 借</span><span>Credit 贷</span></div>` + R.entries.map(e => jeHTML(e)).join('');
+}
+function paneLedger(){
+  const groups = {all:() => true, A:a => a.t === 'A' || a.t === 'XA', L:a => a.t === 'L', E:a => a.t === 'E' || a.t === 'XE', PL:a => !!a.pl, O:a => a.t === 'O'};
+  const ctl = seg('lf', UI.lf, [['all', '全部'], ['A', '资产'], ['L', '负债'], ['E', '权益'], ['PL', '损益'], ['O', 'OCI']]);
+  const accts = VISIBLE.filter(a => groups[UI.lf](a) && ((R.OB[a.c] || 0) !== 0 || R.POST.some(p => p.a === a.c)));
+  const cards = accts.map(a => {
+    const ob = R.OB[a.c] || 0, ps = R.POST.filter(p => p.a === a.c);
+    const drR = [], crR = [];
+    if (ob > 0) drR.push({ob:true, amt:ob}); if (ob < 0) crR.push({ob:true, amt:-ob});
+    ps.forEach(p => { const e = R.byId[p.id]; (p.s > 0 ? drR : crR).push({id:p.id, no:e.no, amt:Math.abs(p.s)}); });
+    const row = r => `<div class="trow${r.id && r.id === UI.sel ? ' hit' : ''}">${r.ob ? '<span class="r ob">期初</span>' : `<button class="r" data-act="jump" data-id="${r.id}">J${r.no}</button>`}<span>${fmt(r.amt)}</span></div>`;
+    const b = R.bal(a.c), hit = UI.sel && ps.some(p => p.id === UI.sel);
+    const drT = drR.reduce((s, r) => s + r.amt, 0), crT = crR.reduce((s, r) => s + r.amt, 0);
+    return `<div class="tacc${hit ? ' hit' : ''}"><h4><span class="code">${a.c}</span>${esc(lang() === 'en' ? a.en : a.zh)}</h4><span class="en2">${esc(lang() === 'en' ? TYPE_EN[a.t] : lang() === 'zh' ? TYPE_ZH[a.t] : a.en + ' · ' + TYPE_ZH[a.t])}</span>
+      <div class="tsides"><div class="tside">${drR.map(row).join('')}</div><div class="tside">${crR.map(row).join('')}</div></div>
+      <div class="tfoot"><div>${b >= 0 ? `<span class="lbl">余额 Bal</span><span>${fmt(b)}</span>` : `<span class="lbl">合计</span><span>${fmt(drT)}</span>`}</div><div>${b < 0 ? `<span class="lbl">余额 Bal</span><span>${fmt(-b)}</span>` : `<span class="lbl">合计</span><span>${fmt(crT)}</span>`}</div></div></div>`;
+  }).join('');
+  return paneBar('ledger', ctl) + (accts.length ? `<div class="lgrid">${cards}</div>` : '<p class="empty">这一类没有有余额的账户。</p>');
+}
+function paneTB(){
+  const rows = [], tot = {ud:0, uc:0, ad:0, ac:0, fd:0, fc:0};
+  for (const a of VISIBLE) {
+    let un = R.OB[a.c] || 0, ad = 0, ac = 0;
+    for (const p of R.POST) if (p.a === a.c) { if (p.adj) { if (p.s > 0) ad += p.s; else ac -= p.s; } else un += p.s; }
+    const fin = un + ad - ac;
+    if (!un && !ad && !ac && !fin) continue;
+    tot.ud += Math.max(un, 0); tot.uc += Math.max(-un, 0); tot.ad += ad; tot.ac += ac; tot.fd += Math.max(fin, 0); tot.fc += Math.max(-fin, 0);
+    const hit = UI.sel && R.POST.some(p => p.a === a.c && p.id === UI.sel);
+    const c = v => v ? fmt(v) : '';
+    rows.push(`<tr${hit ? ' class="hit"' : ''}><td class="a"><span class="c">${a.c}</span>${acctLab(a.c)}</td><td class="gl">${c(Math.max(un, 0))}</td><td>${c(Math.max(-un, 0))}</td><td class="gl adjc">${c(ad)}</td><td class="adjc">${c(ac)}</td><td class="gl">${c(Math.max(fin, 0))}</td><td>${c(Math.max(-fin, 0))}</td></tr>`);
+  }
+  const okU = tot.ud === tot.uc, okA = tot.ad === tot.ac, okF = tot.fd === tot.fc;
+  return paneBar('tb') + `<div class="scroll"><table class="wk"><thead><tr><th class="a"></th><th colspan="2" class="gl">未调整试算表<br>Unadjusted</th><th colspan="2" class="gl">调整分录<br>Adjustments</th><th colspan="2" class="gl">调整后试算表<br>Adjusted</th></tr>
+    <tr><th class="a">账户 Account</th><th class="gl">Dr</th><th>Cr</th><th class="gl">Dr</th><th>Cr</th><th class="gl">Dr</th><th>Cr</th></tr></thead><tbody>${rows.join('')}</tbody>
+    <tfoot><tr><td class="a">合计 Totals</td><td class="gl">${fmt(tot.ud)}</td><td>${fmt(tot.uc)}</td><td class="gl">${fmt(tot.ad)}</td><td>${fmt(tot.ac)}</td><td class="gl">${fmt(tot.fd)}</td><td>${fmt(tot.fc)}</td></tr></tfoot></table></div>
+    <p style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><span class="okbad${okU ? '' : ' bad'}">${okU ? '✓' : '✗'} 未调整平衡</span><span class="okbad${okA ? '' : ' bad'}">${okA ? '✓' : '✗'} 调整分录平衡</span><span class="okbad${okF ? '' : ' bad'}">${okF ? '✓' : '✗'} 调整后平衡</span></p>
+    <p class="tip" style="margin-top:8px">「调整分录」列包括带「调整」标签的交易和系统自动计提的所得税。</p>`;
+}
+function paneClosing(){
+  const CL = R.CL;
+  const pcRows = COA.filter(a => !a.temp && !a.pl && a.t !== 'O' && (CL.pc[a.c] || 0) !== 0).map(a => { const v = CL.pc[a.c]; return `<tr><td class="a"><span class="c">${a.c}</span>${acctLab(a.c)}</td><td class="gl">${v > 0 ? fmt(v) : ''}</td><td>${v < 0 ? fmt(-v) : ''}</td></tr>`; });
+  let d = 0, c = 0; for (const a of COA) { const v = CL.pc[a.c] || 0; if (v > 0) d += v; else c -= v; }
+  const leftover = COA.filter(a => (a.temp || a.pl || a.t === 'O') && (CL.pc[a.c] || 0) !== 0);
+  return paneBar('closing') + `<h3 class="subh">结账分录 Closing entries</h3>${CL.E.length ? CL.E.map(e => jeHTML(e, {closing:true})).join('') : '<p class="empty">没有需要结转的临时账户。</p>'}
+    <h3 class="subh">结账后试算表 Post-closing trial balance</h3>
+    <div class="scroll"><table class="wk" style="min-width:420px"><thead><tr><th class="a">账户 Account</th><th class="gl">Dr</th><th>Cr</th></tr></thead><tbody>${pcRows.join('')}</tbody><tfoot><tr><td class="a">合计 Totals</td><td class="gl">${fmt(d)}</td><td>${fmt(c)}</td></tr></tfoot></table></div>
+    <p style="margin-top:12px"><span class="okbad${d === c && !leftover.length ? '' : ' bad'}">${d === c && !leftover.length ? '✓ 临时账户已全部清零；留存收益 ' + m$(-(CL.pc['3100'] || 0)) + ' 与财务状况表一致' : '✗ 仍有未结清的临时账户'}</span></p>`;
+}
+function paneOpening(){
+  const rows = VISIBLE.filter(a => ['A', 'XA', 'L', 'E'].includes(a.t)).map(a => {
+    const debitSide = a.t === 'A';
+    const raw = S.opening[a.c] || 0, v = debitSide ? raw : -raw;
+    const inp = `<input class="ob-in" id="ob-${a.c}" data-ob="${a.c}" value="${v ? esc(fmt(v).replace(/[()]/g, '')) + '' : ''}" ${v < 0 ? `data-neg="1"` : ''} inputmode="decimal" autocomplete="off" aria-label="${esc(a.zh)} 期初余额" placeholder="0">`;
+    return `<tr><td class="a"><span class="c">${a.c}</span>${acctLab(a.c)}</td><td class="gl">${debitSide ? inp : ''}</td><td>${debitSide ? '' : inp}</td></tr>`;
+  }).join('');
+  const okb = R.obDr === R.obCr;
+  return paneBar('opening', `<button class="btn small" data-act="zeroOB">全部清零</button>`) + `<div class="scroll"><table class="wk" style="min-width:460px"><thead><tr><th class="a">账户 Account</th><th class="gl">期初借方 Dr</th><th>期初贷方 Cr</th></tr></thead><tbody>${rows}</tbody>
+    <tfoot><tr><td class="a">合计 Totals</td><td class="gl">${fmt(R.obDr)}</td><td>${fmt(R.obCr)}</td></tr></tfoot></table></div>
+    <p style="margin:12px 0"><span class="okbad${okb ? '' : ' bad'}">${okb ? '✓ 期初借贷平衡' : `✗ 借贷相差 ${m$(Math.abs(R.obDr - R.obCr))}`}</span></p>
+    <div class="fields" style="max-width:420px"><div class="field"><label for="ob-shares">期初已发行普通股股数（算 EPS 用）</label><input id="ob-shares" data-obs="1" value="${esc(String(S.openingShares || ''))}" inputmode="numeric" autocomplete="off"></div></div>
+    <p class="tip" style="margin-top:10px">收入、费用、股利和 OCI 是临时账户，上年结账后已经清零，所以这里不用填。</p>`;
+}
+
+/* ================= bench (left) ================= */
+function defaults(id){
+  const t = TPL[id], p = {};
+  t.fields.forEach(f => p[f.k] = f.def != null ? String(f.def) : '');
+  p.date = isAdjTpl(t) ? `${S.company.year}-12-31` : (UI.lastDate || `${S.company.year}-01-01`);
+  p.memo = '';
+  return p;
+}
+function blankCustom(){ return {date:UI.lastDate || `${S.company.year}-01-01`, memo:'', adj:false, rows:[{a:'1000', dr:'', cr:''}, {a:'4000', dr:'', cr:''}]}; }
+function acctOptions(sel){
+  const g = [['资产', ['A', 'XA']], ['负债', ['L']], ['权益', ['E', 'XE']], ['收入/利得', ['R']], ['费用/损失', ['X']], ['其他综合收益', ['O']]];
+  return g.map(([n, ts]) => `<optgroup label="${n}">${VISIBLE.filter(a => ts.includes(a.t)).map(a => `<option value="${a.c}"${a.c === sel ? ' selected' : ''}>${a.c} ${esc(a.zh)}</option>`).join('')}</optgroup>`).join('');
+}
+function fieldHTML(f, p){
+  const id = 'f-' + f.k, v = p[f.k] ?? '';
+  let ctl;
+  if (f.t === 'sel') ctl = `<select id="${id}" data-f="${f.k}">${f.opts.map(([k, l]) => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
+  else ctl = `<input id="${id}" data-f="${f.k}" type="text" inputmode="${f.t === 'int' || f.t === 'num' ? 'decimal' : 'decimal'}" value="${esc(v)}" autocomplete="off">`;
+  return `<div class="field${f.full ? ' full' : ''}"><label for="${id}">${esc(f.label)}</label>${f.t === 'money' ? `<div class="affix"><span class="pre">${esc(cur())}</span>${ctl}</div>` : ctl}</div>`;
+}
+function miniEntry(groups){
+  return `<table class="mini"><tbody>${groups.map((g, gi) => [...g.filter(l => l.s > 0), ...g.filter(l => l.s < 0)].map(l => `<tr><td class="${l.s < 0 ? 'ca' : ''}">${l.s > 0 ? '<span class="dr">借</span>' : '<span class="cr">贷</span>'} ${esc(acctZh(l.a))}${l.fn ? `<span class="fn">${FNZ(l.fn)}</span>` : ''}</td><td class="amt dr-amt">${l.s > 0 ? fmt(l.s) : ''}</td><td class="amt cr-amt">${l.s < 0 ? fmt(-l.s) : ''}</td></tr>`).join('') + (gi < groups.length - 1 ? '<tr class="gs"><td colspan="3"></td></tr>' : '')).join('')}</tbody></table>`;
+}
+function previewBlock(r, note){
+  if (r.err) return `<div class="preview"><span class="ph">分录预览</span><p class="err">${esc(r.err)}</p>${note ? `<p class="note">${esc(note)}</p>` : ''}</div>`;
+  return `<div class="preview"><span class="ph">自动生成的分录</span>${miniEntry(r.groups)}<div class="eqline">${eqDelta(r.groups)}</div>${r.calc ? `<p class="calc">${esc(r.calc)}</p>` : ''}${note ? `<p class="note">${esc(note)}</p>` : ''}</div>`;
+}
+function tplPreviewHTML(){
+  const t = TPL[UI.tpl], r = runTpl(S, UI.tpl, UI.params, UI.editing);
+  return previewBlock(r, noteOf(t, UI.params));
+}
+function benchTpl(){
+  const t = TPL[UI.tpl], p = UI.params;
+  const opts = TPL_CATS.map(([cat, l]) => `<optgroup label="${l}">${TEMPLATES.filter(x => x.cat === cat).map(x => `<option value="${x.id}"${x.id === UI.tpl ? ' selected' : ''}>${esc(x.zh)}</option>`).join('')}</optgroup>`).join('');
+  const b = balancesOf(S, UI.editing), ctx = {bal:a => b[a] || 0};
+  const hint = t.hint ? t.hint(p, ctx) : '';
+  const vis = t.fields.filter(f => !f.show || f.show(p));
+  return `<div class="field full"><label for="tplSel">交易类型</label><select id="tplSel" data-act-change="tpl">${opts}</select></div>
+    <div class="fields"><div class="field"><label for="f-date">日期</label><input id="f-date" data-f="date" type="date" value="${esc(p.date)}"></div>${vis.map(f => fieldHTML(f, p)).join('')}
+    <div class="field full"><label for="f-memo">摘要（可留空，自动生成）</label><input id="f-memo" data-f="memo" type="text" value="${esc(p.memo)}" placeholder="${esc(safeMemo(t, p))}" autocomplete="off"></div></div>
+    ${hint ? `<p class="hint">${esc(hint)}</p>` : ''}
+    <div id="tplPreview">${tplPreviewHTML()}</div>
+    <div class="actions"><button class="btn primary" data-act="addTpl">${UI.editing ? '保存修改' : '记入日记账'}</button>${UI.editing ? '<button class="btn" data-act="cancelEdit">取消</button>' : ''}</div>`;
+}
+function safeMemo(t, p){ try { return t.memo(p); } catch (e) { return t.zh; } }
+function customTotals(){
+  let d = 0, c = 0; for (const r of UI.custom.rows) { const x = money(r.dr), y = money(r.cr); if (Number.isFinite(x)) d += x; if (Number.isFinite(y)) c += y; }
+  return {d, c};
+}
+function buildCustom(c){
+  const g = []; let dr = 0, cr = 0;
+  for (const r of c.rows) {
+    const d = money(r.dr), k = money(r.cr);
+    const hd = Number.isFinite(d) && d !== 0, hk = Number.isFinite(k) && k !== 0;
+    if ((String(r.dr).trim() && !Number.isFinite(d)) || (String(r.cr).trim() && !Number.isFinite(k))) return {err:`${acctZh(r.a)}：金额格式不对`};
+    if (!hd && !hk) continue;
+    if (hd && hk) return {err:`${acctZh(r.a)}：同一行只能填借方或贷方`};
+    if ((hd && d < 0) || (hk && k < 0)) return {err:'金额请填正数'};
+    const fn = normFn(r.a, r.fn);
+    if (hd) { g.push(fn ? {a:r.a, s:d, fn} : {a:r.a, s:d}); dr += d; } else { g.push(fn ? {a:r.a, s:-k, fn} : {a:r.a, s:-k}); cr += k; }
+  }
+  if (!g.some(l => l.s > 0) || !g.some(l => l.s < 0)) return {err:'至少要有一个借方和一个贷方'};
+  if (dr !== cr) return {err:`借方合计 ${fmt(dr)} ≠ 贷方合计 ${fmt(cr)}，相差 ${fmt(Math.abs(dr - cr))}`};
+  return {groups:[g]};
+}
+function benchCustom(){
+  const c = UI.custom;
+  const rows = c.rows.map((r, i) => {
+    const isOpx = ACC[r.a].pl === 'opx';
+    return `<div class="crow"><select id="cr-a-${i}" data-c="a" data-i="${i}" aria-label="账户">${acctOptions(r.a)}</select><input id="cr-dr-${i}" data-c="dr" data-i="${i}" value="${esc(r.dr)}" placeholder="借" inputmode="decimal" autocomplete="off" aria-label="借方金额"><input id="cr-cr-${i}" data-c="cr" data-i="${i}" value="${esc(r.cr)}" placeholder="贷" inputmode="decimal" autocomplete="off" aria-label="贷方金额"><button class="x" data-act="custDel" data-i="${i}" aria-label="删除这一行" title="删除这一行">×</button>
+      ${isOpx ? `<select class="fnsel" id="cr-fn-${i}" data-c="fn" data-i="${i}" aria-label="费用功能">${FN_OPTS.map(([k, l]) => `<option value="${k}"${(r.fn || ACC[r.a].fn) === k ? ' selected' : ''}>功能：${esc(l)}</option>`).join('')}</select>` : ''}</div>`;
+  }).join('');
+  const t = customTotals();
+  return `<p class="tdesc">自己选账户、填借贷。适合模板里没有的交易，也适合练习：先写分录，再看报表怎样变化。</p>
+    <div class="fields"><div class="field"><label for="c-date">日期</label><input id="c-date" data-cm="date" type="date" value="${esc(c.date)}"></div>
+    <div class="field" style="justify-content:flex-end"><label class="checkline"><input type="checkbox" id="c-adj" data-cm="adj"${c.adj ? ' checked' : ''}> 期末调整分录</label></div>
+    <div class="field full"><label for="c-memo">摘要</label><input id="c-memo" data-cm="memo" value="${esc(c.memo)}" autocomplete="off" placeholder="例如：以现金支付广告费"></div></div>
+    <div class="chead"><span>账户</span><span>借 Dr</span><span>贷 Cr</span><span></span></div>${rows}
+    <div class="ctot" id="cTot"><span>合计</span><span>${fmt(t.d)}</span><span>${fmt(t.c)}</span><span></span></div>
+    <div class="actions"><button class="btn small" data-act="custAdd">＋ 添加一行</button></div>
+    <div id="custMsg">${custMsg()}</div>
+    <div class="actions"><button class="btn primary" data-act="addCustom">${UI.editing ? '保存修改' : '记入日记账'}</button>${UI.editing ? '<button class="btn" data-act="cancelEdit">取消</button>' : ''}</div>`;
+}
+function custMsg(){
+  const r = buildCustom(UI.custom), t = customTotals();
+  if (r.err) return (t.d || t.c) ? `<p class="err">${esc(r.err)}</p>` : '';
+  return `<div class="preview"><span class="ph">借贷平衡 ✓</span><div class="eqline">${eqDelta(r.groups)}</div><ul style="margin:0;padding-left:18px;font-size:12.5px">${r.groups[0].map(l => `<li>${esc(lineWhy(l))}</li>`).join('')}</ul></div>`;
+}
+function benchAI(){
+  const a = UI.ai;
+  let out = '';
+  if (a.status === 'busy') out = `<p class="tdesc"><span class="spin"></span>Claude 正在分析这笔交易…</p>`;
+  else if (a.status === 'error') out = `<p class="err">${esc(a.err)}</p>`;
+  else if (a.status === 'done' && a.res) {
+    const r = a.res;
+    if (r.empty) out = `<div class="preview"><span class="ph">不需要记账</span><p class="tdesc">${esc(r.explain)}</p></div>`;
+    else out = `<div class="preview"><span class="ph">AI 生成的分录 · ${esc(r.date)}${r.adj ? ' · 调整' : ''}</span><p class="je-memo" style="margin:0">${esc(r.memo)}</p>${miniEntry(r.groups)}<div class="eqline">${eqDelta(r.groups)}</div><p class="note">${esc(r.explain)}</p>${r.assumptions ? `<p class="calc">假设：${esc(r.assumptions)}</p>` : ''}</div>
+      <div class="actions"><button class="btn primary" data-act="aiAccept">记入日记账</button><button class="btn" data-act="aiEdit">在自定义分录中修改</button></div>
+      <p class="hint">AI 也会出错。记账前请对照上面的解释检查一遍，这本身就是很好的练习。</p>`;
+  }
+  return `<p class="tdesc">用一句话描述交易（中英文都可以），由 Claude 按本页的会计科目生成分录和解释。</p>
+    <div class="field full"><label for="ai-text">交易描述</label><textarea id="ai-text" data-ai="1" rows="3" placeholder="例：9 月 1 日签发两年期票据 30,000 购入一台送货车">${esc(a.text)}</textarea></div>
+    <div class="actions"><button class="btn primary" data-act="aiGo"${a.status === 'busy' ? ' disabled' : ''}>生成分录</button>${a.status === 'busy' ? '<button class="btn" data-act="aiStop">停止</button>' : ''}</div>${out}`;
+}
+function renderBench(){
+  const list = R.entries.map(e => {
+    const amt = e.groups.reduce((x, g) => x + g.filter(l => l.s > 0).reduce((y, l) => y + l.s, 0), 0);
+    const tags = tagsOf(e).map(([t, c]) => `<span class="tag ${c}">${t}</span>`).join('');
+    return `<li class="tx${UI.sel === e.id ? ' on' : ''}${UI.editing === e.id ? ' editing' : ''}" data-act="sel" data-id="${e.id}" tabindex="0"><span class="no">J${e.no}</span><span class="memo">${esc(e.memo)}</span><span class="amt">${fmt(amt)}</span>
+      <span class="meta"><span class="d">${e.date.slice(5)}</span>${tags}${e.auto ? '' : `<span class="acts"><button data-act="edit" data-id="${e.id}">编辑</button><button data-act="del" data-id="${e.id}">删除</button></span>`}</span></li>`;
+  }).join('');
+  const modes = [['tpl', '模板'], ['custom', '自定义分录']].concat(UI.sample ? [['ai', 'AI 描述']] : []);
+  let body = UI.mode === 'custom' ? benchCustom() : UI.mode === 'ai' && UI.sample ? benchAI() : benchTpl();
+  $('#bench').innerHTML = `<section class="bsec"><div class="bhead"><h2 class="h2">${UI.editing ? `编辑 J${R.byId[UI.editing]?.no || ''}` : '录入交易'}</h2>${seg('mode', UI.mode, modes)}</div>${body}</section>
+    <section class="bsec" style="padding-bottom:4px"><div class="bhead"><h2 class="h2">本期分录<span class="count">${R.entries.length}</span></h2>${UI.sel ? '<button class="btn small" data-act="clearSel">取消追踪</button>' : ''}</div><p class="tdesc">点一笔交易，右边会高亮它影响到的每一行，包括层层汇总后的小计和合计。</p></section>
+    <ol class="txl">${list || '<li class="empty">还没有交易。</li>'}</ol>`;
+}
+
+/* ================= header, board ================= */
+function renderHeader(){
+  const st = S.settings, quiz = st.view === 'quiz';
+  $('#coLine').innerHTML = quiz ? `第 1–4 章练习题 · 共 ${allQs().length} 道 · 分录题使用工作台的会计科目表`
+    : `<b>${esc(S.company.name)}</b> · 截至 ${esc(S.company.year)} 年 12 月 31 日止年度 · ${esc(cur())} · 税率 ${esc(st.tax)}%`;
+  $('#toolbar').innerHTML = seg('view', quiz ? 'quiz' : 'lab', [['lab', '工作台'], ['quiz', '练习题']]) + (quiz ? '' : seg('lang', st.lang, [['both', '中英'], ['en', 'EN'], ['zh', '中文']]) +
+    `<button class="btn" data-act="practice" aria-pressed="${!!st.practice}">练习模式</button>
+     <button class="btn" data-act="settings" aria-pressed="${UI.showSettings}">设置</button>
+     <button class="btn" data-act="backup">备份</button>`);
+  $('#settingsBar').innerHTML = UI.showSettings && !quiz ? `<div class="settings">
+    <div class="field wide"><label for="set-name">公司名称</label><input id="set-name" data-set="name" value="${esc(S.company.name)}" autocomplete="off"></div>
+    <div class="field narrow"><label for="set-year">会计年度</label><input id="set-year" data-set="year" value="${esc(S.company.year)}" inputmode="numeric"></div>
+    <div class="field narrow"><label for="set-cur">货币符号</label><input id="set-cur" data-set="cur" value="${esc(S.company.cur)}"></div>
+    <div class="field narrow"><label for="set-tax">所得税率 %</label><input id="set-tax" data-set="tax" value="${esc(st.tax)}" inputmode="decimal"></div>
+    <label class="checkline"><input type="checkbox" id="set-auto" data-set="autoTax"${st.autoTax ? ' checked' : ''}> 年末自动计提所得税</label>
+    <div class="actions" style="margin-left:auto"><button class="btn" data-act="loadSample">载入示例公司</button><button class="btn" data-act="blank">清空，从新公司开始</button></div></div>` : '';
+  const E = R;
+  const prev = UI.lastEq; const nowEq = [E.totA, E.totL, E.totE].join('|');
+  const flash = prev && prev !== nowEq;
+  UI.lastEq = nowEq;
+  const okAll = E.checks.every(c => c.ok);
+  $('#eqBox').innerHTML = `<div class="eq-terms">
+      <div class="eq-term${flash ? ' eq-flash' : ''}"><span class="k">资产 Assets</span><span class="v">${fmt(E.totA)}</span></div><span class="eq-op">=</span>
+      <div class="eq-term${flash ? ' eq-flash' : ''}"><span class="k">负债 Liabilities</span><span class="v">${fmt(E.totL)}</span></div><span class="eq-op">+</span>
+      <div class="eq-term${flash ? ' eq-flash' : ''}"><span class="k">权益 Equity</span><span class="v">${fmt(E.totE)}</span></div></div>
+    <div class="chips" aria-label="${okAll ? '全部勾稽关系成立' : '有勾稽关系不成立'}">${E.checks.map(c => `<button class="chip${c.ok ? '' : ' bad'}" data-act="chip" data-k="${c.k}"><span class="dot">${c.ok ? '✓' : '✗'}</span>${c.zh}</button>`).join('')}</div>`;
+}
+function renderBoard(){
+  const tab = S.settings.tab;
+  $('#tabs').innerHTML = TABS.map(([k, n, l]) => `<button role="tab" type="button" data-act="tab" data-v="${k}" aria-selected="${tab === k}"><span class="n">${n}</span>${l}</button>`).join('');
+  const e = UI.sel && R.byId[UI.sel];
+  $('#fpBar').innerHTML = e ? `<div class="fp">正在追踪 <b>J${e.no} ${esc(e.memo)}</b><span>黄色高亮 = 这笔分录影响到的行，包括汇总到的小计与合计。</span><button class="btn small" data-act="clearSel">取消追踪</button></div>` : '';
+  TRACES = [];
+  const P = {opening:paneOpening, journal:paneJournal, ledger:paneLedger, tb:paneTB, pl:panePL, soce:paneSOCE, sfp:paneSFP, scf:paneSCF, closing:paneClosing}[tab] || panePL;
+  const pane = $('#pane');
+  pane.className = 'pane' + (lang() === 'zh' ? ' lang-zh' : '');
+  pane.innerHTML = P();
+  updateScore();
+}
+function renderAll(){
+  const act = document.activeElement, fid = act && act.id;
+  let caret = null; try { caret = act && act.selectionStart; } catch (e) {}
+  R = compute();
+  const quiz = S.settings.view === 'quiz';
+  $('#eqBox').hidden = quiz; $('#work').hidden = quiz; $('#quiz').hidden = !quiz;
+  renderHeader(); renderLabBanner();
+  if (quiz) renderQuiz(); else { renderBench(); renderBoard(); }
+  if (fid) { const el = document.getElementById(fid); if (el && el !== document.activeElement) { el.focus({preventScroll:true}); try { if (caret != null && el.setSelectionRange) el.setSelectionRange(caret, caret); } catch (e) {} } }
+}
+
+/* ================= trace panel ================= */
+function openTrace(t){
+  const tr = t.tr, box = $('#trace');
+  const isEps = t.fmt === 'eps';
+  let list = '';
+  if (tr.ids && tr.ids.size) {
+    const pseudo = {OB:'期初余额（上年末）', NP:'本年净利润（来自损益表）'};
+    const items = [...tr.ids.entries()].filter(([k, v]) => v !== 0 || pseudo[k]);
+    items.sort((a, b) => { const ra = pseudo[a[0]] ? -1 : R.byId[a[0]].no, rb = pseudo[b[0]] ? -1 : R.byId[b[0]].no; return ra - rb; });
+    const tot = items.reduce((s, [, v]) => s + v, 0);
+    list = `<ul class="tl">${items.map(([k, v]) => pseudo[k] ? `<li class="ps"><span>${pseudo[k]}</span><span class="v">${amtHTML(v)}</span></li>` : `<li><button data-act="jump" data-id="${k}"><span class="no">J${R.byId[k].no}</span><span class="d">${R.byId[k].date.slice(5)}</span><span class="m">${esc(R.byId[k].memo)}</span></button><span class="v">${amtHTML(v)}</span></li>`).join('')}
+      <li class="tot"><span>合计</span><span class="v">${amtHTML(tot)}</span></li></ul>`;
+  }
+  const big = isEps ? epsHTML(t.v) : amtHTML(t.v);
+  box.innerHTML = `<div class="trace-h"><span class="eyebrow">这个数字从哪里来</span><h3>${esc(lang() === 'zh' ? t.zh : t.en)}</h3>${lang() === 'zh' ? '' : `<span class="zh">${esc(t.zh)}</span>`}<div class="big">${big}</div><button class="trace-x" data-act="closeTrace" aria-label="关闭">×</button></div>
+    <div class="trace-b">${tr.why ? `<p class="why-f">${esc(tr.why)}</p>` : ''}${list}${!list && tr.hits && tr.hits.size ? `<p class="tdesc">这是汇总行，共有 ${tr.hits.size} 笔分录流入这里。点左侧任何一笔交易，就能看到它一路汇总到这一行。</p>` : ''}</div>`;
+  box.hidden = false;
+  const x = box.querySelector('.trace-x'); if (x) x.focus({preventScroll:true});
+}
+function openInfo(title, text){
+  const box = $('#trace');
+  box.innerHTML = `<div class="trace-h"><span class="eyebrow">勾稽关系</span><h3>${esc(title)}</h3><button class="trace-x" data-act="closeTrace" aria-label="关闭">×</button></div><div class="trace-b"><p class="why-f">${esc(text)}</p></div>`;
+  box.hidden = false;
+}
+
+/* ================= practice ================= */
+function parseGuess(s){
+  let t = String(s || '').trim(); if (!t) return null;
+  let neg = false;
+  if (/^\(.*\)$/.test(t)) { neg = true; t = t.slice(1, -1); }
+  t = t.replace(/[,\s$]/g, '').replace(/HK/gi, '');
+  if (t.startsWith('-') || t.startsWith('−')) { neg = !neg; t = t.slice(1); }
+  if (t === '–' || t === '-') return 0;
+  const n = parseFloat(t); if (!Number.isFinite(n)) return NaN;
+  return neg ? -n : n;
+}
+function checkAll(){
+  document.querySelectorAll('#pane .guess').forEach(inp => {
+    const k = inp.dataset.g, v = +inp.dataset.v, g = parseGuess(inp.value);
+    UI.guesses[k] = inp.value;
+    if (g == null) { delete UI.marks[k]; return; }
+    UI.marks[k] = inp.dataset.f === 'eps' ? Math.abs(g - v) < 0.006 : Math.abs(Math.round(g * 100) - v) <= 100;
+  });
+  renderBoard();
+}
+function updateScore(){
+  const el = $('#score'); if (!el) return;
+  const ins = [...document.querySelectorAll('#pane .guess')];
+  const done = ins.filter(i => UI.marks[i.dataset.g] !== undefined), right = done.filter(i => UI.marks[i.dataset.g]);
+  el.textContent = done.length ? `${right.length} / ${ins.length} 正确` : '';
+}
+
+/* ================= actions ================= */
+function toast(msg, undoFn){
+  const t = $('#toast');
+  t.innerHTML = `<span>${esc(msg)}</span>${undoFn ? '<button data-act="undo">撤销</button>' : ''}`;
+  t.hidden = false; UI.undo = undoFn || null;
+  clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; UI.undo = null; }, 7000);
+}
+const snapshot = () => JSON.stringify(S);
+function restore(json){ S = normalize(JSON.parse(json)); save(); renderAll(); }
+function startTpl(id){ UI.tpl = id; UI.params = defaults(id); }
+function commit(tx){
+  if (UI.editing) {
+    const i = S.txns.findIndex(t => t.id === UI.editing);
+    if (i >= 0) { const old = S.txns[i]; S.txns[i] = {...tx, id:old.id, seq:old.seq}; UI.sel = old.id; }
+    UI.editing = null;
+  } else { S.seq++; tx.id = 'T' + S.seq; tx.seq = S.seq; S.txns.push(tx); UI.sel = tx.id; }
+  UI.lastDate = tx.date;
+  save(); renderAll();
+}
+function addTpl(){
+  const t = TPL[UI.tpl], p = UI.params;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date || '')) { toast('请先选择日期'); return; }
+  const r = runTpl(S, UI.tpl, p, UI.editing);
+  if (r.err) { toast(r.err); return; }
+  const fp = {}; t.fields.forEach(f => fp[f.k] = p[f.k]);
+  commit({date:p.date, tpl:UI.tpl, p:fp, memoUser:p.memo || '', memo:p.memo || safeMemo(t, fp), adj:isAdjTpl(t), groups:r.groups, calc:r.calc || '', shares:r.shares || 0});
+  const keep = {date:p.date}; startTpl(UI.tpl); Object.assign(UI.params, keep);
+  renderBench();
+}
+function addCustom(){
+  const c = UI.custom, r = buildCustom(c);
+  if (r.err) { toast(r.err); return; }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(c.date || '')) { toast('请先选择日期'); return; }
+  const old = UI.editing && S.txns.find(t => t.id === UI.editing);
+  commit({date:c.date, tpl:'custom', memo:c.memo || '自定义分录', memoUser:c.memo, adj:!!c.adj, groups:r.groups, calc:'', shares:0, note:old && old.note || '', src:old && old.src || ''});
+  UI.custom = blankCustom(); UI.custom.date = c.date;
+  renderBench();
+}
+function editTx(id){
+  const t = S.txns.find(x => x.id === id); if (!t) return;
+  UI.editing = id; UI.sel = id;
+  if (t.tpl && TPL[t.tpl]) { UI.mode = 'tpl'; UI.tpl = t.tpl; UI.params = {...defaults(t.tpl), ...t.p, date:t.date, memo:t.memoUser || ''}; }
+  else {
+    UI.mode = 'custom';
+    UI.custom = {date:t.date, memo:t.memo, adj:!!t.adj, rows:t.groups.flat().map(l => ({a:l.a, dr:l.s > 0 ? (l.s / 100).toString() : '', cr:l.s < 0 ? (-l.s / 100).toString() : '', fn:l.fn || ''}))};
+  }
+  renderAll();
+  $('#bench').scrollTop = 0;
+}
+function delTx(id){
+  const snap = snapshot(), t = S.txns.find(x => x.id === id); if (!t) return;
+  S.txns = S.txns.filter(x => x.id !== id);
+  if (UI.sel === id) UI.sel = null; if (UI.editing === id) { UI.editing = null; }
+  save(); renderAll();
+  toast(`已删除：${t.memo}`, () => restore(snap));
+}
+function jump(id){
+  if (!R.byId[id]) return;
+  UI.sel = id; S.settings.tab = 'journal'; save();
+  renderAll();
+  const el = document.getElementById('je-' + id); if (el) el.scrollIntoView({block:'center', behavior:'smooth'});
+}
+
+/* ---------- AI ---------- */
+function aiPrompt(text){
+  const b = balancesOf(S, null);
+  const coa = VISIBLE.map(a => `${a.c} | ${a.en} | ${a.zh} | ${TYPE_EN[a.t]}`).join('\n');
+  const bl = VISIBLE.filter(a => b[a.c]).map(a => `${a.c} ${a.en}: ${b[a.c] > 0 ? 'Dr' : 'Cr'} ${(Math.abs(b[a.c]) / 100).toFixed(2)}`).join('\n');
+  return `You help a university student (HKU ACCT 2102, Intermediate Accounting I, IFRS) record ONE business transaction for a fictional practice company.
+Company: ${S.company.name}. Financial year 1 Jan – 31 Dec ${S.company.year}. Currency ${cur()}.
+Income tax expense is accrued automatically at year end, so do NOT record income tax expense unless the text explicitly asks for it. Perpetual inventory system.
+
+Chart of accounts (use ONLY these codes):
+code | English | Chinese | type
+${coa}
+
+Current ledger balances before this transaction:
+${bl || '(all zero)'}
+
+Transaction described by the student:
+"""${text}"""
+
+Reply with ONLY one JSON object of this shape:
+{"date":"YYYY-MM-DD","memo":"short Chinese memo","adjusting":false,"groups":[[{"acct":"1000","dr":5000,"cr":0,"fn":null},{"acct":"4000","dr":0,"cr":5000,"fn":null}]],"explain":"2-4 sentences in Simplified Chinese: why each account is debited or credited, which element changes, and any IFRS point","assumptions":"Chinese; assumptions you made, or empty string"}
+Rules:
+- Amounts are plain numbers in currency units (not cents). Each line has either dr or cr greater than 0.
+- Each inner array is one balanced journal entry. Use two entries for a sale of goods (revenue entry, then cost-of-sales entry).
+- "fn" only on operating expense lines (codes 5000-6900), one of "cos","sell","admin","other"; otherwise null.
+- "adjusting" is true for period-end adjusting entries (depreciation, accruals, deferrals, estimates, fair value remeasurement).
+- If no date is given, use ${UI.lastDate || S.company.year + '-12-31'}. If an amount is missing, assume a reasonable one and state it in assumptions.
+- If the text does not describe a transaction that changes the accounts, reply {"groups":[],"explain":"<reason in Chinese>"}.`;
+}
+function parseAI(j){
+  if (!j || typeof j !== 'object') throw 'AI 返回的内容无法识别，请换个说法再试。';
+  const gs = Array.isArray(j.groups) ? j.groups : [];
+  if (!gs.length) return {empty:true, explain:String(j.explain || '这段描述没有需要记账的内容。')};
+  const out = [];
+  for (const g of gs) {
+    if (!Array.isArray(g)) throw 'AI 返回的分录格式不对，请再试一次。';
+    const lines = []; let sum = 0;
+    for (const l of g) {
+      const a = String(l && (l.acct ?? l.account) || '').trim();
+      if (!ACC[a] || ACC[a].hidden) throw `AI 用了本页没有的账户代码「${a}」，请换个说法再试。`;
+      const dr = Math.round((+l.dr || 0) * 100), cr = Math.round((+l.cr || 0) * 100);
+      if (dr < 0 || cr < 0) throw 'AI 返回了负数金额，请再试一次。';
+      const s = dr - cr; if (!s) continue;
+      const fn = normFn(a, l.fn);
+      lines.push(fn ? {a, s, fn} : {a, s}); sum += s;
+    }
+    if (sum !== 0) throw 'AI 生成的分录借贷不平衡，请再试一次或改用自定义分录。';
+    if (lines.length) out.push(lines);
+  }
+  if (!out.length) throw 'AI 没有生成有效的分录。';
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(j.date || '') ? j.date : (UI.lastDate || `${S.company.year}-12-31`);
+  return {date, memo:String(j.memo || 'AI 生成的分录').slice(0, 120), adj:!!j.adjusting, groups:out, explain:String(j.explain || ''), assumptions:String(j.assumptions || '')};
+}
+async function aiGo(){
+  const text = (UI.ai.text || '').trim();
+  if (!text) { toast('先写一句交易描述'); return; }
+  const ctl = new AbortController();
+  UI.ai = {...UI.ai, status:'busy', res:null, err:'', ctl}; renderBench();
+  try {
+    const j = await UI.sample.json(aiPrompt(text), {signal:ctl.signal});
+    UI.ai = {...UI.ai, status:'done', res:parseAI(j), ctl:null};
+  } catch (e) {
+    const code = e && e.code;
+    if (code === 'cancelled') UI.ai = {...UI.ai, status:'idle', ctl:null};
+    else if (code === 'not_granted' || code === 'sampling_disabled' || code === 'not_declared' || code === 'capability_disabled' || code === 'capability_removed') { UI.sample = null; UI.mode = 'tpl'; UI.ai = {...UI.ai, status:'idle', ctl:null}; toast('这个页面现在不能调用 Claude，已切回模板录入。'); }
+    else {
+      const msg = typeof e === 'string' ? e : code === 'rate_limited' ? '请求太频繁或已达到用量上限，请稍后再试。' : code === 'invalid_json' ? 'AI 的回答不是有效格式，请点「生成分录」再试一次。' : code === 'refused' ? 'Claude 没有处理这段描述，请换个说法。' : '连接出了问题，请稍后再试。';
+      UI.ai = {...UI.ai, status:'error', err:msg, ctl:null};
+    }
+  }
+  renderBench();
+}
+
+/* ---------- backup ---------- */
+function downloadFile(name, text){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type:'application/json'}));
+  a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function openBackup(){
+  const json = JSON.stringify(S, null, 1);
+  $('#modal').innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="bkT"><h3 id="bkT">备份与导入</h3>
+    <p class="tdesc">数据只保存在这个浏览器里。换电脑或清除浏览数据前，先导出一份 JSON 备份。</p>
+    <div class="actions">${UI.dl || !window.claude ? '<button class="btn primary" data-act="dlJson">下载 JSON 文件</button>' : ''}<button class="btn" data-act="copyJson">复制 JSON</button></div>
+    <div class="field"><label for="bk-text">JSON 内容（可以粘贴备份后导入）</label><textarea id="bk-text">${esc(json)}</textarea></div>
+    <div class="actions"><button class="btn" data-act="importText">从上面的文本导入</button><label class="btn" for="bk-file">选择 JSON 文件导入</label><input type="file" id="bk-file" accept=".json,application/json" hidden><button class="btn" data-act="closeModal" style="margin-left:auto">关闭</button></div>
+    <p class="err" id="bk-msg"></p></div>`;
+  $('#modal').hidden = false;
+}
+function importJSON(text){
+  try {
+    const s = JSON.parse(text);
+    if (!s || !s.company || !Array.isArray(s.txns)) throw 0;
+    const snap = snapshot();
+    S = normalize(s); UI.sel = null; UI.editing = null; save();
+    $('#modal').hidden = true; renderAll();
+    toast('已导入备份', () => restore(snap));
+  } catch (e) { const m = $('#bk-msg'); if (m) m.textContent = '导入失败：这不是本页导出的 JSON。'; }
+}
+
+/* ================= practice questions ================= */
+const QKEY = 'acct2102-quiz-v1', RKEY = 'acct2102-lab-return-v1';
+const CH_NAME = {1:'第 1 章 · 概念框架', 2:'第 2 章 · 财务披露', 3:'第 3 章 · 损益及 OCI', 4:'第 4 章 · 现金流量表'};
+const QTYPE = {mc:'单选题', multi:'多选题', match:'配对题', num:'计算题', je:'分录题'};
+const qGroup = q => q.type === 'multi' ? 'mc' : q.type;
+const LETTER = 'ABCDEFGH';
+
+// Scenarios a calculation question can load into the workbench (amounts in currency units)
+const LABS = {
+  duluthSold:{name:'Duluth Holding Company', cur:'$', ob:{'1510':12000000,'3000':-12000000}, shares:1000000, tab:'pl',
+    note:'持续经营部分用一笔 $25,000,000 的服务收入代替，扣 20% 税后正好是 $20,000,000。',
+    tx:[['2026-06-30','service',{amt:'25000000',pay:'cash'}],['2026-10-01','heldForSale',{cost:'12000000',accDep:'0'}],['2026-12-18','discOps',{kind:'loss',amt:'5000000'}],['2026-12-18','hfsSell',{proceeds:'15000000'}]]},
+  duluthHFS:{name:'Duluth Holding Company', cur:'$', ob:{'1510':12000000,'3000':-12000000}, shares:1000000, tab:'pl',
+    note:'持续经营部分用一笔 $25,000,000 的服务收入代替，扣 20% 税后正好是 $20,000,000。',
+    tx:[['2026-06-30','service',{amt:'25000000',pay:'cash'}],['2026-10-01','heldForSale',{cost:'12000000',accDep:'0'}],['2026-12-31','discOps',{kind:'loss',amt:'5000000'}],['2026-12-31','hfsImpair',{fvlcs:'9000000'}]]},
+  duluthClass:{name:'Duluth Holding Company', cur:'$', ob:{'1510':12000000,'3000':-12000000}, shares:1000000, tab:'pl',
+    note:'公允价值减出售成本高于账面价值，所以情景里没有减值分录。持续经营部分用一笔 $25,000,000 的服务收入代替。',
+    tx:[['2026-06-30','service',{amt:'25000000',pay:'cash'}],['2026-10-01','heldForSale',{cost:'12000000',accDep:'0'}],['2026-12-31','discOps',{kind:'loss',amt:'5000000'}]]},
+  ravel:{name:'Ravel Company', cur:'$', ob:{'1510':500000,'3000':-500000}, shares:50000, tab:'pl',
+    note:'持续经营部分用一笔 $750,000 的服务收入代替，扣 20% 税后正好是 $600,000。',
+    tx:[['2026-03-31','service',{amt:'750000',pay:'cash'}],['2026-07-01','heldForSale',{cost:'500000',accDep:'0'}],['2026-09-30','discOps',{kind:'loss',amt:'90000'}],['2026-09-30','hfsSell',{proceeds:'340000'}]]},
+  fnFormat:{name:'Practice Company', cur:'$', ob:{'1000':100000,'1200':450000,'1510':50000,'3000':-600000}, shares:100000, tab:'pl',
+    note:'销售费用用销售人员工资代表，管理费用用租金代表。可以切换「按性质」对比。',
+    tx:[['2026-03-01','sale',{price:'800000',cost:'450000',pay:'cash'}],['2026-06-30','paySalaries',{what:'expense',amt:'90000',fn:'sell'}],['2026-06-30','payExpense',{acct:'6100',amt:'70000',pay:'cash',fn:'admin'}],['2026-09-30','sellPPE',{cost:'20000',accDep:'0',proceeds:'32000'}],['2026-12-01','interestRecv',{amt:'6000'}],['2026-12-31','payInterest',{what:'expense',amt:'16000'}]]},
+  cfIndirect:{name:'Cashflow Practice Limited', cur:'HK$', ob:{'1000':50000,'1100':30000,'1200':40000,'1510':100000,'1515':-20000,'2000':-25000,'3000':-175000}, shares:10000, tab:'scf',
+    note:'可以在「间接法 / 直接法」之间切换，两者的经营活动现金流量相同。',
+    tx:[['2026-02-01','purchaseInv',{amt:'130000',pay:'credit'}],['2026-03-01','sale',{price:'200000',cost:'120000',pay:'credit'}],['2026-05-01','collectAR',{amt:'185000'}],['2026-06-01','payAP',{amt:'135000'}],['2026-06-30','paySalaries',{what:'expense',amt:'30000',fn:'admin'}],['2026-07-01','sellPPE',{cost:'20000',accDep:'8000',proceeds:'15000'}],['2026-08-01','buyPPE',{acct:'1510',amt:'40000',pay:'cash'}],['2026-12-31','depreciation',{method:'manual',amt:'10000',fn:'admin'}]]},
+};
+
+const QUESTIONS = [
+  // ---------- Chapter 1
+  {id:'c1-qc', ch:1, type:'match', title:'信息质量特征',
+    prompt:'下面每个情境主要体现（或违反）了哪一项信息质量特征？',
+    choices:['预测价值 Predictive value','确认价值 Confirmatory value','完整性 Completeness','中立性 Neutrality','无重大错误 Free from error','可验证性 Verifiability','及时性 Timeliness'],
+    items:[['投资者用一家房地产信托过去几年的股利，估计它未来的股利。',0],['年报公布的实际 EPS 显示分析师此前的预测偏高，投资者据此修正了判断。',1],['两名独立审计师分别盘点同一批存货，得到相同的数量。',5],['公司刻意不披露一宗对自己不利的重大诉讼。',3],['公司上年漏记了办公楼的折旧。',4],['公司拖到期末后九个月才发布中期报告。',6],['银行没有提供评估其次级贷款应收款价值所需的信息。',2]],
+    exp:'<p><b>基本质量特征</b>只有两个：<b>相关性</b>（预测价值、确认价值、重要性）和<b>如实反映</b>（完整、中立、无重大错误）。<b>增强特征</b>是可比性、可验证性、及时性、可理解性，不能替代基本特征。</p><ul><li>用过去的股利预测未来 → 预测价值。</li><li>实际数字证实或修正以前的判断 → 确认价值。</li><li>不同的人独立得出相同结果 → 可验证性。</li><li>选择性隐瞒坏消息，信息有偏向 → 违反中立性。</li><li>漏记折旧是前期差错 → 违反「无重大错误」，要追溯更正。</li><li>信息来得太晚就失去决策用处 → 及时性。</li><li>遗漏评估资产价值所需的信息 → 违反完整性。</li></ul>'},
+  {id:'c1-fund', ch:1, type:'mc', prompt:'下列哪一项属于<b>基本</b>质量特征，而不是增强质量特征？',
+    options:['可比性 Comparability','及时性 Timeliness','如实反映 Faithful representation','可理解性 Understandability'], answer:2,
+    exp:'<p>基本质量特征 = 相关性 + 如实反映。其余三项都是增强质量特征：它们让本来有用的信息更有用。如果信息本身不相关、或者不能如实反映，增强特征也补救不了。</p>'},
+  {id:'c1-mat', ch:1, type:'multi', prompt:'关于重要性（materiality），哪些说法正确？（多选）',
+    options:['IFRS 规定低于净利润 5% 的项目一律不重要','判断时要同时考虑定量和定性因素','金额很小的贿赂也可能是重要的','重要性是「相关性」的组成部分','漏记一笔小费用刚好让公司达到分析师预测，这笔费用也可能是重要的'], answer:[1,2,3,4],
+    exp:'<p>一项信息如果遗漏或错报会影响使用者的决策，它就是重要的。IFRS <b>没有</b>统一的数量门槛，「低于净利润 5%」只是实务中的经验法则，所以 A 错。定性因素（违法交易、盈余管理、刚好达到预测、维持增长趋势）可能让小金额也变得重要，需要专业判断。重要性属于相关性的一个方面。</p>'},
+  {id:'c1-liab', ch:1, type:'mc', prompt:'公司年结日为 12 月 31 日。下列哪一项在年末<b>不应</b>确认为负债？',
+    options:['12 月已收到客户货款，商品下年 1 月才交付','员工 12 月已提供服务，工资下年 1 月才发放','公司计划下年 3 月购买一台机器，目前尚未签约，也没有付款','本年应缴但尚未缴纳的所得税'], answer:2,
+    exp:'<p>负债的定义有三个要素：<b>现时义务</b>、需要<b>转移经济资源</b>、由<b>过去事项</b>形成。A 是合同负债（已收款、尚欠商品）；B 是应付工资（服务已经提供）；D 是应交所得税。C 只是管理层的计划，没有过去事项形成的现时义务，所以不是负债。</p>'},
+  {id:'c1-entity', ch:1, type:'mc', prompt:'老板用公司银行账户支付了自己家庭旅游的费用。会计上不能把它记为公司的费用，这体现了哪一项基本假设？',
+    options:['持续经营 Going concern','经济主体 Economic entity','会计分期 Periodicity','货币计量 Monetary unit'], answer:1,
+    exp:'<p>经济主体假设要求把企业的经济活动和所有者个人的活动分开。老板的私人开支应记为对股东的分配（或应收老板的款项），不能作为公司费用。</p><p>其他三个假设：持续经营 = 企业会一直经营下去；会计分期 = 把企业的寿命切成年度、季度来报告；货币计量 = 用名义货币单位计量。</p>'},
+  {id:'c1-fv', ch:1, type:'mc', prompt:'公司根据<b>自己估计</b>的未来现金流量并折现，确定一项弃置义务（ARO）的公允价值。这属于公允价值层级的哪一级？',
+    options:['第一级：相同资产在活跃市场的报价','第二级：类似资产的报价或其他可观察的市场数据','第三级：反映企业自身假设的不可观察输入值','这不是公允价值，而是历史成本'], answer:2,
+    exp:'<p>第一级最可靠（例如交易所的股价）；第二级用类似资产的报价或可观察的市场数据（例如同区写字楼每平方尺的成交价）；第三级用企业自己的假设，最不可靠。用自己估计的现金流折现，输入值不可观察，所以是第三级。</p>'},
+  {id:'c1-enron', ch:1, type:'mc', prompt:'某公司连续三年报告的 EPS 都略高于分析师预测：$4.30、$4.73、$5.20。后来监管机构要求重述，重述后为 $4.30、$3.87、$3.48。原来报告的 EPS 主要存在什么问题？',
+    options:['不够及时 Timeliness','没有如实反映：存在向上的偏差','不够可理解 Understandability','缺乏可比性 Comparability'], answer:1,
+    exp:'<p>重述后的 EPS 明显低于原报告数，说明原数字系统性偏高（可能漏记费用和损失，或虚增收入和利得），违反如实反映中的<b>中立性</b>和<b>无重大错误</b>。</p><p>重述后的 EPS 很<b>相关</b>：它有确认价值（把投资者对增长的判断从「逐年上升」纠正为「逐年下降」）、预测价值（管理层不变时，差的业绩可能持续），而且差额重大，说明股票被高估了。</p>'},
+  {id:'c1-je-adv', ch:1, type:'je', prompt:'11 月 1 日，公司预收客户服务款 HK$10,000，服务将在下年提供。请写出分录。', je:[['1000',10000],['2300',-10000]],
+    exp:'<p>收入要在履行履约义务、把商品或服务的控制权转移给客户时确认（IFRS 15），与何时收到现金无关。现在还没提供服务，公司欠客户一项服务，符合负债的定义：现时义务、要转移经济资源、由过去事项（收款）形成。所以贷记<b>预收收入（合同负债）</b>，不是收入。</p>'},
+  {id:'c1-je-acc', ch:1, type:'je', prompt:'12 月 31 日，行政人员 12 月份的工资 HK$6,000 尚未支付，下年 1 月 5 日才发放。请写出年末调整分录。', je:[['6000',6000],['2100',-6000]],
+    exp:'<p>员工在 12 月已经提供服务，这笔费用属于本期（权责发生制）。还没付款，所以同时确认负债「应付职工薪酬」。下年 1 月付款时：借 应付职工薪酬，贷 现金，不再确认费用。</p>'},
+  // ---------- Chapter 2
+  {id:'c2-sub', ch:2, type:'match', title:'期后事项',
+    prompt:'公司年结日为 12 月 31 日，报表于次年 3 月 10 日发布。下列每个事项应如何处理？',
+    choices:['在本年报表附注中披露','不需要在本年报表中处理'],
+    items:[['1 月 22 日，与另一家公司谈妥一项重大合并，预计年中完成。',0],['2 月 3 日，取得一笔金额重大的长期银行借款。',0],['2 月 25 日，洪水毁坏一座厂房，未投保损失约占净利润 10%。',0],['2 月 14 日，更换了办公室文具供应商，金额很小。',1],['3 月 20 日，主要仓库发生火灾。',1]],
+    exp:'<p><b>期后事项</b>是报告日（12 月 31 日）之后、报表发布日（3 月 10 日）之前发生的重大事项。考试写法：先写时间范围，再判断是否重大，最后说明处理及理由。</p><ul><li>重大合并、重大借款（债务融资）、自然灾害造成的重大损失都会影响使用者的判断，应在附注中说明；灾害还要披露估计的损失金额。</li><li>更换文具供应商不重大，不需要披露。</li><li>3 月 20 日的火灾发生在报表发布之后，不属于这份报表的期后事项。</li></ul>'},
+  {id:'c2-rp', ch:2, type:'mc', prompt:'创始人 CEO 以明显低于市场的利率，用公司资金借钱给自己的家属。附注中应披露什么？',
+    options:['只披露贷款金额','关联方关系的性质、交易的描述及涉及金额','无需披露，因为金额已经包含在应收款中','只需在管理层讨论与分析（MD&amp;A）中提及'], answer:1,
+    exp:'<p>这是<b>关联方交易</b>。低于市场的利率不符合独立交易原则（arm&#39;s length），等于把公司的财富转移给 CEO 家属，损害其他股东的利益。附注要说明关系的性质、交易描述、涉及金额（以及必要的条款），让使用者自己判断影响。</p>'},
+  {id:'c2-audit', ch:2, type:'match', title:'审计意见',
+    prompt:'把每种情况配上对应的审计意见类型。',
+    choices:['无保留意见 Unqualified','保留意见 Qualified','无法表示意见 Disclaimer','否定意见 Adverse'],
+    items:[['审计师没有发现需要修改意见的问题。',0],['审计师与管理层在某些会计处理上有分歧，但不影响报表整体。',1],['审计范围受到限制，审计师无法取得足够的证据。',2],['审计师认为报表整体不可信。',3]],
+    exp:'<p>无保留意见是正面的报告，表示审计师没有发现问题（必要时会加「强调事项」段，例如持续经营存在重大不确定性、诉讼结果未定）。保留意见 = 与管理层有部分分歧；无法表示意见 = 审计范围受限；否定意见 = 报表不可依赖。</p>'},
+  {id:'c2-fraud', ch:2, type:'mc', prompt:'会计人员不小心把一笔 HK$80,000 的设备采购记成了维修费用，没有任何故意。这属于？',
+    options:['舞弊 Fraud','差错 Error','期后事项 Subsequent event','关联方交易 Related-party transaction'], answer:1,
+    exp:'<p>舞弊是<b>故意</b>的错报，目的是取得不正当或非法的利益；差错是<b>无意</b>的错报。这里没有故意，所以是差错。它让本年费用高估、资产低估，金额重大时要更正并披露。研究发现，错报（尤其是舞弊）被揭露后股价会大跌，投资者对公司以后的披露也会失去信任。</p>'},
+  {id:'c2-req', ch:2, type:'multi', prompt:'下列哪些属于上市公司年报中<b>必须</b>提供的内容？（多选）',
+    options:['重大会计政策摘要','期后事项','管理层讨论与分析（MD&amp;A）','审计报告','公司未来三年的利润预测','董事及高管的薪酬'], answer:[0,1,2,3,5],
+    exp:'<p>课件列出的必备披露：附注中的重大会计政策摘要、期后事项、重大事项和交易（关联方、舞弊和差错）；报表以外还有管理层报告 / MD&amp;A、审计报告、董事及高管薪酬。利润预测不是必须提供的。</p>'},
+  // ---------- Chapter 3
+  {id:'c3-sold', ch:3, type:'num', cur:'$', lab:'duluthSold', title:'终止经营：已出售',
+    prompt:'Duluth 公司 10 月决定出售一个部门（符合 IFRS 组成部分的条件），12 月 18 日售出。<br>• 1 月 1 日至处置日，该部门税前经营亏损 $5,000,000。<br>• 部门资产的出售净价 $15,000,000，账面价值 $12,000,000。<br>税后持续经营利润为 $20,000,000，税率 20%。',
+    blanks:[{label:'终止经营税前损益',answer:-2000000},{label:'终止经营税后损益',answer:-1600000},{label:'净利润',answer:18400000}],
+    exp:'<p>已出售时，终止经营损益 = 经营损益 + 处置利得或损失：</p><p class="calc">处置利得 = 15,000,000 − 12,000,000 = 3,000,000<br>税前 = −5,000,000 + 3,000,000 = −2,000,000<br>所得税利益 = 2,000,000 × 20% = 400,000<br>税后 = −2,000,000 + 400,000 = −1,600,000<br>净利润 = 20,000,000 − 1,600,000 = 18,400,000</p><p>终止经营列在持续经营利润之下，以<b>税后单一金额</b>列报（期间内所得税分配）。</p>'},
+  {id:'c3-hfs', ch:3, type:'num', cur:'$', lab:'duluthHFS', title:'终止经营：年末持有待售',
+    prompt:'同上题，但到 12 月 31 日年结时部门还<b>没有</b>卖出：<br>• 本年部门税前经营亏损 $5,000,000。<br>• 12 月 31 日部门资产账面价值 $12,000,000，公允价值减出售成本 $9,000,000。<br>税后持续经营利润 $20,000,000，税率 20%。',
+    blanks:[{label:'减值损失',answer:3000000},{label:'终止经营税后损益',answer:-6400000},{label:'净利润',answer:13600000}],
+    exp:'<p>年末持有待售时，终止经营损益 = 本年经营损益 + 减值损失（账面价值高于公允价值减出售成本的部分）：</p><p class="calc">减值 = 12,000,000 − 9,000,000 = 3,000,000<br>税前 = −5,000,000 − 3,000,000 = −8,000,000<br>所得税利益 = 8,000,000 × 20% = 1,600,000<br>税后 = −6,400,000<br>净利润 = 20,000,000 − 6,400,000 = 13,600,000</p>'},
+  {id:'c3-class', ch:3, type:'num', cur:'$', lab:'duluthClass', title:'课堂练习：公允价值高于账面价值',
+    prompt:'同上题（年末未售出），但 12 月 31 日部门资产账面价值 $12,000,000，公允价值减出售成本为 <b>$14,000,000</b>。其他条件不变。',
+    blanks:[{label:'减值损失（没有就填 0）',answer:0},{label:'终止经营税后损益',answer:-4000000},{label:'净利润',answer:16000000}],
+    exp:'<p>持有待售资产按账面价值与公允价值减出售成本<b>孰低</b>计量。公允价值减出售成本 14,000,000 高于账面 12,000,000，所以不确认减值，也<b>不确认利得</b>（资产不会被写高）。</p><p class="calc">税前 = −5,000,000<br>所得税利益 = 1,000,000<br>税后 = −4,000,000<br>净利润 = 20,000,000 − 4,000,000 = 16,000,000</p>'},
+  {id:'c3-eps', ch:3, type:'num', cur:'$', lab:'ravel', title:'终止经营与 EPS',
+    prompt:'Ravel 公司本年税后持续经营利润 $600,000。年内出售了一个部门：该部门本年税前经营亏损 $90,000，出售部门资产损失 $160,000。税率 20%，全年流通普通股 50,000 股。',
+    blanks:[{label:'终止经营税后损益',answer:-200000},{label:'净利润',answer:400000},{label:'EPS：持续经营',answer:12,unit:'eps'},{label:'EPS：终止经营',answer:-4,unit:'eps'},{label:'EPS：净利润',answer:8,unit:'eps'}],
+    exp:'<p class="calc">终止经营税前 = −90,000 − 160,000 = −250,000<br>所得税利益 = 250,000 × 20% = 50,000<br>终止经营税后 = −200,000<br>净利润 = 600,000 − 200,000 = 400,000<br>EPS：持续经营 600,000 ÷ 50,000 = 12.00<br>　　　终止经营 −200,000 ÷ 50,000 = (4.00)<br>　　　净利润 400,000 ÷ 50,000 = 8.00</p><p>有终止经营时，EPS 要分别列示持续经营、终止经营和净利润三个数字。</p>'},
+  {id:'c3-pl', ch:3, type:'num', cur:'$', lab:'fnFormat', title:'多步式损益表（按功能）',
+    prompt:'某公司本年资料：销售收入 $800,000；销售成本 $450,000；销售费用 $90,000；管理费用 $70,000；利息收入 $6,000；利息费用 $16,000；处置设备利得 $12,000。所得税率 20%，没有终止经营。',
+    blanks:[{label:'毛利',answer:350000},{label:'营业利润',answer:190000},{label:'持续经营税前利润',answer:192000},{label:'净利润',answer:153600}],
+    exp:'<p class="calc">毛利 = 800,000 − 450,000 = 350,000<br>营业利润 = 350,000 − 90,000 − 70,000 = 190,000<br>其他收益净额 = 6,000 + 12,000 − 16,000 = 2,000<br>税前利润 = 190,000 + 2,000 = 192,000<br>所得税 = 192,000 × 20% = 38,400<br>净利润 = 153,600</p><p>利息收入、利息费用和处置利得都是<b>非经营项目</b>，列在营业利润之后。如果按性质列报，就没有毛利和营业利润这两个小计，但税前利润同样是 192,000。</p>'},
+  {id:'c3-ci', ch:3, type:'num', cur:'$', title:'综合收益',
+    prompt:'某公司本年净利润 $1,200（单位：千元）。本年还发生下列事项（均为税后金额）：土地重估增值 $150；FVOCI 投资未实现持有损失 $40；外币报表折算利得 $10；出售设备利得 $30；宣告现金股利 $200。',
+    blanks:[{label:'其他综合收益（OCI）合计',answer:120},{label:'综合收益总额',answer:1320}],
+    exp:'<p class="calc">OCI = 150 − 40 + 10 = 120<br>综合收益 = 1,200 + 120 = 1,320</p><p>出售设备利得已经包含在净利润里，不能重复计算；宣告股利是与股东的交易，既不是费用，也不属于综合收益。</p>'},
+  {id:'c3-oci', ch:3, type:'multi', prompt:'下列哪些项目计入<b>其他综合收益（OCI）</b>？（多选）',
+    options:['土地重估增值（重估盈余）','FVOCI 投资的未实现持有利得','出售设备利得','境外经营的外币折算差额','宣告现金股利','设定受益计划（退休后福利）的利得或损失','终止经营损失'], answer:[0,1,3,5],
+    exp:'<p>课件列出的 OCI 项目：重估盈余、投资未实现持有利得或损失、退休后福利计划损益、衍生工具递延损益、外币折算损益。出售设备利得和终止经营损失都进<b>净利润</b>；股利是对股东的分配，不在综合收益里。</p>'},
+  {id:'c3-chg', ch:3, type:'match', title:'会计变更的类型',
+    prompt:'判断每一项属于哪种会计变更，以及处理方向。口诀：政策看过去，估计看未来，差错回过去。',
+    choices:['会计政策变更：追溯调整','会计估计变更：未来适用','前期差错：追溯重述'],
+    items:[['存货计价方法由先进先出法改为加权平均法。',0],['机器的剩余使用年限由 8 年改为 5 年。',1],['折旧方法由直线法改为余额递减法。',1],['发现上年漏记了 200 万元折旧。',2],['坏账估计率由 3% 调整为 5%。',1],['新信息显示产品保修费用的估计比例应下调。',1]],
+    exp:'<p>先问自己：方法变了？新信息来了？还是原来错了？</p><ul><li>从一种可接受的方法换成另一种（例如存货计价）= 会计政策变更，自愿变更要追溯调整以前年度的报表。</li><li>使用年限、残值、坏账率、保修费用都是估计，有新信息时修改 = 会计估计变更，未来适用；影响重大时在附注说明对净利润和 EPS 的影响。</li><li><b>折旧方法的改变</b>在课件中视为会计估计变更，同样未来适用。</li><li>漏记折旧是前期差错，要追溯重述比较期间。</li></ul>'},
+  {id:'c3-eq', ch:3, type:'mc', prompt:'分析师要预测公司明年的利润。下列哪一项最有参考价值？',
+    options:['出售投资取得的利得','一次性重组费用','核心业务的营业利润','终止经营的损失'], answer:2,
+    exp:'<p>盈利质量看的是当期利润预测未来利润的能力。<b>永久性利润</b>来自会持续发生的交易，核心营业利润最具持续性。出售投资的利得、重组费用属于暂时性项目；终止经营以后不会再发生。一般来说：持续经营 &gt; 终止经营；营业利润 &gt; 非经营项目（但也有例外，例如利息费用每年都会发生）。</p>'},
+  {id:'c3-shift', ch:3, type:'mc', prompt:'某公司把一部分日常营业费用归到营业利润以下的「其他费用」中。营业利润因此看起来更高，净利润不变。这种做法叫做？',
+    options:['收益平滑 Income smoothing','分类转移 Classification shifting','追溯调整 Retrospective adjustment','备考利润 Pro forma earnings'], answer:1,
+    exp:'<p><b>分类转移</b>是把营业费用转到非经营项目，让营业利润（投资者更看重、也更具持续性的数字）好看。<b>收益平滑</b>是通过改变假设和估计让各年利润波动变小，例如今年多估费用、以后年度再转回。<b>Pro forma（非 GAAP）利润</b>是管理层自行剔除某些项目后的利润。</p>'},
+  {id:'c3-je-hfs', ch:3, type:'je', prompt:'12 月 31 日，持有待售的部门资产账面价值 HK$12,000，公允价值减出售成本 HK$9,000。请写出确认减值的分录（本页把减值记入「终止经营税前损益」）。', je:[['8500',3000],['1450',-3000]],
+    exp:'<p>减值 = 12,000 − 9,000 = 3,000。借记终止经营损益（它会和部门本年的经营损益合并，扣税后以单一金额列报），贷记持有待售资产，把资产写到公允价值减出售成本。</p>'},
+  {id:'c3-je-sell', ch:3, type:'je', prompt:'出售一台旧设备：原始成本 HK$40,000，已提累计折旧 HK$30,000，收到现金 HK$14,000。请写出分录。', je:[['1000',14000],['1515',30000],['1510',-40000],['4600',-4000]],
+    exp:'<p class="calc">账面价值 = 40,000 − 30,000 = 10,000<br>利得 = 14,000 − 10,000 = 4,000</p><p>要同时冲销设备成本和累计折旧，把这项资产从账上完全移除。利得列在损益表的「其他收益」。在现金流量表里，14,000 全部列为投资活动流入；间接法要从净利润中减去 4,000 的利得，避免重复计算。</p>'},
+  {id:'c3-je-reval', ch:3, type:'je', prompt:'公司对土地采用重估模型。土地账面价值 HK$200,000，年末公允价值 HK$230,000。请写出分录（本页把重估增值记入「OCI：土地重估利得」）。', je:[['1500',30000],['9000',-30000]],
+    exp:'<p>重估增值 30,000 记入其他综合收益，不进净利润；结账时转入权益中的「重估盈余」。所以它会出现在综合收益部分和权益变动表里，但不影响 EPS。</p>'},
+  // ---------- Chapter 4
+  {id:'c4-class', ch:4, type:'match', title:'现金流量分类',
+    prompt:'按课件示例的口径（支付利息列经营、支付股利列筹资），判断每一项的分类。',
+    choices:['经营活动','投资活动','筹资活动','非现金活动（附注披露）'],
+    items:[['收到客户货款。',0],['购买生产设备。',1],['出售长期股权投资。',1],['发行普通股。',2],['支付现金股利。',2],['支付借款利息。',0],['签发 5 年期票据换取一台设备。',3],['偿还借款本金。',2],['支付所得税。',0]],
+    exp:'<p>经营活动 = 产生收入的日常活动（客户、供应商、员工、利息、所得税）；投资活动 = 买卖长期资产和投资；筹资活动 = 与股东和债权人之间的本金往来（发股、借款、还本、分红）。</p><p>IFRS 允许把收到和支付的利息、股利放在不同类别，所以题目要先说明口径；US GAAP 则规定支付利息列经营、支付股利列筹资。</p><p>以票据换设备没有现金流动，不进现金流量表正文，但要在附注中披露为「重大非现金投资及筹资活动」。</p>'},
+  {id:'c4-ce', ch:4, type:'mc', prompt:'下列哪一项通常属于<b>现金等价物</b>？',
+    options:['购买时离到期还有 2 个月的国库券','购买时离到期还有 6 个月的定期存款','持有的上市公司股票','为偿还债券而限定用途的银行存款'], answer:0,
+    exp:'<p>现金等价物是短期、流动性强、可以随时转换为已知金额现金、价值变动风险很小的投资，<b>从购买日起算到期日不超过 3 个月</b>。6 个月的定期存款超过 3 个月；股票价格波动大；限定用途的存款是受限现金，不能随时用来支付。</p>'},
+  {id:'c4-cust', ch:4, type:'num', cur:'$', title:'直接法：从客户收到的现金',
+    prompt:'本年销售收入 $200（百万，全部先记为赊销）。应收账款年初 $30，年末 $45。本年核销坏账 $3（备抵法）。',
+    blanks:[{label:'从客户收到的现金',answer:182}],
+    exp:'<p>用应收账款 T 字账倒推：</p><p class="calc">期初 30 + 赊销 200 − 核销 3 − 收现 ? = 期末 45<br>收现 = 30 + 200 − 3 − 45 = 182</p><p>课件的做法：先假设所有销售都是赊销（现销等于马上收回的赊销），再用 T 字账或汇总分录找出现金。核销坏账减少应收账款，但没有收到现金，所以要扣掉。</p>'},
+  {id:'c4-supp', ch:4, type:'num', cur:'$', title:'直接法：支付给供应商的现金',
+    prompt:'本年销售成本 $120。存货年初 $40，年末 $50。应付账款年初 $25，年末 $20。所有采购都先记为赊购。',
+    blanks:[{label:'本年采购额',answer:130},{label:'支付给供应商的现金',answer:135}],
+    exp:'<p>分两步：先用存货账户求采购额，再用应付账款账户求付款额。</p><p class="calc">存货：40 + 采购 − 120 = 50 → 采购 = 130<br>应付账款：25 + 130 − 付款 = 20 → 付款 = 135</p><p>存货增加要多付现金；应付账款减少说明还了更多旧账，也是多付现金。</p>'},
+  {id:'c4-ind', ch:4, type:'num', cur:'HK$', lab:'cfIndirect', title:'间接法',
+    prompt:'某公司本年净利润 HK$34,400，其中包括折旧 HK$10,000 和出售设备利得 HK$3,000（设备售价 HK$15,000）。本年另以现金 HK$40,000 购买设备。营运资本变动：应收账款由 30,000 增至 45,000；存货由 40,000 增至 50,000；应付账款由 25,000 降至 20,000；应交所得税由 0 增至 8,600。',
+    blanks:[{label:'经营活动现金流量净额',answer:20000},{label:'投资活动现金流量净额',answer:-25000}],
+    exp:'<p class="calc">净利润 34,400<br>+ 折旧 10,000<br>− 出售设备利得 3,000<br>− 应收账款增加 15,000<br>− 存货增加 10,000<br>− 应付账款减少 5,000<br>+ 应交所得税增加 8,600<br>= 经营活动现金流量 20,000</p><p class="calc">投资活动 = 出售设备 15,000 − 购买设备 40,000 = −25,000</p><p>利得要减去：出售设备收到的 15,000 已经整笔列在投资活动，不能在经营活动重复计算。经营性资产增加要减，经营性负债增加要加。</p>'},
+  {id:'c4-wc', ch:4, type:'mc', prompt:'用间接法编制现金流量表时，本年应收账款<b>增加</b> HK$15,000，应如何调整？',
+    options:['在净利润上加 15,000','从净利润中减去 15,000','不需要调整','列入投资活动'], answer:1,
+    exp:'<p>应收账款增加，说明有一部分收入已经确认、但现金还没收到，净利润高于现金，所以要减去。规律：经营性资产增加 → 减；减少 → 加。经营性负债增加 → 加；减少 → 减。</p>'},
+  {id:'c4-dvi', ch:4, type:'mc', prompt:'同一家公司分别用直接法和间接法编制现金流量表，哪一部分会不同？',
+    options:['只有经营活动部分的列示方式不同，金额相同','投资活动的金额不同','筹资活动的列示方式不同','三个部分都不同'], answer:0,
+    exp:'<p>直接法逐项列出经营活动的现金收付（从客户收到、付给供应商、付给员工……）；间接法从净利润出发做调整。两者得到的经营活动现金流量净额<b>完全相同</b>。投资和筹资活动永远用直接法，所以不受影响。工作台的「现金流量表」页可以切换两种方法对比。</p>'},
+  {id:'c4-sloan', ch:4, type:'mc', prompt:'Sloan（1996）关于「应计异象」（accrual anomaly）的研究发现了什么？',
+    options:['利润中应计部分比例高的公司，随后几年股票表现较差','利润中现金部分比例高的公司，随后几年股票表现较差','利润与未来现金流量完全无关','间接法编制的现金流量表比直接法更准确'], answer:0,
+    exp:'<p>应计部分比例高的公司随后表现较差，所以买入现金利润比例高的公司曾是一种赚钱的策略；课件也提到，这种异象近年已被专业投资者交易掉。另一方面，研究发现当期利润对未来经营现金流量的预测能力比当期经营现金流量更强（Dechow et al. 1998）。</p>'},
+  {id:'c4-je-nc', ch:4, type:'je', prompt:'9 月 1 日，公司签发一张两年期票据 HK$30,000，换取一台设备，没有支付现金。请写出分录（本页用「长期借款」账户记录这张票据）。', je:[['1510',30000],['2500',-30000]],
+    exp:'<p>这笔交易同时有投资（取得设备）和筹资（承担债务）的性质，但没有现金流动，所以不进现金流量表正文，而在附注中作为<b>非现金投资及筹资活动</b>披露。</p>'},
+];
+
+const CH_SUM = {
+  1:'Conceptual Framework (IASB 2018). Objective: useful financial information for existing and potential investors, lenders and other creditors. Fundamental qualitative characteristics: relevance (predictive value, confirmatory value, materiality: no uniform quantitative threshold, 5% of net income is only a rule of thumb, qualitative factors such as bribes or just meeting analyst forecasts) and faithful representation (completeness, neutrality, free from error). Enhancing: comparability (including consistency), verifiability, timeliness, understandability. Cost constraint. Elements: asset (economic resource controlled, from past events), liability (present obligation to transfer economic resources, from past events), equity (residual), income, expenses. Assumptions: going concern, economic entity, periodicity, monetary unit. Recognition criteria. IFRS 15 revenue recognised when performance obligations are satisfied; expenses matched with related revenue or recognised in the period. Measurement bases: historical cost; current value (fair value, value in use, fulfilment value). Fair value approaches (market, income, cost) and hierarchy levels 1-3. Fair value option.',
+  2:'Financial disclosures. Annual report. Required disclosure notes: summary of significant accounting policies (e.g. inventory costing, revenue recognition); subsequent events = significant events between the reporting date and the date the statements are issued (material ones such as debt refinancing, litigation developments, a natural disaster with its estimated loss, merger status are described in a note); noteworthy events: related-party transactions (disclose nature of relationship, description, dollar amounts; arm\'s length principle; connected lending), fraud (intentional) versus error (unintentional) misstatements and market reaction. Management report / MD&A. Auditor\'s report: unqualified, emphasis of matter (going concern, uncertain lawsuit), qualified, disclaimer (scope limited), adverse. Compensation of directors and executives. Other notes: EPS, PPE, fair values, debts, leases, provisions, inventory.',
+  3:'Statement of profit or loss and OCI. Revenues, expenses, gains and losses. Multi-step format: sales, cost of goods sold, gross profit, operating expenses (selling, G&A, R&D, restructuring), operating profit, other income (expense) such as interest and gains on sale of investments, profit from continuing operations before tax, income tax, profit from continuing operations, discontinued operations (single after-tax amount), net profit, EPS for continuing / discontinued / net. Function versus nature of expense; IFRS versus US GAAP. Discontinued operations: component sold = operating profit or loss to disposal date + gain or loss on disposal; held for sale at year end = operating profit or loss + impairment loss if book value exceeds fair value less costs to sell (no gain recognised); intraperiod tax allocation (e.g. 20% tax). Earnings quality: permanent versus temporary earnings, operating versus nonoperating, restructuring costs, impairments, pro forma / non-GAAP earnings, income smoothing, classification shifting. Comprehensive income = net profit + OCI (revaluation surplus, unrealised gains and losses on FVOCI investments, post-employment benefit plan gains and losses, deferred gains and losses on derivatives, foreign currency translation); single statement or two consecutive statements. Accounting changes: change in policy (retrospective), change in estimate including depreciation method (prospective), correction of a prior-period error (retrospective restatement).',
+  4:'Statement of cash flows. Purpose. Cash, cash equivalents (highly liquid, maturity no more than 3 months from purchase), restricted cash. Operating, investing, financing classification; IFRS lets interest and dividends received and paid be classified differently (course examples: interest paid and received in operating, dividends paid in financing); US GAAP differences. Direct method (cash from customers, to suppliers, to employees, for interest, for taxes) versus indirect method (net profit adjusted for non-cash items such as depreciation, gains and losses on sale of long-term assets, and changes in operating working capital). Investing and financing are always shown directly. Significant noncash investing and financing activities are disclosed in notes. Preparing the direct method with T-accounts or summary journal entries (cash from customers = sales - increase in AR - write-offs; purchases and payments to suppliers through inventory and AP). Accrual anomaly (Sloan 1996); earnings predict future cash flows better than current cash flows (Dechow et al. 1998).',
+};
+
+let QZ = {ans:{}, ai:[], ch:'all', type:'all', wrong:false};
+function qLoad(){ try { const r = localStorage.getItem(QKEY); if (r) { const o = JSON.parse(r); if (o && typeof o === 'object') QZ = {...QZ, ...o, ans:o.ans && typeof o.ans === 'object' ? o.ans : {}, ai:Array.isArray(o.ai) ? o.ai : []}; } } catch (e) {} }
+function qSave(){ try { localStorage.setItem(QKEY, JSON.stringify(QZ)); } catch (e) {} }
+const allQs = () => [...QZ.ai, ...QUESTIONS];
+const findQ = id => allQs().find(q => q.id === id);
+const qa = id => QZ.ans[id] || (QZ.ans[id] = {});
+const jeRows = a => a.rows || (a.rows = [{a:'', dr:'', cr:''}, {a:'', dr:'', cr:''}]);
+function numOf(q){ if (q.ai) return 'AI'; const same = QUESTIONS.filter(x => x.ch === q.ch); return `${q.ch}.${same.indexOf(q) + 1}`; }
+const fmtPlain = v => (v < 0 ? '−' : '') + Math.abs(v).toLocaleString('en-US', {maximumFractionDigits:2});
+function qStats(list){ let done = 0, ok = 0; for (const q of list) { const a = QZ.ans[q.id]; if (a && a.done) { done++; if (a.ok) ok++; } } return {done, ok, total:list.length}; }
+function barHTML(s){ const t = s.total || 1; return `<span class="qbar"><i style="width:${s.ok / t * 100}%"></i><i class="w" style="width:${(s.done - s.ok) / t * 100}%"></i></span>`; }
+
+function answerHTML(q){
+  if (q.type === 'mc') return `<p><b>正确答案：${LETTER[q.answer]}</b></p>`;
+  if (q.type === 'multi') return `<p><b>正确答案：${q.answer.map(i => LETTER[i]).join('、')}</b></p>`;
+  if (q.type === 'je') return `<span class="eh">正确分录</span>${miniEntry([q.je.map(([a, v]) => ({a, s:Math.round(v * 100)}))])}`;
+  return '';
+}
+function cardHTML(q){
+  const a = QZ.ans[q.id] || {}, done = !!a.done, show = !!a.exp, dis = done ? ' disabled' : '';
+  let st = '';
+  if (done) st = a.ok ? '<span class="qst ok">✓ 正确</span>' : a.peek ? '<span class="qst">已看答案</span>' : '<span class="qst bad">✗ 不对</span>';
+  else if (a.wrong) st = '<span class="qst bad">需复习</span>';
+  let body = '';
+  if (q.type === 'mc' || q.type === 'multi') {
+    const sel = a.sel || [], multi = q.type === 'multi', ans = multi ? q.answer : [q.answer];
+    body = `<div class="opts" role="${multi ? 'group' : 'radiogroup'}">${q.options.map((o, i) => {
+      const on = sel.includes(i);
+      const cls = done && (a.ok || show) && ans.includes(i) ? 'right' : done && on && !ans.includes(i) ? 'wrong' : '';
+      return `<label class="opt ${cls}"><input type="${multi ? 'checkbox' : 'radio'}" name="q-${q.id}" id="qo-${q.id}-${i}" data-q="${q.id}" data-opt="${i}"${on ? ' checked' : ''}${dis}><span class="ol">${LETTER[i]}</span><span>${o}</span></label>`;
+    }).join('')}</div>`;
+  } else if (q.type === 'match') {
+    const m = a.match || {}, det = a.detail && a.detail.items;
+    body = `<div class="mrows">${q.items.map(([t, ans], i) => {
+      const v = m[i] ?? '', good = det && det[i];
+      const mk = done ? (good ? '<span class="mk ok">✓</span>' : '<span class="mk bad">✗</span>') : '<span class="mk"></span>';
+      return `<div class="mrow"><span>${t}</span><select id="qm-${q.id}-${i}" data-q="${q.id}" data-mi="${i}"${dis} aria-label="选择答案"><option value="">选择…</option>${q.choices.map((c, k) => `<option value="${k}"${String(k) === String(v) ? ' selected' : ''}>${c}</option>`).join('')}</select>${mk}${done && show && !good ? `<span class="mans">正确答案：${q.choices[ans]}</span>` : ''}</div>`;
+    }).join('')}</div>`;
+  } else if (q.type === 'num') {
+    const vals = a.vals || {}, det = a.detail && a.detail.blanks;
+    body = `<div class="qblanks">${q.blanks.map((b, i) => {
+      const good = det && det[i], cls = done ? (good ? ' ok' : ' bad') : '';
+      return `<div class="qblank${cls}"><label for="qb-${q.id}-${i}">${b.label}</label><div class="affix"><span class="pre">${esc(b.unit === 'eps' ? '每股' : (q.cur || 'HK$'))}</span><input id="qb-${q.id}-${i}" data-q="${q.id}" data-bi="${i}" value="${esc(vals[i] || '')}" inputmode="decimal" autocomplete="off"${dis}></div>${done && show && !good ? `<span class="ans">正确答案：${b.unit === 'eps' ? (b.answer < 0 ? `(${Math.abs(b.answer).toFixed(2)})` : b.answer.toFixed(2)) : fmtPlain(b.answer)}</span>` : ''}</div>`;
+    }).join('')}</div><p class="tdesc" style="margin:0">亏损或减少填负数，可以写成 -1,600 或 (1,600)。</p>`;
+  } else if (q.type === 'je') {
+    const rows = a.rows || [{a:'', dr:'', cr:''}, {a:'', dr:'', cr:''}];
+    let d = 0, c = 0; rows.forEach(r => { const x = money(r.dr), y = money(r.cr); if (Number.isFinite(x)) d += x; if (Number.isFinite(y)) c += y; });
+    body = `<div class="qje"><div class="chead"><span>账户（本页科目表）</span><span>借 Dr</span><span>贷 Cr</span><span></span></div>${rows.map((r, i) => `<div class="crow"><select id="qj-${q.id}-a${i}" data-q="${q.id}" data-ja="${i}"${dis} aria-label="账户"><option value="">选择账户…</option>${acctOptions(r.a)}</select><input id="qj-${q.id}-d${i}" data-q="${q.id}" data-jd="${i}" value="${esc(r.dr)}" placeholder="借" inputmode="decimal" autocomplete="off"${dis} aria-label="借方金额"><input id="qj-${q.id}-c${i}" data-q="${q.id}" data-jc="${i}" value="${esc(r.cr)}" placeholder="贷" inputmode="decimal" autocomplete="off"${dis} aria-label="贷方金额"><button class="x" data-act="qJeDel" data-q="${q.id}" data-i="${i}" aria-label="删除这一行"${dis}>×</button></div>`).join('')}
+      <div class="ctot" id="qjt-${q.id}"><span>合计</span><span>${fmt(d)}</span><span>${fmt(c)}</span><span></span></div>${done ? '' : `<div class="actions"><button class="btn small" id="qa-${q.id}-add" data-act="qJeAdd" data-q="${q.id}">＋ 添加一行</button></div>`}</div>`;
+  }
+  let fb = '';
+  if (done) {
+    const msg = a.ok ? '<p class="qmsg ok">回答正确。</p>' : a.peek ? '' : `<p class="qmsg bad">${esc(a.msg || '还不对。')}</p>`;
+    fb = `<div class="qfb">${msg}${show ? `<div class="qexp">${a.ok ? '' : answerHTML(q)}<span class="eh">详解</span>${q.exp}</div>` : ''}</div>`;
+  }
+  const acts = [];
+  if (!done) {
+    acts.push(`<button class="btn primary" id="qa-${q.id}-s" data-act="qSubmit" data-q="${q.id}">提交</button>`);
+    acts.push(`<button class="btn" id="qa-${q.id}-p" data-act="qPeek" data-q="${q.id}">直接看答案</button>`);
+  } else {
+    if (!a.ok && !show) { acts.push(`<button class="btn primary" id="qa-${q.id}-r" data-act="qRetry" data-q="${q.id}">再试一次</button>`); acts.push(`<button class="btn" id="qa-${q.id}-e" data-act="qShowExp" data-q="${q.id}">看答案与详解</button>`); }
+    acts.push(`<button class="btn" id="qa-${q.id}-z" data-act="qRedo" data-q="${q.id}">重做</button>`);
+  }
+  if (q.lab && LABS[q.lab]) acts.push(`<button class="btn" id="qa-${q.id}-l" data-act="qLab" data-q="${q.id}">在工作台里验证 →</button>`);
+  if (q.ai) acts.push(`<button class="btn ghost small" id="qa-${q.id}-x" data-act="qAiDel" data-q="${q.id}">删除这道 AI 题</button>`);
+  return `<article class="qcard" id="q-${q.id}"><div class="qhead"><span class="qno">${numOf(q)}</span>${q.title ? `<span class="qtitle">${q.title}</span>` : ''}<span class="qmeta">${CH_NAME[q.ch] || ''} · ${QTYPE[q.type]}${q.ai ? ' · AI 出题' : ''}</span>${st}</div>
+    <p class="qprompt">${q.prompt}</p>${body}${fb}<div class="qact">${acts.join('')}</div>${q.ai && show ? '<p class="hint">AI 出的题可能有错。如果答案看起来不对，请对照课件再核对，或者删掉这道题。</p>' : ''}</article>`;
+}
+function aiSideHTML(){
+  const s = UI.qai;
+  return `<div class="qsec"><h3>让 Claude 出新题</h3><div class="fields"><div class="field"><label for="qai-ch">章节</label><select id="qai-ch" data-qai="ch">${[1, 2, 3, 4].map(c => `<option value="${c}"${+s.ch === c ? ' selected' : ''}>${CH_NAME[c].split(' · ')[0]}</option>`).join('')}</select></div>
+    <div class="field"><label for="qai-type">题型</label><select id="qai-type" data-qai="type"><option value="mc"${s.type === 'mc' ? ' selected' : ''}>选择题</option><option value="num"${s.type === 'num' ? ' selected' : ''}>计算题</option></select></div></div>
+    <div class="actions"><button class="btn primary small" data-act="qAiGo"${s.status === 'busy' ? ' disabled' : ''}>出一道新题</button>${s.status === 'busy' ? '<button class="btn small" data-act="qAiStop">停止</button>' : ''}</div>
+    ${s.status === 'busy' ? '<p class="tdesc"><span class="spin"></span>Claude 正在出题…</p>' : s.err ? `<p class="err">${esc(s.err)}</p>` : '<p class="tdesc">按课件重点出题，新题出现在列表最上面。会用你自己的 Claude 额度。</p>'}</div>`;
+}
+function quizSideHTML(){
+  const qs = allQs(), all = qStats(qs);
+  const chs = ['all', 1, 2, 3, 4].map(ch => {
+    const s = qStats(ch === 'all' ? qs : qs.filter(q => q.ch === ch));
+    return `<button class="chb" data-act="qCh" data-v="${ch}" aria-pressed="${String(QZ.ch) === String(ch)}"><span class="t">${ch === 'all' ? '全部章节' : CH_NAME[ch]}</span><span class="c">${s.ok}/${s.total}</span>${barHTML(s)}</button>`;
+  }).join('');
+  const wrongN = qs.filter(q => QZ.ans[q.id] && QZ.ans[q.id].wrong).length;
+  return `<div class="qsec"><h3>进度</h3><div class="qbig"><span class="n">${all.ok}</span><span class="of">/ ${all.total} 题答对 · 已作答 ${all.done}</span></div>${barHTML(all)}</div>
+    <div class="qsec"><h3>章节</h3>${chs}</div>
+    <div class="qsec"><h3>题型</h3>${seg('qType', QZ.type, [['all', '全部'], ['mc', '选择'], ['match', '配对'], ['num', '计算'], ['je', '分录']])}
+      <label class="checkline"><input type="checkbox" id="qz-wrong" data-qz="wrong"${QZ.wrong ? ' checked' : ''}> 只看错题本（${wrongN}）</label></div>
+    ${UI.sample ? aiSideHTML() : ''}
+    <div class="qsec"><p class="tdesc">作答记录只保存在这个浏览器里。</p><button class="btn small" data-act="qReset">清空全部作答记录</button></div>`;
+}
+function renderQuiz(){
+  const qs = allQs().filter(q => (QZ.ch === 'all' || String(q.ch) === String(QZ.ch)) && (QZ.type === 'all' || qGroup(q) === QZ.type) && (!QZ.wrong || (QZ.ans[q.id] && QZ.ans[q.id].wrong)));
+  $('#quiz').innerHTML = `<aside class="qside" id="qside">${quizSideHTML()}</aside><div class="qlist">${qs.length ? qs.map(cardHTML).join('') : `<div class="qempty">${QZ.wrong ? '错题本是空的。答错或看过答案的题会出现在这里。' : '这个筛选条件下没有题目。'}</div>`}</div>`;
+}
+function refreshCard(id){
+  const act = document.activeElement, fid = act && act.id;
+  const q = findQ(id), el = document.getElementById('q-' + id);
+  if (q && el) el.outerHTML = cardHTML(q);
+  const side = document.getElementById('qside'); if (side) side.innerHTML = quizSideHTML();
+  const n = fid && document.getElementById(fid);
+  if (n) n.focus({preventScroll:true});
+  else { const c = document.getElementById('q-' + id), b = c && c.querySelector('.qact .btn'); if (b) b.focus({preventScroll:true}); }
+}
+function qSubmit(q){
+  const a = qa(q.id);
+  let ok = false, msg = '', detail = {};
+  if (q.type === 'mc') {
+    if (!a.sel || !a.sel.length) return toast('先选一个答案');
+    ok = a.sel[0] === q.answer; msg = '这个选项不对。';
+  } else if (q.type === 'multi') {
+    const s = a.sel || []; if (!s.length) return toast('先选出答案');
+    const wrongPick = s.some(i => !q.answer.includes(i)), missing = q.answer.some(i => !s.includes(i));
+    ok = !wrongPick && !missing;
+    msg = wrongPick && missing ? '选了错误选项（已标红），也漏选了正确选项。' : wrongPick ? '选了错误选项（已标红）。' : '还有正确选项没有选上。';
+  } else if (q.type === 'match') {
+    const m = a.match || {};
+    if (q.items.some((_, i) => m[i] == null || m[i] === '')) return toast('每一项都要选一个答案');
+    detail.items = q.items.map(([, ans], i) => +m[i] === ans);
+    const n = detail.items.filter(x => !x).length; ok = !n; msg = `有 ${n} 项不对（已标 ✗）。`;
+  } else if (q.type === 'num') {
+    const v = a.vals || {};
+    if (q.blanks.some((_, i) => !String(v[i] || '').trim())) return toast('每个空都要填');
+    detail.blanks = q.blanks.map((b, i) => { const g = parseGuess(v[i]); if (g == null || !Number.isFinite(g)) return false; return b.unit === 'eps' ? Math.abs(g - b.answer) < 0.006 : Math.abs(g - b.answer) <= 1; });
+    const n = detail.blanks.filter(x => !x).length; ok = !n; msg = `有 ${n} 个空不对（已标红）。注意亏损要填负数。`;
+  } else if (q.type === 'je') {
+    const agg = {}; let d = 0, c = 0, any = false, badFmt = false, noAcct = false;
+    for (const r of jeRows(a)) {
+      const x = money(r.dr), y = money(r.cr);
+      if ((String(r.dr || '').trim() && !Number.isFinite(x)) || (String(r.cr || '').trim() && !Number.isFinite(y))) badFmt = true;
+      const v = (Number.isFinite(x) ? x : 0) - (Number.isFinite(y) ? y : 0);
+      if (Number.isFinite(x)) d += x; if (Number.isFinite(y)) c += y;
+      if (!v) continue; if (!r.a) { noAcct = true; continue; }
+      any = true; agg[r.a] = (agg[r.a] || 0) + v;
+    }
+    if (badFmt) return toast('有金额的格式不对');
+    if (noAcct) return toast('有金额的行还没选账户');
+    if (!any) return toast('先写出分录');
+    const want = {}; q.je.forEach(([acc, v]) => want[acc] = (want[acc] || 0) + Math.round(v * 100));
+    const wrongAcc = [...new Set([...Object.keys(agg), ...Object.keys(want)])].filter(k => (agg[k] || 0) !== (want[k] || 0));
+    ok = !wrongAcc.length;
+    msg = d !== c ? `借贷不平衡：借方合计 ${fmt(d)}，贷方合计 ${fmt(c)}。` : `借贷平衡，但有 ${wrongAcc.length} 个账户的方向或金额不对。`;
+  }
+  a.done = true; a.ok = ok; a.msg = ok ? '' : msg; a.detail = detail; a.peek = false;
+  if (ok) a.exp = true; else a.wrong = true;
+  qSave(); refreshCard(q.id);
+}
+function loadLab(q){
+  const def = LABS[q.lab]; if (!def) return;
+  const snap = UI.labFrom ? UI.labFrom.snap : snapshot();
+  const keep = S.settings;
+  S = buildState(def);
+  S.settings = {...S.settings, lang:keep.lang, tab:def.tab, view:'lab', practice:false};
+  UI.labFrom = {snap, qid:q.id, title:`${numOf(q)} ${q.title || ''}`.trim(), note:def.note || ''};
+  try { localStorage.setItem(RKEY, JSON.stringify(UI.labFrom)); } catch (e) {}
+  UI.sel = null; UI.editing = null; UI.showSettings = false;
+  UI.lastDate = S.txns.length ? S.txns[S.txns.length - 1].date : `${S.company.year}-01-01`;
+  startTpl('sale'); UI.custom = blankCustom();
+  $('#trace').hidden = true;
+  save(); renderAll(); window.scrollTo(0, 0);
+}
+function labBack(){
+  const f = UI.labFrom; if (!f) return;
+  UI.labFrom = null; try { localStorage.removeItem(RKEY); } catch (e) {}
+  S = normalize(JSON.parse(f.snap)); S.settings.view = 'quiz';
+  UI.sel = null; UI.editing = null; $('#trace').hidden = true;
+  UI.lastDate = S.txns.length ? [...S.txns].sort((x, y) => x.date < y.date ? 1 : -1)[0].date : `${S.company.year}-01-01`;
+  startTpl('sale'); UI.custom = blankCustom();
+  save(); renderAll();
+  const el = document.getElementById('q-' + f.qid); if (el) el.scrollIntoView({block:'start'});
+}
+function renderLabBanner(){
+  const b = $('#labBanner'), f = UI.labFrom;
+  if (!f || S.settings.view === 'quiz') { b.hidden = true; b.innerHTML = ''; return; }
+  b.hidden = false;
+  b.innerHTML = `<span>正在工作台里查看练习题 <b>${esc(f.title)}</b> 的情景。点报表里的数字可以查看来源。${esc(f.note)}</span><span class="actions"><button class="btn primary small" data-act="labBack">回到题目，恢复我原来的数据</button><button class="btn small" data-act="labKeep">保留这个情景</button></span>`;
+}
+function parseAIQ(j, ch, type){
+  if (!j || typeof j !== 'object') throw 'AI 返回的内容无法识别，请再试一次。';
+  const prompt = String(j.prompt || '').trim(); if (!prompt) throw 'AI 没有给出题目，请再试一次。';
+  const P = s => esc(s).replace(/\n/g, '<br>');
+  const base = {id:'ai-' + Date.now().toString(36), ch, ai:true, title:esc(String(j.title || '').slice(0, 40)), prompt:P(prompt), exp:`<p>${P(String(j.explain || '（没有详解）'))}</p>`};
+  if (type === 'mc') {
+    const opts = Array.isArray(j.options) ? j.options.map(o => String(o)) : [], ans = Number(j.answer);
+    if (opts.length < 3 || opts.length > 6 || !Number.isInteger(ans) || ans < 0 || ans >= opts.length) throw 'AI 出的选择题格式不完整，请再试一次。';
+    return {...base, type:'mc', options:opts.map(o => esc(o)), answer:ans};
+  }
+  const blanks = (Array.isArray(j.blanks) ? j.blanks : []).slice(0, 5).map(b => ({label:esc(String(b && b.label || '答案')), answer:Number(b && b.answer), unit:b && b.unit === 'eps' ? 'eps' : undefined})).filter(b => Number.isFinite(b.answer));
+  if (!blanks.length) throw 'AI 出的计算题没有有效答案，请再试一次。';
+  return {...base, type:'num', blanks, cur:String(j.currency || '$').slice(0, 4)};
+}
+async function qAiGo(){
+  if (!UI.sample) return;
+  const ch = +UI.qai.ch || 3, type = UI.qai.type === 'num' ? 'num' : 'mc';
+  const existing = allQs().filter(q => q.ch === ch).map(q => '- ' + q.prompt.replace(/<[^>]+>/g, ' ').replace(/&[#a-z0-9]+;/gi, ' ').replace(/\s+/g, ' ').slice(0, 80)).join('\n');
+  const shape = type === 'mc'
+    ? '{"title":"short Chinese title","prompt":"question text","options":["option A","option B","option C","option D"],"answer":0,"explain":"..."}'
+    : '{"title":"short Chinese title","prompt":"question text with every number needed","currency":"$","blanks":[{"label":"what to fill in","answer":12345,"unit":"money"}],"explain":"..."}';
+  const prompt = `You write practice questions for HKU ACCT 2102 (Intermediate Accounting I, IFRS; lecture slides by Dr. Charles Kang). Write ONE new ${type === 'mc' ? 'single-answer multiple-choice' : 'numerical calculation'} question on Chapter ${ch}.
+
+Chapter ${ch} key points:
+${CH_SUM[ch]}
+
+The student already has these questions. Test a different point, or the same point in a new scenario:
+${existing}
+
+Write in Simplified Chinese and keep key terms in English in brackets where helpful. The question must be answerable from the key points above, with exactly one correct answer under the treatment taught in this course.
+Reply with ONLY one JSON object of this shape:
+${shape}
+Rules:
+${type === 'mc' ? '- exactly 4 options; "answer" is the 0-based index of the correct option; distractors should be mistakes students plausibly make.' : '- 1 to 4 blanks; "answer" is a plain number (no commas; losses and decreases are negative); "unit" is "money" or "eps".\n- Check the arithmetic carefully before replying.'}
+- "explain" is 2 to 6 sentences in Chinese explaining why, showing the working for calculations; use \\n for line breaks.`;
+  const ctl = new AbortController();
+  UI.qai = {...UI.qai, status:'busy', err:'', ctl};
+  const side = document.getElementById('qside'); if (side) side.innerHTML = quizSideHTML();
+  try {
+    const j = await UI.sample.json(prompt, {signal:ctl.signal, cache:false});
+    const q = parseAIQ(j, ch, type);
+    QZ.ai.unshift(q); QZ.ch = 'all'; QZ.type = 'all'; QZ.wrong = false; qSave();
+    UI.qai = {...UI.qai, status:'idle', err:'', ctl:null};
+    renderQuiz();
+    const el = document.getElementById('q-' + q.id); if (el) el.scrollIntoView({block:'start', behavior:'smooth'});
+    return;
+  } catch (e) {
+    const code = e && e.code;
+    if (code === 'cancelled') UI.qai = {...UI.qai, status:'idle', err:'', ctl:null};
+    else if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].includes(code)) { UI.sample = null; UI.qai = {...UI.qai, status:'idle', err:'', ctl:null}; toast('这个页面现在不能调用 Claude，AI 出题已隐藏。'); }
+    else UI.qai = {...UI.qai, status:'error', ctl:null, err: typeof e === 'string' ? e : code === 'rate_limited' ? '请求太频繁或已达到用量上限，请稍后再试。' : code === 'invalid_json' ? 'AI 的回答不是有效格式，请再点一次。' : '连接出了问题，请稍后再试。'};
+  }
+  if (S.settings.view === 'quiz') renderQuiz();
+}
+
+/* ================= events ================= */
+document.addEventListener('click', ev => {
+  const el = ev.target.closest('[data-act], [data-t]');
+  if (!el) return;
+  if (el.dataset.t != null && !el.dataset.act) { const t = TRACES[+el.dataset.t]; if (t) openTrace(t); return; }
+  const act = el.dataset.act, v = el.dataset.v, id = el.dataset.id;
+  const qid = el.dataset.q, q = qid ? findQ(qid) : null;
+  switch (act) {
+    case 'view': S.settings.view = v; save(); $('#trace').hidden = true; renderAll(); window.scrollTo(0, 0); break;
+    case 'qCh': QZ.ch = v === 'all' ? 'all' : +v; qSave(); renderQuiz(); break;
+    case 'qType': QZ.type = v; qSave(); renderQuiz(); break;
+    case 'qSubmit': if (q) qSubmit(q); break;
+    case 'qPeek': if (q) { const a = qa(q.id); a.done = true; a.ok = false; a.peek = true; a.exp = true; a.wrong = true; a.detail = {}; if (q.type === 'match') a.detail.items = q.items.map(([, ans], i) => +((a.match || {})[i]) === ans && (a.match || {})[i] !== '' && (a.match || {})[i] != null); if (q.type === 'num') a.detail.blanks = q.blanks.map(() => false); qSave(); refreshCard(q.id); } break;
+    case 'qRetry': if (q) { const a = qa(q.id); a.done = false; a.ok = false; a.detail = {}; a.msg = ''; qSave(); refreshCard(q.id); } break;
+    case 'qShowExp': if (q) { qa(q.id).exp = true; qSave(); refreshCard(q.id); } break;
+    case 'qRedo': if (q) { const w = !!(QZ.ans[q.id] && QZ.ans[q.id].wrong); QZ.ans[q.id] = w ? {wrong:true} : {}; qSave(); refreshCard(q.id); } break;
+    case 'qJeAdd': if (q) { jeRows(qa(q.id)).push({a:'', dr:'', cr:''}); qSave(); refreshCard(q.id); } break;
+    case 'qJeDel': if (q) { const rows = jeRows(qa(q.id)); if (rows.length > 1) { rows.splice(+el.dataset.i, 1); qSave(); refreshCard(q.id); } } break;
+    case 'qLab': if (q) loadLab(q); break;
+    case 'qReset': { const snapQ = JSON.stringify(QZ.ans); QZ.ans = {}; qSave(); renderQuiz(); toast('已清空全部作答记录', () => { QZ.ans = JSON.parse(snapQ); qSave(); renderQuiz(); }); break; }
+    case 'qAiGo': qAiGo(); break;
+    case 'qAiStop': if (UI.qai.ctl) UI.qai.ctl.abort(); break;
+    case 'qAiDel': { const snapA = JSON.stringify(QZ.ai), snapAns = QZ.ans[qid]; QZ.ai = QZ.ai.filter(x => x.id !== qid); delete QZ.ans[qid]; qSave(); renderQuiz(); renderHeader(); toast('已删除这道 AI 题', () => { QZ.ai = JSON.parse(snapA); if (snapAns) QZ.ans[qid] = snapAns; qSave(); renderQuiz(); renderHeader(); }); break; }
+    case 'labBack': labBack(); break;
+    case 'labKeep': { const f = UI.labFrom; UI.labFrom = null; try { localStorage.removeItem(RKEY); } catch (e) {} renderAll(); if (f) toast('已保留这个情景，原来的数据已被替换。', () => restore(f.snap)); break; }
+    case 'tab': S.settings.tab = v; save(); renderBoard(); break;
+    case 'mode': UI.mode = v; if (v === 'custom' && !UI.custom) UI.custom = blankCustom(); renderBench(); break;
+    case 'lang': S.settings.lang = v; save(); renderAll(); break;
+    case 'practice': S.settings.practice = !S.settings.practice; save(); $('#trace').hidden = true; renderAll(); break;
+    case 'settings': UI.showSettings = !UI.showSettings; renderHeader(); break;
+    case 'backup': openBackup(); break;
+    case 'closeModal': $('#modal').hidden = true; break;
+    case 'dlJson': if (!UI.dl) { downloadFile('acct2102-statement-lab.json', JSON.stringify(S, null, 1)); toast('已下载备份'); break; } UI.dl.save({filename:'acct2102-statement-lab.json', data:JSON.stringify(S, null, 1)}).then(() => toast('已下载备份')).catch(e => { const m = $('#bk-msg'); if (m && e && e.code !== 'declined') m.textContent = '下载没有成功，可以改用「复制 JSON」。'; }); break;
+    case 'copyJson': { const ta = $('#bk-text'); const txt = ta ? ta.value : JSON.stringify(S); try { navigator.clipboard.writeText(txt).then(() => toast('已复制'), () => { ta && ta.select(); toast('请按 Ctrl/⌘ + C 复制已选中的文本'); }); } catch (e) { ta && ta.select(); } break; }
+    case 'importText': importJSON(($('#bk-text') || {}).value || ''); break;
+    case 'loadSample': { const snap = snapshot(); S = sampleState(); S.settings.lang = JSON.parse(snap).settings.lang; UI.sel = null; UI.editing = null; save(); renderAll(); toast('已载入示例公司', () => restore(snap)); break; }
+    case 'blank': { const snap = snapshot(); const keep = S.settings; S = blankState(); S.settings = {...S.settings, lang:keep.lang, tab:'opening'}; S.company.year = +JSON.parse(snap).company.year || 2026; UI.sel = null; UI.editing = null; UI.lastDate = null; save(); renderAll(); toast('已清空。先在「期初余额」页填上年末余额（新公司可全为零）。', () => restore(snap)); break; }
+    case 'undo': if (UI.undo) { const f = UI.undo; UI.undo = null; $('#toast').hidden = true; f(); } break;
+    case 'sel': if (ev.target.closest('.acts')) break; UI.sel = UI.sel === id ? null : id; renderBench(); renderBoard(); break;
+    case 'clearSel': UI.sel = null; renderBench(); renderBoard(); break;
+    case 'edit': editTx(id); break;
+    case 'del': delTx(id); break;
+    case 'cancelEdit': UI.editing = null; if (UI.mode === 'tpl') startTpl(UI.tpl); else UI.custom = blankCustom(); renderAll(); break;
+    case 'addTpl': addTpl(); break;
+    case 'addCustom': addCustom(); break;
+    case 'custAdd': UI.custom.rows.push({a:'1000', dr:'', cr:''}); renderBench(); break;
+    case 'custDel': if (UI.custom.rows.length > 1) { UI.custom.rows.splice(+el.dataset.i, 1); renderBench(); } break;
+    case 'jump': jump(id); break;
+    case 'closeTrace': $('#trace').hidden = true; break;
+    case 'chip': { const c = R.checks.find(x => x.k === el.dataset.k); if (c) openInfo(c.zh, c.why); break; }
+    case 'plMethod': S.settings.plMethod = v; save(); renderBoard(); break;
+    case 'plPres': S.settings.plPres = v; save(); renderBoard(); break;
+    case 'cfMethod': S.settings.cfMethod = v; save(); renderBoard(); break;
+    case 'lf': UI.lf = v; renderBoard(); break;
+    case 'check': checkAll(); break;
+    case 'showAns': UI.showAns = !UI.showAns; renderBoard(); break;
+    case 'clearGuess': UI.guesses = {}; UI.marks = {}; renderBoard(); break;
+    case 'revealJE': UI.revealed.add(id); renderBoard(); break;
+    case 'revealAll': R.entries.forEach(e => UI.revealed.add(e.id)); renderBoard(); break;
+    case 'hideAll': UI.revealed.clear(); renderBoard(); break;
+    case 'whyAll': if (UI.openWhy.size) UI.openWhy.clear(); else R.entries.forEach(e => UI.openWhy.add(e.id)); renderBoard(); break;
+    case 'zeroOB': { const snap = snapshot(); S.opening = {}; S.openingShares = 0; save(); renderAll(); toast('期初余额已清零', () => restore(snap)); break; }
+    case 'aiGo': aiGo(); break;
+    case 'aiStop': if (UI.ai.ctl) UI.ai.ctl.abort(); break;
+    case 'aiAccept': { const r = UI.ai.res; if (!r || r.empty) break; UI.editing = null; commit({date:r.date, tpl:'custom', memo:r.memo, memoUser:r.memo, adj:r.adj, groups:r.groups, calc:r.assumptions ? '假设：' + r.assumptions : '', shares:0, note:r.explain, src:'ai'}); UI.ai = {text:'', status:'idle', res:null, err:'', ctl:null}; renderBench(); break; }
+    case 'aiEdit': { const r = UI.ai.res; if (!r || r.empty) break; UI.custom = {date:r.date, memo:r.memo, adj:r.adj, rows:r.groups.flat().map(l => ({a:l.a, dr:l.s > 0 ? String(l.s / 100) : '', cr:l.s < 0 ? String(-l.s / 100) : '', fn:l.fn || ''}))}; UI.mode = 'custom'; renderBench(); break; }
+  }
+});
+document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape') { if (!$('#modal').hidden) $('#modal').hidden = true; else if (!$('#trace').hidden) $('#trace').hidden = true; return; }
+  if (ev.key !== 'Enter' && ev.key !== ' ') return;
+  const t = ev.target;
+  if (t.matches && t.matches('[data-t]')) { ev.preventDefault(); const x = TRACES[+t.dataset.t]; if (x) openTrace(x); }
+  else if (t.matches && t.matches('li.tx')) { ev.preventDefault(); const id = t.dataset.id; UI.sel = UI.sel === id ? null : id; renderBench(); renderBoard(); const n = document.querySelector(`li.tx[data-id="${id}"]`); if (n) n.focus(); }
+});
+document.addEventListener('input', ev => {
+  const el = ev.target;
+  if (el.dataset.q) {
+    const a = qa(el.dataset.q);
+    if (el.dataset.bi != null) { a.vals = a.vals || {}; a.vals[el.dataset.bi] = el.value; }
+    else if (el.dataset.jd != null || el.dataset.jc != null) {
+      const rows = jeRows(a), i = +(el.dataset.jd ?? el.dataset.jc);
+      if (rows[i]) rows[i][el.dataset.jd != null ? 'dr' : 'cr'] = el.value;
+      let d = 0, c = 0; rows.forEach(r => { const x = money(r.dr), y = money(r.cr); if (Number.isFinite(x)) d += x; if (Number.isFinite(y)) c += y; });
+      const t = document.getElementById('qjt-' + el.dataset.q); if (t) t.innerHTML = `<span>合计</span><span>${fmt(d)}</span><span>${fmt(c)}</span><span></span>`;
+    }
+    qSave(); return;
+  }
+  if (el.dataset.f != null) {
+    UI.params[el.dataset.f] = el.value;
+    const box = $('#tplPreview'); if (box) box.innerHTML = tplPreviewHTML();
+    const memo = $('#f-memo'); if (memo && el.id !== 'f-memo') memo.placeholder = safeMemo(TPL[UI.tpl], UI.params);
+  } else if (el.dataset.c != null && el.tagName === 'INPUT') {
+    UI.custom.rows[+el.dataset.i][el.dataset.c] = el.value;
+    const t = customTotals(), tt = $('#cTot'); if (tt) tt.innerHTML = `<span>合计</span><span>${fmt(t.d)}</span><span>${fmt(t.c)}</span><span></span>`;
+    const m = $('#custMsg'); if (m) m.innerHTML = custMsg();
+  } else if (el.dataset.cm === 'memo' || el.dataset.cm === 'date') {
+    UI.custom[el.dataset.cm] = el.value;
+  } else if (el.dataset.g != null) {
+    UI.guesses[el.dataset.g] = el.value;
+  } else if (el.dataset.ai) {
+    UI.ai.text = el.value;
+  }
+});
+document.addEventListener('change', ev => {
+  const el = ev.target;
+  if (el.dataset.q) {
+    const a = qa(el.dataset.q), q = findQ(el.dataset.q);
+    if (el.dataset.opt != null && q) {
+      const i = +el.dataset.opt;
+      if (q.type === 'multi') { const s = new Set(a.sel || []); if (el.checked) s.add(i); else s.delete(i); a.sel = [...s].sort((x, y) => x - y); }
+      else a.sel = [i];
+    } else if (el.dataset.mi != null) { a.match = a.match || {}; a.match[el.dataset.mi] = el.value; }
+    else if (el.dataset.ja != null) { const rows = jeRows(a); if (rows[+el.dataset.ja]) rows[+el.dataset.ja].a = el.value; }
+    qSave(); return;
+  }
+  if (el.dataset.qz === 'wrong') { QZ.wrong = el.checked; qSave(); renderQuiz(); return; }
+  if (el.dataset.qai) { UI.qai[el.dataset.qai] = el.value; return; }
+  if (el.id === 'tplSel') { startTpl(el.value); renderBench(); const s = $('#tplSel'); if (s) s.focus(); return; }
+  if (el.dataset.f != null && el.tagName === 'SELECT') { UI.params[el.dataset.f] = el.value; renderBench(); return; }
+  if (el.dataset.f === 'date') { UI.params.date = el.value; const box = $('#tplPreview'); if (box) box.innerHTML = tplPreviewHTML(); return; }
+  if (el.dataset.c != null && el.tagName === 'SELECT') { const r = UI.custom.rows[+el.dataset.i]; r[el.dataset.c] = el.value; if (el.dataset.c === 'a') r.fn = ''; renderBench(); return; }
+  if (el.dataset.cm === 'adj') { UI.custom.adj = el.checked; return; }
+  if (el.dataset.ob) {
+    const c = el.dataset.ob, v = money(el.value);
+    if (el.value.trim() && !Number.isFinite(v)) { toast('金额格式不对'); renderBoard(); return; }
+    const val = Number.isFinite(v) ? v : 0;
+    if (val) S.opening[c] = ACC[c].t === 'A' ? val : -val; else delete S.opening[c];
+    save(); renderAll(); return;
+  }
+  if (el.dataset.obs) { const n = Math.round(num(el.value)); S.openingShares = n > 0 ? n : 0; save(); renderAll(); return; }
+  if (el.dataset.set) {
+    const k = el.dataset.set;
+    if (k === 'name') S.company.name = el.value.trim() || 'Company Limited';
+    else if (k === 'year') { const y = Math.round(num(el.value)); if (y > 1900 && y < 2200) S.company.year = y; }
+    else if (k === 'cur') S.company.cur = el.value.trim().slice(0, 6) || '$';
+    else if (k === 'tax') { const t = num(el.value); if (t >= 0 && t < 100) S.settings.tax = t; }
+    else if (k === 'autoTax') S.settings.autoTax = el.checked;
+    save(); renderAll(); return;
+  }
+  if (el.id === 'bk-file' && el.files && el.files[0]) { const fr = new FileReader(); fr.onload = () => importJSON(String(fr.result || '')); fr.readAsText(el.files[0]); }
+});
+document.addEventListener('toggle', ev => {
+  const d = ev.target; if (!d.dataset || !d.dataset.why) return;
+  if (d.open) UI.openWhy.add(d.dataset.why); else UI.openWhy.delete(d.dataset.why);
+}, true);
+
+/* ================= boot ================= */
+S = load();
+qLoad();
+try { const lf = JSON.parse(localStorage.getItem(RKEY) || 'null'); if (lf && lf.snap && lf.qid) UI.labFrom = lf; } catch (e) {}
+UI.lastDate = S.txns.length ? [...S.txns].sort((a, b) => a.date < b.date ? 1 : -1)[0].date : `${S.company.year}-01-01`;
+startTpl('sale');
+UI.custom = blankCustom();
+renderAll();
+const use = window.claude && typeof window.claude.use === 'function' ? n => window.claude.use(n).catch(() => null) : () => Promise.resolve(null);
+use('sample').then(fn => { if (fn) { UI.sample = fn; if (S.settings.view === 'quiz') { const side = document.getElementById('qside'); if (side) side.innerHTML = quizSideHTML(); } else renderBench(); } });
+use('downloads').then(d => { if (d) UI.dl = d; });
+})();
+</script>
+</body>
+</html>
