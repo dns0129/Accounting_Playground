@@ -316,6 +316,31 @@ table.wk{border-collapse:collapse;width:100%;font:12.5px var(--f-num);min-width:
 .btn.ghost{border-color:transparent;background:none;color:var(--muted)}
 .btn.ghost:hover{color:var(--ink);border-color:var(--rule2)}
 
+/* ---------- task-focused entry and record tools ---------- */
+.taskbar,.starter,.safety{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 18px}
+.taskbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.taskbar h2{font-size:15px;margin:0 0 3px}.taskbar p,.starter p{margin:0;color:var(--ink2);font-size:13px}
+.taskbar .seg button{padding:8px 14px;font-size:14px}
+.starter{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;background:var(--accent-soft)}
+.starter-copy{flex:1 1 300px}.starter strong{display:block;margin-bottom:3px}
+.safety{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:9px 16px;font-size:12px;color:var(--muted)}
+.safety .save-state{color:var(--ok)}.safety.failed{background:var(--bad-soft);border-color:var(--bad)}.safety.failed .save-state{color:var(--bad)}
+.safety .actions{margin-left:auto}.quick-tpls{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.quick-tpls .btn{justify-content:center;white-space:normal;min-height:36px}
+.learn-guide{border:1px solid var(--rule);border-radius:7px;background:var(--sheet2);padding:8px 10px;font-size:12.5px}
+.learn-guide summary{cursor:pointer;color:var(--accent);font-weight:500}.learn-guide p{margin:7px 0}.learn-guide table{width:100%;border-collapse:collapse;margin-top:8px}.learn-guide td,.learn-guide th{padding:4px;text-align:left;border-bottom:1px solid var(--rule)}
+.record-filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}.record-filters .full{grid-column:1/-1}
+.record-filters input,.record-filters select{min-height:36px}.record-summary{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--ink2);padding:9px 0 3px}
+.record-summary b{font-family:var(--f-num)}.tx-tools{display:flex;gap:2px;margin-left:auto}.tx-tools button{padding:3px 7px}
+.txl{max-height:420px;overflow:auto}.draft-note{font-size:12px;color:var(--accent);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.je-meta{font-size:12px;color:var(--muted);margin:3px 0 7px;overflow-wrap:anywhere}
+.journal-scope{font-size:12px;background:var(--sheet2);padding:8px 10px;border-radius:6px;margin-bottom:10px}
+.mobile-jump{display:none}
+@media(max-width:1000px){.mobile-jump{position:fixed;bottom:0;left:0;right:0;z-index:20;display:flex;justify-content:center;gap:8px;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:var(--sheet);border-top:1px solid var(--rule2);box-shadow:0 -2px 12px rgba(19,32,26,.07)}.mobile-jump .btn{flex:1;max-width:220px;justify-content:center;min-height:40px}.toast{bottom:calc(72px + env(safe-area-inset-bottom,0px))}}
+.btn{min-height:32px}.field input,.field select{min-height:36px}
+@media(max-width:600px){.app{padding-inline:10px}.brand h1{font-size:26px}.brand h1 .sub{display:block;margin:7px 0 0}.taskbar .seg{width:100%}.taskbar .seg button{flex:1}.starter .actions{width:100%}.starter .actions .btn{flex:1;justify-content:center}.safety .actions{margin-left:0}.crow,.chead,.ctot{grid-template-columns:minmax(0,1fr) 65px 65px 26px}.pane{padding-inline:12px}.jlegend{grid-template-columns:minmax(0,1fr) 32px 72px 72px}.jt td.amt{width:72px;font-size:11.5px}.jt td.cra{padding-left:16px}.jt td.ref{width:32px}}
+@media(min-width:360px) and (max-width:520px){.bench .fields{grid-template-columns:1fr 1fr}}
+
 /* ---------- practice questions ---------- */
 .labban{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;background:var(--hl);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--ink)}
 .quiz{display:grid;grid-template-columns:280px minmax(0,1fr);gap:14px;align-items:start}
@@ -395,6 +420,9 @@ table.wk{border-collapse:collapse;width:100%;font:12.5px var(--f-num);min-width:
     </div>
     <div class="toolbar" id="toolbar"></div>
   </header>
+  <section id="taskBar" class="taskbar" aria-label="选择使用场景"></section>
+  <section id="starter" class="starter" aria-label="开始使用"></section>
+  <div id="saveStatus" class="safety" role="status" aria-live="polite"></div>
   <div id="settingsBar"></div>
   <div class="labban" id="labBanner" hidden></div>
   <section class="eq" id="eqBox" aria-label="会计恒等式与勾稽检查"></section>
@@ -410,12 +438,20 @@ table.wk{border-collapse:collapse;width:100%;font:12.5px var(--f-num);min-width:
 </div>
 <aside class="trace" id="trace" hidden aria-live="polite"></aside>
 <div class="modal" id="modal" hidden></div>
-<div class="toast" id="toast" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<nav id="mobileJump" class="mobile-jump" aria-label="工作区快捷导航"><button class="btn primary" data-act="workspaceJump" data-v="bench">记一笔</button><button class="btn" data-act="workspaceJump" data-v="recordTools">查记录</button><button class="btn" data-act="workspaceJump" data-v="board">分录 / 报表</button></nav>
 
 <script>
 (() => {
 'use strict';
 const KEY = 'acct2102-statement-lab-v1';
+const RECORD_KEY = 'acct2102-finance-record-v1', PURPOSE_KEY = 'acct2102-purpose-v1';
+let purpose = 'learn';
+try { if (localStorage.getItem(PURPOSE_KEY) === 'record') purpose = 'record'; } catch (e) {}
+const stateKey = () => purpose === 'record' ? RECORD_KEY : KEY;
+const draftKey = () => stateKey() + '-draft';
+const recoveryKey = () => stateKey() + '-recovery';
+const today = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 const $ = (s, r = document) => r.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -496,6 +532,7 @@ function money(v){
   if (s.startsWith('-')) { neg = !neg; s = s.slice(1); }
   if (!/^(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
   const c = Math.round(parseFloat(s) * 100);
+  if (!Number.isSafeInteger(c)) return NaN;
   return neg ? -c : c;
 }
 const num = v => { const n = parseFloat(String(v ?? '').replace(/[,\s]/g, '')); return Number.isFinite(n) ? n : NaN; };
@@ -555,7 +592,7 @@ const TEMPLATES = [
     fields:[F.amt('售价（确认收入）','price'),F.amt('商品成本（结转成本）','cost'),F.pay('credit','赊销（应收账款）')],
     memo:p=>`${p.pay==='cash'?'现销':'赊销'}商品，售价 ${m$(money(p.price))}，成本 ${m$(money(p.cost))}`,
     note:'永续盘存制下一次销售记两笔分录：① 确认收入；② 结转销售成本。收入在商品控制权转移时确认（IFRS 15），与是否收到现金无关，这就是权责发生制。',
-    build(p){const pr=money(p.price),c=money(p.cost);if(!pos(pr))return bad('请输入售价');const g=[[D(p.pay==='cash'?'1000':'1100',pr),C('4000',pr)]];if(pos(c))g.push([D('5000',c,'cos'),C('1200',c)]);return ok(g);}},
+    build(p){const pr=money(p.price),c=money(p.cost);if(!pos(pr))return bad('请输入售价');if(c<0)return bad('商品成本不能为负数');const g=[[D(p.pay==='cash'?'1000':'1100',pr),C('4000',pr)]];if(pos(c))g.push([D('5000',c,'cos'),C('1200',c)]);return ok(g);}},
   {id:'purchaseInv',cat:'op',zh:'采购存货',
     fields:[F.amt('采购成本'),F.pay('credit','赊购（应付账款）')],
     memo:p=>`${p.pay==='cash'?'现购':'赊购'}存货 ${m$(money(p.amt))}`,
@@ -774,12 +811,17 @@ const SAMPLE = [
 let S, R, TRACES = [];
 const UI = {mode:'tpl', tpl:'sale', params:null, editing:null, sel:null, custom:null, lf:'all', revealed:new Set(), openWhy:new Set(),
   guesses:{}, marks:{}, showAns:false, showSettings:false, lastDate:null, ai:{text:'',status:'idle',res:null,err:'',ctl:null},
-  sample:null, dl:null, undo:null, lastEq:null, labFrom:null, qai:{ch:3, type:'mc', status:'idle', err:'', ctl:null}};
+  sample:null, dl:null, undo:null, lastEq:null, labFrom:null, qai:{ch:3, type:'mc', status:'idle', err:'', ctl:null},
+  filters:{query:'',from:'',to:'',kind:'all'}, tplQuery:'', storageError:'', draftDirty:false, draftRestored:false, pendingImport:null};
 
 function blankState(){
   return {v:1, seq:0, company:{name:'New Company Limited', year:2026, cur:'HK$'},
     settings:{tax:20, autoTax:true, lang:'both', plMethod:'function', plPres:'single', cfMethod:'indirect', practice:false, tab:'pl', view:'lab'},
     openingShares:0, opening:{}, txns:[]};
+}
+function recordState(){
+  const s = blankState(); s.company.name = '我的财务账本'; s.company.year = +today().slice(0,4);
+  s.settings = {...s.settings, autoTax:false, lang:'zh', tab:'journal'}; return s;
 }
 function balancesOf(s, excludeId){
   const b = {...s.opening};
@@ -788,6 +830,11 @@ function balancesOf(s, excludeId){
 }
 function runTpl(s, id, p, excludeId){
   const t = TPL[id]; if (!t) return {err:'未知的交易类型'};
+  for (const f of t.fields.filter(f=>!f.show || f.show(p))) {
+    const v=String(p[f.k] ?? '').trim(); if (!v) continue;
+    if (f.t==='money' && !Number.isFinite(money(v))) return {err:`${f.label}：金额格式不正确或过大`};
+    if (['num','int'].includes(f.t) && !Number.isFinite(Number(v.replace(/[,\s]/g,'')))) return {err:`${f.label}：请填写有效数字`};
+  }
   const b = balancesOf(s, excludeId);
   const ctx = {bal: a => b[a] || 0, year: s.company.year};
   let r;
@@ -795,6 +842,7 @@ function runTpl(s, id, p, excludeId){
   if (r.err) return r;
   r.groups = r.groups.map(g => g.filter(l => l.s).map(l => { const fn = normFn(l.a, l.fn); return fn ? {a:l.a, s:Math.round(l.s), fn} : {a:l.a, s:Math.round(l.s)}; })).filter(g => g.length);
   if (!r.groups.length) return {err:'金额为零，不需要记账'};
+  if (r.groups.some(g => g.some(l=>!Number.isSafeInteger(l.s)))) return {err:'金额过大或格式不正确，请检查输入'};
   for (const g of r.groups) if (g.reduce((x, l) => x + l.s, 0) !== 0) return {err:'分录借贷不平衡'};
   return r;
 }
@@ -820,15 +868,83 @@ function normalize(s){
   const out = {...b, ...s, company:{...b.company, ...(s.company || {})}, settings:{...b.settings, ...(s.settings || {})}};
   out.opening = s.opening && typeof s.opening === 'object' ? s.opening : {};
   out.txns = (Array.isArray(s.txns) ? s.txns : []).filter(t => t && Array.isArray(t.groups) && t.date && t.groups.every(g => Array.isArray(g) && g.every(l => ACC[l.a] && Number.isFinite(l.s))));
-  out.seq = Math.max(out.seq || 0, ...out.txns.map(t => t.seq || 0), 0);
+  out.seq = Math.max(out.seq || 0, ...out.txns.map(t => Math.max(t.seq || 0, /^T\d+$/.test(t.id || '') ? +t.id.slice(1) : 0)), 0);
   out.txns.forEach((t, i) => { if (!t.id) t.id = 'T' + (++out.seq); if (!t.seq) t.seq = ++out.seq; });
   return out;
 }
 function load(){
-  try { const raw = localStorage.getItem(KEY); if (raw) { const s = JSON.parse(raw); if (s && s.company && Array.isArray(s.txns)) return normalize(s); } } catch (e) {}
-  return sampleState();
+  try { const raw = localStorage.getItem(stateKey()); if (raw) { const s = JSON.parse(raw); validateBackup(s); return normalize(s); } } catch (e) {
+    UI.storageError = '已保存的数据暂时无法读取。原备份仍保留，请先导出原始数据或恢复备份。';
+    UI.loadBlocked = true;
+    return purpose === 'record' ? recordState() : blankState();
+  }
+  return purpose === 'record' ? recordState() : sampleState();
 }
-function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function save(){
+  if (UI.loadBlocked) { renderSaveStatus(); return false; }
+  const oldTime = S.savedAt; S.savedAt = Date.now();
+  try { localStorage.setItem(stateKey(), JSON.stringify(S)); UI.storageError = ''; renderSaveStatus(); return true; }
+  catch (e) { S.savedAt = oldTime; UI.storageError = '保存失败：当前改动还在页面中，请立即导出备份，避免刷新后丢失。'; renderSaveStatus(); return false; }
+}
+
+function renderSaveStatus(){
+  const el = $('#saveStatus'); if (!el) return;
+  el.classList.toggle('failed', !!UI.storageError);
+  el.innerHTML = `<span class="save-state">${UI.storageError ? esc(UI.storageError) : S.savedAt ? '✓ 已保存到此浏览器 · ' + new Date(S.savedAt).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}) : '数据保存在此浏览器，记账后自动保存'}</span><span>换设备前请备份 · 两个账本分别保存</span><span class="actions"><button class="btn small" data-act="backup">备份 / 恢复</button>${UI.storageError && !UI.loadBlocked ? '<button class="btn small" data-act="retrySave">重试保存</button>' : ''}</span>`;
+}
+function saveDraft(){
+  if (!UI.draftDirty) return;
+  try { localStorage.setItem(draftKey(), JSON.stringify({mode:UI.mode,tpl:UI.tpl,params:UI.params,custom:UI.custom,editing:UI.editing,lastDate:UI.lastDate})); }
+  catch (e) { UI.storageError = '草稿未能保存，请先完成记账或导出数据，避免刷新后丢失。'; renderSaveStatus(); }
+}
+function clearDraft(){
+  clearTimeout(saveDraft._t); UI.draftDirty = false; UI.draftRestored = false;
+  try { localStorage.removeItem(draftKey()); } catch (e) {}
+}
+function loadDraft(){
+  try {
+    const d = JSON.parse(localStorage.getItem(draftKey()) || 'null');
+    if (!d || !TPL[d.tpl] || !d.params || !d.custom || !Array.isArray(d.custom.rows) || !d.custom.rows.every(r => ACC[r.a])) return;
+    UI.mode = d.mode === 'custom' ? 'custom' : 'tpl'; UI.tpl = d.tpl; UI.params = d.params; UI.custom = d.custom;
+    UI.editing = S.txns.some(t => t.id === d.editing) ? d.editing : null;
+    UI.lastDate = d.lastDate || UI.lastDate; UI.draftRestored = true; UI.draftDirty = true;
+  } catch (e) {}
+}
+function resetEntryUI(){
+  UI.sel = null; UI.editing = null; UI.tplQuery = ''; UI.mode = 'tpl';
+  UI.filters = {query:'',from:'',to:'',kind:'all'};
+  UI.guesses = {}; UI.marks = {}; UI.showAns = false; UI.revealed.clear(); UI.openWhy.clear();
+  UI.lastDate = S.txns.length ? [...S.txns].sort((a,b) => b.date.localeCompare(a.date))[0].date : null;
+  startTpl(purpose === 'record' ? 'service' : 'sale'); UI.custom = blankCustom();
+}
+function switchPurpose(next){
+  if (!['learn','record'].includes(next) || next === purpose) return true;
+  if (!UI.loadBlocked && !save()) { toast('当前账本还未保存成功，请先备份或重试保存。'); return false; }
+  clearTimeout(saveDraft._t); saveDraft();
+  clearTimeout(toast._t); UI.undo=null; $('#toast').hidden=true; $('#toast').innerHTML='';
+  purpose = next; UI.storageError = ''; UI.loadBlocked = false; UI.draftDirty = false; UI.draftRestored = false;
+  try { localStorage.setItem(PURPOSE_KEY, purpose); } catch (e) {}
+  S = load(); UI.labFrom = null;
+  if (purpose === 'learn') { try { UI.labFrom = JSON.parse(localStorage.getItem(RKEY) || 'null'); } catch (e) {} }
+  UI.showSettings = false; $('#trace').hidden = true; resetEntryUI(); loadDraft(); renderAll(); return true;
+}
+function renderTaskEntry(){
+  const learn = purpose === 'learn', quiz = S.settings.view === 'quiz';
+  $('#taskBar').innerHTML = `<div><h2>${learn ? '学懂每一笔，读懂每张报表' : '把每一笔财务记录记清楚'}</h2><p>${learn ? '从交易 → 分录 → 报表，逐步看清数字的来龙去脉。' : '选择交易、填写金额，自动生成分录和报表。'}</p></div>${seg('purpose',purpose,[['learn','学习账本'],['record','财务记录']])}`;
+  const el = $('#starter'); el.hidden = quiz;
+  el.innerHTML = learn ? `<div class="starter-copy"><strong>学习专用账本 · 与财务记录独立</strong><p>初次打开载入虚构示例公司。先看一笔分录的解释，再点报表数字追溯来源。</p></div><div class="actions"><button class="btn" data-act="guidedJournal">① 看分录解释</button><button class="btn" data-act="guidedReports">② 看报表来源</button><button class="btn" data-act="view" data-v="quiz">③ 做练习题</button></div>`
+    : `<div class="starter-copy"><strong>${S.txns.length ? '财务记录 · 共 ' + S.txns.length + ' 笔交易' : '从空账本开始，录入第一笔交易'}</strong><p>${S.txns.length ? '搜索和日期筛选用于查找分录；财务报表始终汇总整个会计年度。' : '已有余额先填期初；新公司可从零开始。自动计税默认关闭，可在设置中开启。'}</p></div><div class="actions"><button class="btn" data-act="tab" data-v="opening">填写期初余额</button><button class="btn" data-act="settings">账本设置</button><button class="btn" data-act="exportCsv">导出分录 CSV</button></div>`;
+  renderSaveStatus();
+}
+function entryDate(){ return UI.lastDate || (purpose === 'record' && +today().slice(0,4) === +S.company.year ? today() : `${S.company.year}-01-01`); }
+function validDate(value,year){
+  return /^\d{4}-\d{2}-\d{2}$/.test(value || '') && Number.isFinite(Date.parse(value)) && new Date(value+'T00:00:00Z').toISOString().slice(0,10) === value && +value.slice(0,4) === +year;
+}
+function dateError(value){
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '') || !Number.isFinite(Date.parse(value)) || new Date(value+'T00:00:00Z').toISOString().slice(0,10) !== value) return '请选择有效日期';
+  if (+value.slice(0,4) !== +S.company.year) return `日期必须在当前会计年度 ${S.company.year} 内，请检查日期或账本设置`;
+  return '';
+}
 
 /* ================= engine ================= */
 function taxEntry(entries){
@@ -1439,7 +1555,8 @@ function jeHTML(e, opt = {}){
   } else lines = `<div class="veil">练习模式：先在纸上写出这笔分录（借哪个账户、贷哪个账户、金额），再核对。<button class="btn small" data-act="revealJE" data-id="${e.id}">显示分录</button></div>`;
   const whyOpen = UI.openWhy.has(e.id) ? ' open' : '';
   const why = hidden ? '' : `<details class="why" data-why="${e.id}"${whyOpen}><summary>为什么这样记？</summary>${explainHTML(e)}</details>`;
-  return `<article class="je${hit ? ' hit' : ''}" id="je-${e.id}"><div class="je-h"><span class="je-no">${opt.closing ? e.no : 'J' + e.no}</span>${opt.closing ? '' : `<span class="je-date">${e.date}</span>`}<span class="je-memo">${esc(e.memo)}</span>${tags}</div>${lines}${why}</article>`;
+  const meta = [e.party ? '往来：'+e.party : '', e.ref ? '单据：'+e.ref : ''].filter(Boolean);
+  return `<article class="je${hit ? ' hit' : ''}" id="je-${e.id}"><div class="je-h"><span class="je-no">${opt.closing ? e.no : 'J' + e.no}</span>${opt.closing ? '' : `<span class="je-date">${e.date}</span>`}<span class="je-memo">${esc(e.memo)}</span>${tags}${!e.auto && !opt.closing ? `<span class="tx-tools"><button class="btn small" data-act="edit" data-id="${esc(e.id)}">编辑</button><button class="btn small" data-act="duplicate" data-id="${esc(e.id)}">复制</button></span>` : ''}</div>${meta.length ? `<p class="je-meta">${esc(meta.join(' · '))}</p>` : ''}${lines}${why}</article>`;
 }
 function lineWhy(l){
   const A = ACC[l.a], dr = l.s > 0, n = A.zh;
@@ -1481,7 +1598,8 @@ function tagsOf(e){
 function paneJournal(){
   if (!R.entries.length) return paneBar('journal') + `<p class="empty">还没有交易。用左侧的模板录入第一笔交易。</p>`;
   const ctl = practice() ? `<button class="btn small" data-act="revealAll">全部显示</button><button class="btn small" data-act="hideAll">全部隐藏</button>` : `<button class="btn small" data-act="whyAll">${UI.openWhy.size ? '收起全部解释' : '展开全部解释'}</button>`;
-  return paneBar('journal', ctl) + `<div class="jlegend"><span>Account titles and explanation · 会计科目</span><span>Ref</span><span>Debit 借</span><span>Credit 贷</span></div>` + R.entries.map(e => jeHTML(e)).join('');
+  const entries = filteredEntries();
+  return paneBar('journal', ctl + '<button class="btn small" data-act="exportCsv">导出分录 CSV</button>') + `<div class="journal-scope">显示 ${entries.length} / ${R.entries.length} 笔分录 · 使用左侧搜索和日期筛选。报表与勾稽检查仍使用全年数据。</div><div class="jlegend"><span>Account titles and explanation · 会计科目</span><span>Ref</span><span>Debit 借</span><span>Credit 贷</span></div>` + (entries.map(e => jeHTML(e)).join('') || '<p class="empty">没有符合条件的分录。<button class="btn small" data-act="resetFilters">清除筛选</button></p>');
 }
 function paneLedger(){
   const groups = {all:() => true, A:a => a.t === 'A' || a.t === 'XA', L:a => a.t === 'L', E:a => a.t === 'E' || a.t === 'XE', PL:a => !!a.pl, O:a => a.t === 'O'};
@@ -1534,7 +1652,7 @@ function paneOpening(){
   const rows = VISIBLE.filter(a => ['A', 'XA', 'L', 'E'].includes(a.t)).map(a => {
     const debitSide = a.t === 'A';
     const raw = S.opening[a.c] || 0, v = debitSide ? raw : -raw;
-    const inp = `<input class="ob-in" id="ob-${a.c}" data-ob="${a.c}" value="${v ? esc(fmt(v).replace(/[()]/g, '')) + '' : ''}" ${v < 0 ? `data-neg="1"` : ''} inputmode="decimal" autocomplete="off" aria-label="${esc(a.zh)} 期初余额" placeholder="0">`;
+    const inp = `<input class="ob-in" id="ob-${a.c}" data-ob="${a.c}" value="${v ? (v<0?'-':'')+esc(fmt(Math.abs(v))) : ''}" inputmode="decimal" autocomplete="off" aria-label="${esc(a.zh)} 期初余额" placeholder="0">`;
     return `<tr><td class="a"><span class="c">${a.c}</span>${acctLab(a.c)}</td><td class="gl">${debitSide ? inp : ''}</td><td>${debitSide ? '' : inp}</td></tr>`;
   }).join('');
   const okb = R.obDr === R.obCr;
@@ -1542,18 +1660,18 @@ function paneOpening(){
     <tfoot><tr><td class="a">合计 Totals</td><td class="gl">${fmt(R.obDr)}</td><td>${fmt(R.obCr)}</td></tr></tfoot></table></div>
     <p style="margin:12px 0"><span class="okbad${okb ? '' : ' bad'}">${okb ? '✓ 期初借贷平衡' : `✗ 借贷相差 ${m$(Math.abs(R.obDr - R.obCr))}`}</span></p>
     <div class="fields" style="max-width:420px"><div class="field"><label for="ob-shares">期初已发行普通股股数（算 EPS 用）</label><input id="ob-shares" data-obs="1" value="${esc(String(S.openingShares || ''))}" inputmode="numeric" autocomplete="off"></div></div>
-    <p class="tip" style="margin-top:10px">收入、费用、股利和 OCI 是临时账户，上年结账后已经清零，所以这里不用填。</p>`;
+    <p class="tip" style="margin-top:10px">按表头的借方 / 贷方填余额；反方向余额用负数表示。收入、费用、股利和 OCI 是临时账户，上年结账后已经清零，所以这里不用填。</p>`;
 }
 
 /* ================= bench (left) ================= */
 function defaults(id){
   const t = TPL[id], p = {};
   t.fields.forEach(f => p[f.k] = f.def != null ? String(f.def) : '');
-  p.date = isAdjTpl(t) ? `${S.company.year}-12-31` : (UI.lastDate || `${S.company.year}-01-01`);
-  p.memo = '';
+  p.date = isAdjTpl(t) ? `${S.company.year}-12-31` : entryDate();
+  p.memo = ''; p.party = ''; p.ref = '';
   return p;
 }
-function blankCustom(){ return {date:UI.lastDate || `${S.company.year}-01-01`, memo:'', adj:false, rows:[{a:'1000', dr:'', cr:''}, {a:'4000', dr:'', cr:''}]}; }
+function blankCustom(){ return {date:entryDate(), memo:'', party:'', ref:'', adj:false, rows:[{a:'1000', dr:'', cr:''}, {a:'4000', dr:'', cr:''}]}; }
 function acctOptions(sel){
   const g = [['资产', ['A', 'XA']], ['负债', ['L']], ['权益', ['E', 'XE']], ['收入/利得', ['R']], ['费用/损失', ['X']], ['其他综合收益', ['O']]];
   return g.map(([n, ts]) => `<optgroup label="${n}">${VISIBLE.filter(a => ts.includes(a.t)).map(a => `<option value="${a.c}"${a.c === sel ? ' selected' : ''}>${a.c} ${esc(a.zh)}</option>`).join('')}</optgroup>`).join('');
@@ -1570,21 +1688,40 @@ function miniEntry(groups){
 }
 function previewBlock(r, note){
   if (r.err) return `<div class="preview"><span class="ph">分录预览</span><p class="err">${esc(r.err)}</p>${note ? `<p class="note">${esc(note)}</p>` : ''}</div>`;
-  return `<div class="preview"><span class="ph">自动生成的分录</span>${miniEntry(r.groups)}<div class="eqline">${eqDelta(r.groups)}</div>${r.calc ? `<p class="calc">${esc(r.calc)}</p>` : ''}${note ? `<p class="note">${esc(note)}</p>` : ''}</div>`;
+  return `<div class="preview"><span class="ph">自动生成的分录</span>${miniEntry(r.groups)}<div class="eqline">${eqDelta(r.groups)}</div>${purpose === 'learn' ? `<ul style="margin:0;padding-left:18px;font-size:12px">${r.groups.flat().map(l => `<li>${esc(lineWhy(l))}</li>`).join('')}</ul>` : ''}${r.calc ? `<p class="calc">${esc(r.calc)}</p>` : ''}${note ? `<p class="note">${esc(note)}</p>` : ''}</div>`;
 }
 function tplPreviewHTML(){
   const t = TPL[UI.tpl], r = runTpl(S, UI.tpl, UI.params, UI.editing);
+  const err = dateError(UI.params.date); if (err) return previewBlock({err}, '');
   return previewBlock(r, noteOf(t, UI.params));
+}
+function filteredTemplates(){
+  const q = UI.tplQuery.trim().toLowerCase();
+  return TEMPLATES.filter(t => !q || (t.zh+' '+t.id+' '+TPL_CATS.find(c=>c[0]===t.cat)[1]+' '+t.fields.map(f=>f.label).join(' ')).toLowerCase().includes(q));
+}
+function templateOptions(){
+  const list = filteredTemplates();
+  return `<option value="" disabled${list.some(t=>t.id===UI.tpl)?'':' selected'}>${list.length ? '请选择交易类型…' : '没有匹配的模板'}</option>` + TPL_CATS.map(([cat,l]) => {
+    const ts = list.filter(t=>t.cat===cat); return ts.length ? `<optgroup label="${l}">${ts.map(t=>`<option value="${t.id}"${t.id===UI.tpl?' selected':''}>${esc(t.zh)}</option>`).join('')}</optgroup>` : '';
+  }).join('');
+}
+function metadataFields(p, attr){
+  return `<div class="field"><label for="${attr}-party">往来对象（选填）</label><input id="${attr}-party" data-${attr}="party" value="${esc(p.party || '')}" placeholder="客户 / 供应商" autocomplete="off"></div><div class="field"><label for="${attr}-ref">单据编号（选填）</label><input id="${attr}-ref" data-${attr}="ref" value="${esc(p.ref || '')}" placeholder="发票 / 收据编号" autocomplete="off"></div>`;
+}
+function learningGuide(){
+  return `<details class="learn-guide"><summary>借和贷怎么判断？查看速查表</summary><p>借、贷是记账方向。先判断账户类型，再判断它增加还是减少。</p><table><thead><tr><th>账户类型</th><th class="dr">增加记</th><th class="cr">减少记</th></tr></thead><tbody><tr><td>资产、费用</td><td>借方</td><td>贷方</td></tr><tr><td>负债、权益、收入</td><td>贷方</td><td>借方</td></tr></tbody></table><p>例如收到服务费 1,000：现金增加 → 借现金 1,000；服务收入增加 → 贷收入 1,000。累计折旧、坏账准备等资产备抵账户方向与资产相反。</p><p>每笔分录必须借贷相等；借贷平衡后，还要核对交易性质和账户是否选对。</p></details>`;
 }
 function benchTpl(){
   const t = TPL[UI.tpl], p = UI.params;
-  const opts = TPL_CATS.map(([cat, l]) => `<optgroup label="${l}">${TEMPLATES.filter(x => x.cat === cat).map(x => `<option value="${x.id}"${x.id === UI.tpl ? ' selected' : ''}>${esc(x.zh)}</option>`).join('')}</optgroup>`).join('');
+  const opts = templateOptions();
   const b = balancesOf(S, UI.editing), ctx = {bal:a => b[a] || 0};
   const hint = t.hint ? t.hint(p, ctx) : '';
   const vis = t.fields.filter(f => !f.show || f.show(p));
-  return `<div class="field full"><label for="tplSel">交易类型</label><select id="tplSel" data-act-change="tpl">${opts}</select></div>
+  return `<div class="quick-tpls">${[['service','服务收入'],['payExpense','日常支出'],['collectAR','客户还款'],['payAP','支付欠款']].map(([k,l])=>`<button class="btn${UI.tpl===k?' primary':''}" data-act="quickTpl" data-v="${k}">${l}</button>`).join('')}</div>
+    <div class="field full"><label for="tplSearch">查找交易模板（${TEMPLATES.length} 种）</label><input id="tplSearch" type="search" value="${esc(UI.tplQuery)}" placeholder="输入：工资、存货、借款…" autocomplete="off"></div>
+    <div class="field full"><label for="tplSel">交易类型 · 当前：${esc(t.zh)}</label><select id="tplSel" data-act-change="tpl">${opts}</select></div>
     <div class="fields"><div class="field"><label for="f-date">日期</label><input id="f-date" data-f="date" type="date" value="${esc(p.date)}"></div>${vis.map(f => fieldHTML(f, p)).join('')}
-    <div class="field full"><label for="f-memo">摘要（可留空，自动生成）</label><input id="f-memo" data-f="memo" type="text" value="${esc(p.memo)}" placeholder="${esc(safeMemo(t, p))}" autocomplete="off"></div></div>
+    <div class="field full"><label for="f-memo">摘要（可留空，自动生成）</label><input id="f-memo" data-f="memo" type="text" value="${esc(p.memo)}" placeholder="${esc(safeMemo(t, p))}" autocomplete="off"></div>${metadataFields(p,'f')}</div>
     ${hint ? `<p class="hint">${esc(hint)}</p>` : ''}
     <div id="tplPreview">${tplPreviewHTML()}</div>
     <div class="actions"><button class="btn primary" data-act="addTpl">${UI.editing ? '保存修改' : '记入日记账'}</button>${UI.editing ? '<button class="btn" data-act="cancelEdit">取消</button>' : ''}</div>`;
@@ -1621,7 +1758,7 @@ function benchCustom(){
   return `<p class="tdesc">自己选账户、填借贷。适合模板里没有的交易，也适合练习：先写分录，再看报表怎样变化。</p>
     <div class="fields"><div class="field"><label for="c-date">日期</label><input id="c-date" data-cm="date" type="date" value="${esc(c.date)}"></div>
     <div class="field" style="justify-content:flex-end"><label class="checkline"><input type="checkbox" id="c-adj" data-cm="adj"${c.adj ? ' checked' : ''}> 期末调整分录</label></div>
-    <div class="field full"><label for="c-memo">摘要</label><input id="c-memo" data-cm="memo" value="${esc(c.memo)}" autocomplete="off" placeholder="例如：以现金支付广告费"></div></div>
+    <div class="field full"><label for="c-memo">摘要</label><input id="c-memo" data-cm="memo" value="${esc(c.memo)}" autocomplete="off" placeholder="例如：以现金支付广告费"></div>${metadataFields(c,'cm')}</div>
     <div class="chead"><span>账户</span><span>借 Dr</span><span>贷 Cr</span><span></span></div>${rows}
     <div class="ctot" id="cTot"><span>合计</span><span>${fmt(t.d)}</span><span>${fmt(t.c)}</span><span></span></div>
     <div class="actions"><button class="btn small" data-act="custAdd">＋ 添加一行</button></div>
@@ -1630,6 +1767,7 @@ function benchCustom(){
 }
 function custMsg(){
   const r = buildCustom(UI.custom), t = customTotals();
+  const err = dateError(UI.custom.date); if (err) return `<p class="err">${esc(err)}</p>`;
   if (r.err) return (t.d || t.c) ? `<p class="err">${esc(r.err)}</p>` : '';
   return `<div class="preview"><span class="ph">借贷平衡 ✓</span><div class="eqline">${eqDelta(r.groups)}</div><ul style="margin:0;padding-left:18px;font-size:12.5px">${r.groups[0].map(l => `<li>${esc(lineWhy(l))}</li>`).join('')}</ul></div>`;
 }
@@ -1649,27 +1787,46 @@ function benchAI(){
     <div class="field full"><label for="ai-text">交易描述</label><textarea id="ai-text" data-ai="1" rows="3" placeholder="例：9 月 1 日签发两年期票据 30,000 购入一台送货车">${esc(a.text)}</textarea></div>
     <div class="actions"><button class="btn primary" data-act="aiGo"${a.status === 'busy' ? ' disabled' : ''}>生成分录</button>${a.status === 'busy' ? '<button class="btn" data-act="aiStop">停止</button>' : ''}</div>${out}`;
 }
-function renderBench(){
-  const list = R.entries.map(e => {
+function filteredEntries(){
+  const f = UI.filters, q = f.query.trim().toLowerCase();
+  return R.entries.filter(e => (!f.from || e.date >= f.from) && (!f.to || e.date <= f.to) && (f.kind==='all' || (f.kind==='regular' ? !e.adj : e.adj)) && (!q || [e.memo,e.party,e.ref,e.date,'J'+e.no,e.id,...e.groups.flat().map(l=>l.a+' '+ACC[l.a].zh+' '+ACC[l.a].en)].join(' ').toLowerCase().includes(q)));
+}
+function hasFilters(){ const f=UI.filters; return !!(f.query || f.from || f.to || f.kind!=='all'); }
+function entryListHTML(entries){
+  return entries.map(e => {
     const amt = e.groups.reduce((x, g) => x + g.filter(l => l.s > 0).reduce((y, l) => y + l.s, 0), 0);
     const tags = tagsOf(e).map(([t, c]) => `<span class="tag ${c}">${t}</span>`).join('');
     return `<li class="tx${UI.sel === e.id ? ' on' : ''}${UI.editing === e.id ? ' editing' : ''}" data-act="sel" data-id="${e.id}" tabindex="0"><span class="no">J${e.no}</span><span class="memo">${esc(e.memo)}</span><span class="amt">${fmt(amt)}</span>
-      <span class="meta"><span class="d">${e.date.slice(5)}</span>${tags}${e.auto ? '' : `<span class="acts"><button data-act="edit" data-id="${e.id}">编辑</button><button data-act="del" data-id="${e.id}">删除</button></span>`}</span></li>`;
+      <span class="meta"><span class="d">${e.date.slice(5)}</span>${e.party ? `<span>${esc(e.party)}</span>` : ''}${e.ref ? `<span>单据 ${esc(e.ref)}</span>` : ''}${tags}${e.auto ? '' : `<span class="acts"><button data-act="edit" data-id="${e.id}" aria-label="编辑 J${e.no}">编辑</button><button data-act="duplicate" data-id="${e.id}" aria-label="复制 J${e.no}">复制</button><button data-act="del" data-id="${e.id}" aria-label="删除 J${e.no}">删除</button></span>`}</span></li>`;
   }).join('');
+}
+function renderEntryList(){
+  const entries = filteredEntries(), list=$('#entryList'), count=$('#entryCount'), summary=$('#entrySummary');
+  if (count) count.textContent = entries.length + ' / ' + R.entries.length;
+  if (list) list.innerHTML = entryListHTML(entries) || `<li class="empty">${R.entries.length ? '没有匹配的记录，请调整筛选。' : '还没有交易，从上方常用入口记第一笔。'}</li>`;
+  let incoming=0,outgoing=0;
+  entries.forEach(e=>e.groups.flat().filter(l=>l.a==='1000').forEach(l=>l.s>0?incoming+=l.s:outgoing-=l.s));
+  if (summary) summary.innerHTML = `<span>匹配记录收现 <b>${fmt(incoming)}</b></span><span>付现 <b>${fmt(outgoing)}</b></span><span>净现金变动 <b>${fmt(incoming-outgoing)}</b> ${esc(cur())}</span>${UI.filters.from && UI.filters.to && UI.filters.from>UI.filters.to ? '<span class="err">开始日期不能晚于结束日期</span>' : ''}`;
+}
+function renderBench(){
   const modes = [['tpl', '模板'], ['custom', '自定义分录']].concat(UI.sample ? [['ai', 'AI 描述']] : []);
   let body = UI.mode === 'custom' ? benchCustom() : UI.mode === 'ai' && UI.sample ? benchAI() : benchTpl();
   $('#bench').innerHTML = `<section class="bsec"><div class="bhead"><h2 class="h2">${UI.editing ? `编辑 J${R.byId[UI.editing]?.no || ''}` : '录入交易'}</h2>${seg('mode', UI.mode, modes)}</div>${body}</section>
-    <section class="bsec" style="padding-bottom:4px"><div class="bhead"><h2 class="h2">本期分录<span class="count">${R.entries.length}</span></h2>${UI.sel ? '<button class="btn small" data-act="clearSel">取消追踪</button>' : ''}</div><p class="tdesc">点一笔交易，右边会高亮它影响到的每一行，包括层层汇总后的小计和合计。</p></section>
-    <ol class="txl">${list || '<li class="empty">还没有交易。</li>'}</ol>`;
+    ${UI.draftRestored ? '<div class="bsec draft-note">已恢复未记账的草稿。<button class="btn small" data-act="discardDraft">丢弃草稿</button></div>' : ''}
+    ${purpose==='learn' ? '<section class="bsec">'+learningGuide()+'</section>' : ''}
+    <section class="bsec" id="recordTools" style="padding-bottom:4px"><div class="bhead"><h2 class="h2">查找分录<span class="count" id="entryCount"></span></h2><button class="btn small" data-act="resetFilters">清除筛选</button></div><p class="tdesc">点记录追踪报表变化。筛选仅影响分录列表和 CSV 导出。</p>
+    <div class="record-filters"><div class="field full"><label for="txQuery">搜索记录</label><input id="txQuery" type="search" data-filter="query" value="${esc(UI.filters.query)}" placeholder="摘要、往来对象、单据编号或科目" autocomplete="off"></div><div class="field"><label for="txFrom">开始日期</label><input id="txFrom" type="date" data-filter="from" value="${esc(UI.filters.from)}"></div><div class="field"><label for="txTo">结束日期</label><input id="txTo" type="date" data-filter="to" value="${esc(UI.filters.to)}"></div><div class="field full"><label for="txKind">分录类型</label><select id="txKind" data-filter="kind"><option value="all"${UI.filters.kind==='all'?' selected':''}>全部分录</option><option value="regular"${UI.filters.kind==='regular'?' selected':''}>日常分录</option><option value="adjust"${UI.filters.kind==='adjust'?' selected':''}>调整分录（含自动计税）</option></select></div></div><div id="entrySummary" class="record-summary" aria-live="polite"></div><div class="actions"><button class="btn small" data-act="exportCsv">导出匹配分录 CSV</button>${UI.sel ? '<button class="btn small" data-act="clearSel">取消追踪</button>' : ''}</div></section>
+    <ol class="txl" id="entryList"></ol>`;
+  renderEntryList();
 }
 
 /* ================= header, board ================= */
 function renderHeader(){
   const st = S.settings, quiz = st.view === 'quiz';
   $('#coLine').innerHTML = quiz ? `第 1–4 章练习题 · 共 ${allQs().length} 道 · 分录题使用工作台的会计科目表`
-    : `<b>${esc(S.company.name)}</b> · 截至 ${esc(S.company.year)} 年 12 月 31 日止年度 · ${esc(cur())} · 税率 ${esc(st.tax)}%`;
+    : `<b>${esc(S.company.name)}</b> · 截至 ${esc(S.company.year)} 年 12 月 31 日止年度 · ${esc(cur())} · ${st.autoTax ? '自动计税 '+esc(st.tax)+'%' : '自动计税关闭'}`;
   $('#toolbar').innerHTML = seg('view', quiz ? 'quiz' : 'lab', [['lab', '工作台'], ['quiz', '练习题']]) + (quiz ? '' : seg('lang', st.lang, [['both', '中英'], ['en', 'EN'], ['zh', '中文']]) +
-    `<button class="btn" data-act="practice" aria-pressed="${!!st.practice}">练习模式</button>
+    `${purpose === 'learn' ? `<button class="btn" data-act="practice" aria-pressed="${!!st.practice}">报表自测${st.practice ? ' · 已开启' : ''}</button>` : ''}
      <button class="btn" data-act="settings" aria-pressed="${UI.showSettings}">设置</button>
      <button class="btn" data-act="backup">备份</button>`);
   $('#settingsBar').innerHTML = UI.showSettings && !quiz ? `<div class="settings">
@@ -1678,7 +1835,8 @@ function renderHeader(){
     <div class="field narrow"><label for="set-cur">货币符号</label><input id="set-cur" data-set="cur" value="${esc(S.company.cur)}"></div>
     <div class="field narrow"><label for="set-tax">所得税率 %</label><input id="set-tax" data-set="tax" value="${esc(st.tax)}" inputmode="decimal"></div>
     <label class="checkline"><input type="checkbox" id="set-auto" data-set="autoTax"${st.autoTax ? ' checked' : ''}> 年末自动计提所得税</label>
-    <div class="actions" style="margin-left:auto"><button class="btn" data-act="loadSample">载入示例公司</button><button class="btn" data-act="blank">清空，从新公司开始</button></div></div>` : '';
+    <p class="hint">${purpose==='record' ? '自动计税默认关闭；开启后会按设定税率估算年末所得税。' : '自动计税用于课程演示，按税前利润 × 税率计算。'}</p>
+    <div class="actions" style="margin-left:auto"><button class="btn" data-act="loadSample">${purpose==='record'?'在学习账本查看示例':'重新载入示例公司'}</button><button class="btn" data-act="blank">新建空账本</button></div></div>` : '';
   const E = R;
   const prev = UI.lastEq; const nowEq = [E.totA, E.totL, E.totE].join('|');
   const flash = prev && prev !== nowEq;
@@ -1692,12 +1850,13 @@ function renderHeader(){
 }
 function renderBoard(){
   const tab = S.settings.tab;
-  $('#tabs').innerHTML = TABS.map(([k, n, l]) => `<button role="tab" type="button" data-act="tab" data-v="${k}" aria-selected="${tab === k}"><span class="n">${n}</span>${l}</button>`).join('');
+  $('#tabs').innerHTML = TABS.map(([k, n, l]) => `<button id="tab-${k}" role="tab" type="button" data-act="tab" data-v="${k}" aria-controls="pane" tabindex="${tab === k ? 0 : -1}" aria-selected="${tab === k}"><span class="n">${n}</span>${l}</button>`).join('');
   const e = UI.sel && R.byId[UI.sel];
   $('#fpBar').innerHTML = e ? `<div class="fp">正在追踪 <b>J${e.no} ${esc(e.memo)}</b><span>黄色高亮 = 这笔分录影响到的行，包括汇总到的小计与合计。</span><button class="btn small" data-act="clearSel">取消追踪</button></div>` : '';
   TRACES = [];
   const P = {opening:paneOpening, journal:paneJournal, ledger:paneLedger, tb:paneTB, pl:panePL, soce:paneSOCE, sfp:paneSFP, scf:paneSCF, closing:paneClosing}[tab] || panePL;
   const pane = $('#pane');
+  pane.setAttribute('role','tabpanel'); pane.setAttribute('aria-labelledby','tab-'+tab);
   pane.className = 'pane' + (lang() === 'zh' ? ' lang-zh' : '');
   pane.innerHTML = P();
   updateScore();
@@ -1708,7 +1867,8 @@ function renderAll(){
   R = compute();
   const quiz = S.settings.view === 'quiz';
   $('#eqBox').hidden = quiz; $('#work').hidden = quiz; $('#quiz').hidden = !quiz;
-  renderHeader(); renderLabBanner();
+  $('#mobileJump').hidden=quiz;
+  renderHeader(); renderTaskEntry(); renderLabBanner();
   if (quiz) renderQuiz(); else { renderBench(); renderBoard(); }
   if (fid) { const el = document.getElementById(fid); if (el && el !== document.activeElement) { el.focus({preventScroll:true}); try { if (caret != null && el.setSelectionRange) el.setSelectionRange(caret, caret); } catch (e) {} } }
 }
@@ -1773,46 +1933,58 @@ function toast(msg, undoFn){
   clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; UI.undo = null; }, 7000);
 }
 const snapshot = () => JSON.stringify(S);
-function restore(json){ S = normalize(JSON.parse(json)); save(); renderAll(); }
+function restore(json){ S = normalize(JSON.parse(json)); resetEntryUI(); clearDraft(); save(); renderAll(); }
 function startTpl(id){ UI.tpl = id; UI.params = defaults(id); }
 function commit(tx){
+  const err = dateError(tx.date); if (err) { toast(err); return false; }
+  if (UI.loadBlocked) { toast('请先恢复或导出无法读取的原始数据，再继续记账。'); return false; }
+  const snap = snapshot();
   if (UI.editing) {
     const i = S.txns.findIndex(t => t.id === UI.editing);
     if (i >= 0) { const old = S.txns[i]; S.txns[i] = {...tx, id:old.id, seq:old.seq}; UI.sel = old.id; }
     UI.editing = null;
   } else { S.seq++; tx.id = 'T' + S.seq; tx.seq = S.seq; S.txns.push(tx); UI.sel = tx.id; }
   UI.lastDate = tx.date;
-  save(); renderAll();
+  clearDraft(); const saved = save(); renderAll();
+  toast(saved ? '已记账并保存，可点击记录追踪报表变化。' : '已加入当前账本，但保存失败，请立即备份。', () => restore(snap));
+  return true;
 }
 function addTpl(){
   const t = TPL[UI.tpl], p = UI.params;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(p.date || '')) { toast('请先选择日期'); return; }
+  const err = dateError(p.date); if (err) { toast(err); return; }
   const r = runTpl(S, UI.tpl, p, UI.editing);
   if (r.err) { toast(r.err); return; }
   const fp = {}; t.fields.forEach(f => fp[f.k] = p[f.k]);
-  commit({date:p.date, tpl:UI.tpl, p:fp, memoUser:p.memo || '', memo:p.memo || safeMemo(t, fp), adj:isAdjTpl(t), groups:r.groups, calc:r.calc || '', shares:r.shares || 0});
+  if (!commit({date:p.date, tpl:UI.tpl, p:fp, party:p.party || '', ref:p.ref || '', memoUser:p.memo || '', memo:p.memo || safeMemo(t, fp), adj:isAdjTpl(t), groups:r.groups, calc:r.calc || '', shares:r.shares || 0})) return;
   const keep = {date:p.date}; startTpl(UI.tpl); Object.assign(UI.params, keep);
   renderBench();
 }
 function addCustom(){
   const c = UI.custom, r = buildCustom(c);
   if (r.err) { toast(r.err); return; }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(c.date || '')) { toast('请先选择日期'); return; }
+  const err = dateError(c.date); if (err) { toast(err); return; }
   const old = UI.editing && S.txns.find(t => t.id === UI.editing);
-  commit({date:c.date, tpl:'custom', memo:c.memo || '自定义分录', memoUser:c.memo, adj:!!c.adj, groups:r.groups, calc:'', shares:0, note:old && old.note || '', src:old && old.src || ''});
+  if (!commit({date:c.date, tpl:'custom', party:c.party || '', ref:c.ref || '', memo:c.memo || '自定义分录', memoUser:c.memo, adj:!!c.adj, groups:r.groups, calc:'', shares:old && old.shares || 0, note:old && old.note || '', src:old && old.src || ''})) return;
   UI.custom = blankCustom(); UI.custom.date = c.date;
   renderBench();
 }
 function editTx(id){
   const t = S.txns.find(x => x.id === id); if (!t) return;
   UI.editing = id; UI.sel = id;
-  if (t.tpl && TPL[t.tpl]) { UI.mode = 'tpl'; UI.tpl = t.tpl; UI.params = {...defaults(t.tpl), ...t.p, date:t.date, memo:t.memoUser || ''}; }
+  if (t.tpl && TPL[t.tpl]) { UI.mode = 'tpl'; UI.tpl = t.tpl; UI.params = {...defaults(t.tpl), ...t.p, date:t.date, memo:t.memoUser || '', party:t.party || '', ref:t.ref || ''}; }
   else {
     UI.mode = 'custom';
-    UI.custom = {date:t.date, memo:t.memo, adj:!!t.adj, rows:t.groups.flat().map(l => ({a:l.a, dr:l.s > 0 ? (l.s / 100).toString() : '', cr:l.s < 0 ? (-l.s / 100).toString() : '', fn:l.fn || ''}))};
+    UI.custom = {date:t.date, memo:t.memo, party:t.party || '', ref:t.ref || '', adj:!!t.adj, rows:t.groups.flat().map(l => ({a:l.a, dr:l.s > 0 ? (l.s / 100).toString() : '', cr:l.s < 0 ? (-l.s / 100).toString() : '', fn:l.fn || ''}))};
   }
   renderAll();
   $('#bench').scrollTop = 0;
+}
+function duplicateTx(id){
+  const t = S.txns.find(e=>e.id===id); if (!t) return;
+  editTx(id); UI.editing = null; UI.sel = null;
+  const p = UI.mode==='tpl' ? UI.params : UI.custom; p.date = entryDate(); p.ref = '';
+  UI.draftDirty = true; saveDraft(); renderAll();
+  toast('已复制为未记账草稿，请核对日期、金额和单据编号后保存。');
 }
 function delTx(id){
   const snap = snapshot(), t = S.txns.find(x => x.id === id); if (!t) return;
@@ -1823,6 +1995,7 @@ function delTx(id){
 }
 function jump(id){
   if (!R.byId[id]) return;
+  if (!filteredEntries().some(e=>e.id===id)) UI.filters = {query:'',from:'',to:'',kind:'all'};
   UI.sel = id; S.settings.tab = 'journal'; save();
   renderAll();
   const el = document.getElementById('je-' + id); if (el) el.scrollIntoView({block:'center', behavior:'smooth'});
@@ -1902,31 +2075,87 @@ async function aiGo(){
 }
 
 /* ---------- backup ---------- */
-function downloadFile(name, text){
+function downloadFile(name, text, mime = 'application/json'){
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([text], {type:'application/json'}));
+  a.href = URL.createObjectURL(new Blob([text], {type:mime}));
   a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 function openBackup(){
-  const json = JSON.stringify(S, null, 1);
+  let json = JSON.stringify(S, null, 1); if (UI.loadBlocked) { try { json = localStorage.getItem(stateKey()) || json; } catch(e) {} }
+  const recovery = readRecovery();
   $('#modal').innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="bkT"><h3 id="bkT">备份与导入</h3>
-    <p class="tdesc">数据只保存在这个浏览器里。换电脑或清除浏览数据前，先导出一份 JSON 备份。</p>
+    <p class="tdesc">当前：<b>${purpose==='learn'?'学习账本':'财务记录'}</b> · ${esc(S.company.name)} · ${S.txns.length} 笔交易。备份包含当前账本的期初余额和交易；练习作答、未记账草稿单独保存在此浏览器。${UI.loadBlocked?'下方为无法读取的原始数据，请先下载保存。':'换设备前请导出 JSON。'}</p>
     <div class="actions">${UI.dl || !window.claude ? '<button class="btn primary" data-act="dlJson">下载 JSON 文件</button>' : ''}<button class="btn" data-act="copyJson">复制 JSON</button></div>
     <div class="field"><label for="bk-text">JSON 内容（可以粘贴备份后导入）</label><textarea id="bk-text">${esc(json)}</textarea></div>
-    <div class="actions"><button class="btn" data-act="importText">从上面的文本导入</button><label class="btn" for="bk-file">选择 JSON 文件导入</label><input type="file" id="bk-file" accept=".json,application/json" hidden><button class="btn" data-act="closeModal" style="margin-left:auto">关闭</button></div>
+    <div class="actions"><button class="btn" data-act="importText">预览导入内容</button><label class="btn" for="bk-file">选择 JSON 文件</label><input type="file" id="bk-file" accept=".json,application/json" hidden><button class="btn" data-act="closeModal" style="margin-left:auto">关闭</button></div>
+    ${recovery ? `<p class="hint">上次覆盖前的账本：${esc(recovery.title)} · ${new Date(recovery.at).toLocaleString('zh-CN')} <button class="btn small" data-act="recoverPrevious">预览恢复</button></p>` : ''}
     <p class="err" id="bk-msg"></p></div>`;
   $('#modal').hidden = false;
+  $('#bk-text').focus();
+}
+function validateBackup(s){
+  if (!s || s.v!==1 || !s.company || !Array.isArray(s.txns)) throw new Error('这不是本页导出的账本备份');
+  const y=+s.company.year;
+  if (s.seq!=null && (!Number.isSafeInteger(s.seq) || s.seq<0)) throw new Error('账本编号格式不正确');
+  if (!Number.isInteger(y) || y<=1900 || y>=2200 || typeof s.company.name!=='string' || typeof s.company.cur!=='string') throw new Error('公司名称、年度或币种格式不正确');
+  if (!s.opening || Array.isArray(s.opening) || typeof s.opening!=='object' || Object.entries(s.opening).some(([a,n])=>!ACC[a] || !['A','XA','L','E'].includes(ACC[a].t) || !Number.isSafeInteger(n))) throw new Error('期初余额包含无效科目或金额');
+  if (s.openingShares != null && (!Number.isSafeInteger(s.openingShares) || s.openingShares<0)) throw new Error('期初股数格式不正确');
+  const ids=new Set();
+  s.txns.forEach((t,i)=>{
+    if (!t || !validDate(t.date,y) || typeof t.memo!=='string' || !Array.isArray(t.groups) || !t.groups.length) throw new Error(`第 ${i+1} 笔交易的日期、摘要或分录格式不正确`);
+    if (t.id != null && (typeof t.id!=='string' || !/^T\d+$/.test(t.id) || !Number.isSafeInteger(+t.id.slice(1)) || ids.has(t.id))) throw new Error(`第 ${i+1} 笔交易的编号无效或重复`);
+    if (t.id) ids.add(t.id);
+    if (t.seq != null && (!Number.isSafeInteger(t.seq) || t.seq<1)) throw new Error(`第 ${i+1} 笔交易的顺序编号无效`);
+    if (t.shares != null && !Number.isFinite(t.shares)) throw new Error(`第 ${i+1} 笔交易的股数无效`);
+    for (const g of t.groups) {
+      if (!Array.isArray(g) || !g.length || g.some(l=>!l || !ACC[l.a] || !Number.isSafeInteger(l.s) || l.s===0 || (l.fn && !FN_LABEL[l.fn]))) throw new Error(`第 ${i+1} 笔交易包含无效科目或金额`);
+      if (g.reduce((n,l)=>n+l.s,0)!==0) throw new Error(`第 ${i+1} 笔交易借贷不平衡`);
+    }
+  });
+  if (s.settings) {
+    if (typeof s.settings!=='object' || Array.isArray(s.settings)) throw new Error('账本设置格式不正确');
+    const enums={lang:['both','zh','en'],tab:TABS.map(t=>t[0]),view:['lab','quiz'],plMethod:['function','nature'],plPres:['single','two'],cfMethod:['direct','indirect']};
+    for (const [k,values] of Object.entries(enums)) if (s.settings[k]!=null && !values.includes(s.settings[k])) throw new Error('账本设置包含无效选项：'+k);
+    for (const k of ['autoTax','practice']) if (s.settings[k]!=null && typeof s.settings[k]!=='boolean') throw new Error('账本设置包含无效选项：'+k);
+    if (s.settings.tax!=null && (!Number.isFinite(+s.settings.tax) || +s.settings.tax<0 || +s.settings.tax>=100)) throw new Error('税率格式不正确');
+  }
+}
+function readRecovery(){ try { return JSON.parse(localStorage.getItem(recoveryKey()) || 'null'); } catch(e) { return null; } }
+function stashRecovery(){
+  try { localStorage.setItem(recoveryKey(),JSON.stringify({title:S.company.name,at:Date.now(),json:UI.loadBlocked ? localStorage.getItem(stateKey()) : snapshot()})); return true; }
+  catch(e) { toast('无法保存覆盖前的恢复副本，请先下载备份，再重试。'); return false; }
+}
+function previewReplacement(s,title='导入账本'){
+  UI.pendingImport = s;
+  $('#modal').innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="importTitle"><h3 id="importTitle">${esc(title)}</h3><p class="tdesc">目标：${purpose==='learn'?'学习账本':'财务记录'}。确认后替换当前 ${S.txns.length} 笔交易，覆盖前会保存一份可恢复副本。</p><div class="preview"><strong>${esc(s.company.name)}</strong><span>${s.company.year} 年 · ${esc(s.company.cur)} · ${s.txns.length} 笔交易 · ${Object.values(s.opening).filter(Boolean).length} 个期初余额</span><span>自动计税：${s.settings?.autoTax?'开启':'关闭'}</span></div><div class="actions"><button class="btn primary" data-act="confirmImport">确认替换当前账本</button><button class="btn" data-act="closeModal">取消</button></div></div>`;
+  $('#modal').hidden=false; $('#modal [data-act="closeModal"]').focus();
+}
+function confirmImport(){
+  const s=UI.pendingImport; if (!s || !stashRecovery()) return;
+  const snap=snapshot(); S=normalize(s); UI.loadBlocked=false; UI.storageError='';
+  if (purpose==='record') { S.settings.view='lab'; S.settings.practice=false; }
+  UI.pendingImport=null; UI.labFrom=null; if (purpose==='learn') { try { localStorage.removeItem(RKEY); } catch(e) {} }
+  clearDraft(); resetEntryUI(); const saved=save(); $('#modal').hidden=true; renderAll();
+  toast(saved ? '账本已替换。覆盖前的数据可在「备份 / 恢复」中恢复。' : '替换已应用到页面，但保存失败，请立即下载备份。',()=>restore(snap));
 }
 function importJSON(text){
   try {
     const s = JSON.parse(text);
-    if (!s || !s.company || !Array.isArray(s.txns)) throw 0;
-    const snap = snapshot();
-    S = normalize(s); UI.sel = null; UI.editing = null; save();
-    $('#modal').hidden = true; renderAll();
-    toast('已导入备份', () => restore(snap));
-  } catch (e) { const m = $('#bk-msg'); if (m) m.textContent = '导入失败：这不是本页导出的 JSON。'; }
+    validateBackup(s); previewReplacement(s);
+  } catch (e) { const m = $('#bk-msg'); if (m) m.textContent = '导入失败：'+ (e instanceof SyntaxError ? 'JSON 格式不正确' : e.message || '文件无法识别')+'。当前数据未改变。'; }
+}
+function csvText(entries){
+  const cell = value => { let v=String(value ?? ''); if (/^\s*[=+\-@]/.test(v)) v="'"+v; return '"'+v.replace(/"/g,'""')+'"'; };
+  const rows=[['会计年度','货币','日期','分录编号','固定交易编号','摘要','往来对象','单据编号','分组','科目代码','科目名称','借方金额','贷方金额','费用功能','分录类型']];
+  entries.forEach(e=>e.groups.forEach((g,i)=>g.forEach(l=>rows.push([S.company.year,cur(),e.date,'J'+e.no,e.id,e.memo,e.party||'',e.ref||'',i+1,l.a,acctZh(l.a),l.s>0?(l.s/100).toFixed(2):'',l.s<0?(-l.s/100).toFixed(2):'',l.fn?FNZ(l.fn):'',e.auto?'系统自动调整':e.adj?'调整':'日常']))));
+  return '\uFEFF'+rows.map(r=>r.map(cell).join(',')).join('\r\n');
+}
+function exportCsv(){
+  const entries=filteredEntries(); if (!entries.length) { toast('没有可导出的分录，请检查筛选条件。'); return; }
+  const data=csvText(entries), filename=`${purpose==='learn'?'学习账本':'财务记录'}-${S.company.year}-${hasFilters()?'筛选':'全部'}分录.csv`;
+  if (UI.dl) UI.dl.save({filename,data}).then(()=>toast(`已导出 ${entries.length} 笔分录`)).catch(()=>toast('导出未成功，请重试。'));
+  else { downloadFile(filename,data,'text/csv;charset=utf-8'); toast(`已导出 ${entries.length} 笔分录，可用 Excel 打开。`); }
 }
 
 /* ================= practice questions ================= */
@@ -2331,7 +2560,19 @@ document.addEventListener('click', ev => {
   const act = el.dataset.act, v = el.dataset.v, id = el.dataset.id;
   const qid = el.dataset.q, q = qid ? findQ(qid) : null;
   switch (act) {
-    case 'view': S.settings.view = v; save(); $('#trace').hidden = true; renderAll(); window.scrollTo(0, 0); break;
+    case 'purpose': switchPurpose(v); break;
+    case 'workspaceJump': { const target=document.getElementById(v); if(target) { if(v==='bench') target.scrollTop=0; target.scrollIntoView({block:'start',behavior:'smooth'}); } break; }
+    case 'view': if (v==='quiz' && purpose==='record' && !switchPurpose('learn')) break; S.settings.view = v; save(); $('#trace').hidden = true; renderAll(); window.scrollTo(0, 0); break;
+    case 'guidedJournal': S.settings.tab='journal'; S.settings.practice=false; R.entries.forEach(e=>UI.openWhy.add(e.id)); save(); renderAll(); $('#board').scrollIntoView({block:'start',behavior:'smooth'}); break;
+    case 'guidedReports': S.settings.tab='pl'; S.settings.practice=false; save(); renderAll(); $('#board').scrollIntoView({block:'start',behavior:'smooth'}); break;
+    case 'quickTpl': UI.editing=null; UI.tplQuery=''; UI.mode='tpl'; startTpl(v); UI.draftDirty=true; saveDraft(); renderBench(); $('#f-amt')?.focus(); break;
+    case 'resetFilters': UI.filters={query:'',from:'',to:'',kind:'all'}; renderBench(); renderBoard(); break;
+    case 'duplicate': duplicateTx(id); break;
+    case 'exportCsv': exportCsv(); break;
+    case 'discardDraft': clearDraft(); resetEntryUI(); renderAll(); break;
+    case 'retrySave': save(); break;
+    case 'confirmImport': confirmImport(); break;
+    case 'recoverPrevious': { const r=readRecovery(); if (r?.json) importJSON(r.json); break; }
     case 'qCh': QZ.ch = v === 'all' ? 'all' : +v; qSave(); renderQuiz(); break;
     case 'qType': QZ.type = v; qSave(); renderQuiz(); break;
     case 'qSubmit': if (q) qSubmit(q); break;
@@ -2349,27 +2590,27 @@ document.addEventListener('click', ev => {
     case 'labBack': labBack(); break;
     case 'labKeep': { const f = UI.labFrom; UI.labFrom = null; try { localStorage.removeItem(RKEY); } catch (e) {} renderAll(); if (f) toast('已保留这个情景，原来的数据已被替换。', () => restore(f.snap)); break; }
     case 'tab': S.settings.tab = v; save(); renderBoard(); break;
-    case 'mode': UI.mode = v; if (v === 'custom' && !UI.custom) UI.custom = blankCustom(); renderBench(); break;
+    case 'mode': if (UI.editing && v!==UI.mode) { UI.editing=null; startTpl(UI.tpl); UI.custom=blankCustom(); } UI.mode = v; if (v === 'custom' && !UI.custom) UI.custom = blankCustom(); UI.draftDirty=true; saveDraft(); renderBench(); break;
     case 'lang': S.settings.lang = v; save(); renderAll(); break;
     case 'practice': S.settings.practice = !S.settings.practice; save(); $('#trace').hidden = true; renderAll(); break;
     case 'settings': UI.showSettings = !UI.showSettings; renderHeader(); break;
     case 'backup': openBackup(); break;
-    case 'closeModal': $('#modal').hidden = true; break;
-    case 'dlJson': if (!UI.dl) { downloadFile('acct2102-statement-lab.json', JSON.stringify(S, null, 1)); toast('已下载备份'); break; } UI.dl.save({filename:'acct2102-statement-lab.json', data:JSON.stringify(S, null, 1)}).then(() => toast('已下载备份')).catch(e => { const m = $('#bk-msg'); if (m && e && e.code !== 'declined') m.textContent = '下载没有成功，可以改用「复制 JSON」。'; }); break;
+    case 'closeModal': UI.pendingImport=null; $('#modal').hidden = true; break;
+    case 'dlJson': { const data=$('#bk-text')?.value || JSON.stringify(S,null,1), filename=`${purpose==='record'?'财务记录':'学习账本'}-${S.company.year}-${today()}.json`; if (!UI.dl) { downloadFile(filename,data); toast('已下载当前账本备份'); break; } UI.dl.save({filename,data}).then(() => toast('已下载备份')).catch(e => { const m = $('#bk-msg'); if (m && e && e.code !== 'declined') m.textContent = '下载没有成功，可以改用「复制 JSON」。'; }); break; }
     case 'copyJson': { const ta = $('#bk-text'); const txt = ta ? ta.value : JSON.stringify(S); try { navigator.clipboard.writeText(txt).then(() => toast('已复制'), () => { ta && ta.select(); toast('请按 Ctrl/⌘ + C 复制已选中的文本'); }); } catch (e) { ta && ta.select(); } break; }
     case 'importText': importJSON(($('#bk-text') || {}).value || ''); break;
-    case 'loadSample': { const snap = snapshot(); S = sampleState(); S.settings.lang = JSON.parse(snap).settings.lang; UI.sel = null; UI.editing = null; save(); renderAll(); toast('已载入示例公司', () => restore(snap)); break; }
-    case 'blank': { const snap = snapshot(); const keep = S.settings; S = blankState(); S.settings = {...S.settings, lang:keep.lang, tab:'opening'}; S.company.year = +JSON.parse(snap).company.year || 2026; UI.sel = null; UI.editing = null; UI.lastDate = null; save(); renderAll(); toast('已清空。先在「期初余额」页填上年末余额（新公司可全为零）。', () => restore(snap)); break; }
+    case 'loadSample': { if (purpose==='record' && !switchPurpose('learn')) break; const s=sampleState(); s.settings.lang=S.settings.lang; previewReplacement(s,'载入虚构示例公司'); break; }
+    case 'blank': { const s=purpose==='record'?recordState():blankState(); s.settings.lang=S.settings.lang; s.settings.tab='opening'; s.company.year=+S.company.year; previewReplacement(s,'新建空账本'); break; }
     case 'undo': if (UI.undo) { const f = UI.undo; UI.undo = null; $('#toast').hidden = true; f(); } break;
     case 'sel': if (ev.target.closest('.acts')) break; UI.sel = UI.sel === id ? null : id; renderBench(); renderBoard(); break;
     case 'clearSel': UI.sel = null; renderBench(); renderBoard(); break;
     case 'edit': editTx(id); break;
     case 'del': delTx(id); break;
-    case 'cancelEdit': UI.editing = null; if (UI.mode === 'tpl') startTpl(UI.tpl); else UI.custom = blankCustom(); renderAll(); break;
+    case 'cancelEdit': UI.editing = null; clearDraft(); if (UI.mode === 'tpl') startTpl(UI.tpl); else UI.custom = blankCustom(); renderAll(); break;
     case 'addTpl': addTpl(); break;
     case 'addCustom': addCustom(); break;
-    case 'custAdd': UI.custom.rows.push({a:'1000', dr:'', cr:''}); renderBench(); break;
-    case 'custDel': if (UI.custom.rows.length > 1) { UI.custom.rows.splice(+el.dataset.i, 1); renderBench(); } break;
+    case 'custAdd': UI.custom.rows.push({a:'1000', dr:'', cr:''}); UI.draftDirty=true; saveDraft(); renderBench(); break;
+    case 'custDel': if (UI.custom.rows.length > 1) { UI.custom.rows.splice(+el.dataset.i, 1); UI.draftDirty=true; saveDraft(); renderBench(); } break;
     case 'jump': jump(id); break;
     case 'closeTrace': $('#trace').hidden = true; break;
     case 'chip': { const c = R.checks.find(x => x.k === el.dataset.k); if (c) openInfo(c.zh, c.why); break; }
@@ -2387,12 +2628,24 @@ document.addEventListener('click', ev => {
     case 'zeroOB': { const snap = snapshot(); S.opening = {}; S.openingShares = 0; save(); renderAll(); toast('期初余额已清零', () => restore(snap)); break; }
     case 'aiGo': aiGo(); break;
     case 'aiStop': if (UI.ai.ctl) UI.ai.ctl.abort(); break;
-    case 'aiAccept': { const r = UI.ai.res; if (!r || r.empty) break; UI.editing = null; commit({date:r.date, tpl:'custom', memo:r.memo, memoUser:r.memo, adj:r.adj, groups:r.groups, calc:r.assumptions ? '假设：' + r.assumptions : '', shares:0, note:r.explain, src:'ai'}); UI.ai = {text:'', status:'idle', res:null, err:'', ctl:null}; renderBench(); break; }
-    case 'aiEdit': { const r = UI.ai.res; if (!r || r.empty) break; UI.custom = {date:r.date, memo:r.memo, adj:r.adj, rows:r.groups.flat().map(l => ({a:l.a, dr:l.s > 0 ? String(l.s / 100) : '', cr:l.s < 0 ? String(-l.s / 100) : '', fn:l.fn || ''}))}; UI.mode = 'custom'; renderBench(); break; }
+    case 'aiAccept': { const r = UI.ai.res; if (!r || r.empty) break; UI.editing = null; if(!commit({date:r.date, tpl:'custom', memo:r.memo, memoUser:r.memo, adj:r.adj, groups:r.groups, calc:r.assumptions ? '假设：' + r.assumptions : '', shares:0, note:r.explain, src:'ai'})) break; UI.ai = {text:'', status:'idle', res:null, err:'', ctl:null}; renderBench(); break; }
+    case 'aiEdit': { const r = UI.ai.res; if (!r || r.empty) break; UI.custom = {date:r.date, memo:r.memo, adj:r.adj, rows:r.groups.flat().map(l => ({a:l.a, dr:l.s > 0 ? String(l.s / 100) : '', cr:l.s < 0 ? String(-l.s / 100) : '', fn:l.fn || ''}))}; UI.mode = 'custom'; UI.draftDirty=true; saveDraft(); renderBench(); break; }
   }
 });
 document.addEventListener('keydown', ev => {
-  if (ev.key === 'Escape') { if (!$('#modal').hidden) $('#modal').hidden = true; else if (!$('#trace').hidden) $('#trace').hidden = true; return; }
+  if (ev.key === 'Escape') { if (!$('#modal').hidden) { $('#modal').hidden = true; UI.pendingImport=null; } else if (!$('#trace').hidden) $('#trace').hidden = true; return; }
+  if (!$('#modal').hidden && ev.key==='Tab') {
+    const nodes=[...$('#modal').querySelectorAll('button:not([disabled]),input:not([hidden]),textarea,select')].filter(n=>!n.hidden && n.offsetParent);
+    const first=nodes[0],last=nodes[nodes.length-1];
+    if (first && ev.shiftKey && (ev.target===first || !$('#modal').contains(ev.target))) { ev.preventDefault(); last.focus(); }
+    else if (last && !ev.shiftKey && (ev.target===last || !$('#modal').contains(ev.target))) { ev.preventDefault(); first.focus(); }
+    return;
+  }
+  if ((ev.ctrlKey || ev.metaKey) && ev.key==='Enter' && $('#modal').hidden && S.settings.view!=='quiz') { ev.preventDefault(); if (UI.mode==='tpl') addTpl(); else if (UI.mode==='custom') addCustom(); return; }
+  if (ev.target.matches?.('[role="tab"]') && ['ArrowLeft','ArrowRight','Home','End'].includes(ev.key)) {
+    ev.preventDefault(); const i=TABS.findIndex(t=>t[0]===S.settings.tab), n=ev.key==='Home'?0:ev.key==='End'?TABS.length-1:(i+(ev.key==='ArrowRight'?1:-1)+TABS.length)%TABS.length;
+    S.settings.tab=TABS[n][0]; save(); renderBoard(); $('#tab-'+S.settings.tab).focus(); return;
+  }
   if (ev.key !== 'Enter' && ev.key !== ' ') return;
   const t = ev.target;
   if (t.matches && t.matches('[data-t]')) { ev.preventDefault(); const x = TRACES[+t.dataset.t]; if (x) openTrace(x); }
@@ -2400,6 +2653,8 @@ document.addEventListener('keydown', ev => {
 });
 document.addEventListener('input', ev => {
   const el = ev.target;
+  if (el.id==='tplSearch') { UI.tplQuery=el.value; $('#tplSel').innerHTML=templateOptions(); return; }
+  if (el.dataset.filter) { UI.filters[el.dataset.filter]=el.value; renderEntryList(); if(S.settings.tab==='journal') renderBoard(); return; }
   if (el.dataset.q) {
     const a = qa(el.dataset.q);
     if (el.dataset.bi != null) { a.vals = a.vals || {}; a.vals[el.dataset.bi] = el.value; }
@@ -2419,16 +2674,19 @@ document.addEventListener('input', ev => {
     UI.custom.rows[+el.dataset.i][el.dataset.c] = el.value;
     const t = customTotals(), tt = $('#cTot'); if (tt) tt.innerHTML = `<span>合计</span><span>${fmt(t.d)}</span><span>${fmt(t.c)}</span><span></span>`;
     const m = $('#custMsg'); if (m) m.innerHTML = custMsg();
-  } else if (el.dataset.cm === 'memo' || el.dataset.cm === 'date') {
+  } else if (['memo','date','party','ref'].includes(el.dataset.cm)) {
     UI.custom[el.dataset.cm] = el.value;
+    if (el.dataset.cm==='date' && $('#custMsg')) $('#custMsg').innerHTML=custMsg();
   } else if (el.dataset.g != null) {
     UI.guesses[el.dataset.g] = el.value;
   } else if (el.dataset.ai) {
     UI.ai.text = el.value;
   }
+  if (el.dataset.f!=null || el.dataset.c!=null || el.dataset.cm!=null) { UI.draftDirty=true; clearTimeout(saveDraft._t); saveDraft._t=setTimeout(saveDraft,250); }
 });
 document.addEventListener('change', ev => {
   const el = ev.target;
+  if (el.dataset.filter) { UI.filters[el.dataset.filter]=el.value; renderEntryList(); if(S.settings.tab==='journal') renderBoard(); return; }
   if (el.dataset.q) {
     const a = qa(el.dataset.q), q = findQ(el.dataset.q);
     if (el.dataset.opt != null && q) {
@@ -2441,11 +2699,11 @@ document.addEventListener('change', ev => {
   }
   if (el.dataset.qz === 'wrong') { QZ.wrong = el.checked; qSave(); renderQuiz(); return; }
   if (el.dataset.qai) { UI.qai[el.dataset.qai] = el.value; return; }
-  if (el.id === 'tplSel') { startTpl(el.value); renderBench(); const s = $('#tplSel'); if (s) s.focus(); return; }
-  if (el.dataset.f != null && el.tagName === 'SELECT') { UI.params[el.dataset.f] = el.value; renderBench(); return; }
-  if (el.dataset.f === 'date') { UI.params.date = el.value; const box = $('#tplPreview'); if (box) box.innerHTML = tplPreviewHTML(); return; }
-  if (el.dataset.c != null && el.tagName === 'SELECT') { const r = UI.custom.rows[+el.dataset.i]; r[el.dataset.c] = el.value; if (el.dataset.c === 'a') r.fn = ''; renderBench(); return; }
-  if (el.dataset.cm === 'adj') { UI.custom.adj = el.checked; return; }
+  if (el.id === 'tplSel') { if (!TPL[el.value]) return; startTpl(el.value); UI.draftDirty=true; saveDraft(); renderBench(); const s = $('#tplSel'); if (s) s.focus(); return; }
+  if (el.dataset.f != null && el.tagName === 'SELECT') { UI.params[el.dataset.f] = el.value; UI.draftDirty=true; saveDraft(); renderBench(); return; }
+  if (el.dataset.f === 'date') { UI.params.date = el.value; UI.draftDirty=true; saveDraft(); const box = $('#tplPreview'); if (box) box.innerHTML = tplPreviewHTML(); return; }
+  if (el.dataset.c != null && el.tagName === 'SELECT') { const r = UI.custom.rows[+el.dataset.i]; r[el.dataset.c] = el.value; if (el.dataset.c === 'a') r.fn = ''; UI.draftDirty=true; saveDraft(); renderBench(); return; }
+  if (el.dataset.cm === 'adj') { UI.custom.adj = el.checked; UI.draftDirty=true; saveDraft(); return; }
   if (el.dataset.ob) {
     const c = el.dataset.ob, v = money(el.value);
     if (el.value.trim() && !Number.isFinite(v)) { toast('金额格式不对'); renderBoard(); return; }
@@ -2453,17 +2711,17 @@ document.addEventListener('change', ev => {
     if (val) S.opening[c] = ACC[c].t === 'A' ? val : -val; else delete S.opening[c];
     save(); renderAll(); return;
   }
-  if (el.dataset.obs) { const n = Math.round(num(el.value)); S.openingShares = n > 0 ? n : 0; save(); renderAll(); return; }
+  if (el.dataset.obs) { const n = Math.round(num(el.value)); if (el.value.trim() && (!Number.isSafeInteger(n) || n<0)) { toast('股数请填写有效的非负整数'); renderBoard(); return; } S.openingShares = n > 0 ? n : 0; save(); renderAll(); return; }
   if (el.dataset.set) {
     const k = el.dataset.set;
     if (k === 'name') S.company.name = el.value.trim() || 'Company Limited';
-    else if (k === 'year') { const y = Math.round(num(el.value)); if (y > 1900 && y < 2200) S.company.year = y; }
+    else if (k === 'year') { const y = Math.round(num(el.value)); if (y > 1900 && y < 2200) { if (S.txns.some(t=>+t.date.slice(0,4)!==y)) { toast('现有交易属于其他年度，请先备份，再新建该年度的账本。'); renderHeader(); return; } S.company.year = y; UI.lastDate=null; UI.params.date=isAdjTpl(TPL[UI.tpl])?`${y}-12-31`:entryDate(); UI.custom.date=entryDate(); saveDraft(); } }
     else if (k === 'cur') S.company.cur = el.value.trim().slice(0, 6) || '$';
     else if (k === 'tax') { const t = num(el.value); if (t >= 0 && t < 100) S.settings.tax = t; }
     else if (k === 'autoTax') S.settings.autoTax = el.checked;
     save(); renderAll(); return;
   }
-  if (el.id === 'bk-file' && el.files && el.files[0]) { const fr = new FileReader(); fr.onload = () => importJSON(String(fr.result || '')); fr.readAsText(el.files[0]); }
+  if (el.id === 'bk-file' && el.files && el.files[0]) { const fr = new FileReader(); fr.onload = () => importJSON(String(fr.result || '')); fr.onerror=()=>{ const m=$('#bk-msg'); if(m)m.textContent='文件读取失败，请重新选择。'; }; fr.readAsText(el.files[0]); }
 });
 document.addEventListener('toggle', ev => {
   const d = ev.target; if (!d.dataset || !d.dataset.why) return;
@@ -2473,11 +2731,11 @@ document.addEventListener('toggle', ev => {
 /* ================= boot ================= */
 S = load();
 qLoad();
-try { const lf = JSON.parse(localStorage.getItem(RKEY) || 'null'); if (lf && lf.snap && lf.qid) UI.labFrom = lf; } catch (e) {}
-UI.lastDate = S.txns.length ? [...S.txns].sort((a, b) => a.date < b.date ? 1 : -1)[0].date : `${S.company.year}-01-01`;
-startTpl('sale');
-UI.custom = blankCustom();
+if (purpose==='learn') { try { const lf = JSON.parse(localStorage.getItem(RKEY) || 'null'); if (lf && lf.snap && lf.qid) UI.labFrom = lf; } catch (e) {} }
+resetEntryUI(); loadDraft();
 renderAll();
+window.addEventListener('pagehide',()=>{clearTimeout(saveDraft._t); saveDraft();});
+window.addEventListener('beforeunload',ev=>{saveDraft(); if (UI.storageError && !UI.loadBlocked) { ev.preventDefault(); ev.returnValue=''; }});
 const use = window.claude && typeof window.claude.use === 'function' ? n => window.claude.use(n).catch(() => null) : () => Promise.resolve(null);
 use('sample').then(fn => { if (fn) { UI.sample = fn; if (S.settings.view === 'quiz') { const side = document.getElementById('qside'); if (side) side.innerHTML = quizSideHTML(); } else renderBench(); } });
 use('downloads').then(d => { if (d) UI.dl = d; });
