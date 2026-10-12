@@ -583,6 +583,20 @@ const F = {
   fn: (def = 'admin', auto = false, show) => ({k: 'fn', t: 'sel', label: '费用功能（按功能列报时归入）', opts: (auto ? [['auto', '按费用类型默认']] : []).concat(FN_OPTS), def, show}),
 };
 const FNZ = f => (FN_LABEL[f] || FN_LABEL.other)[1];
+const EXPENSE_ACCOUNTS = new Map([
+  ...['租金','租金费用','房租','房租费','房屋租金','办公室租金','rent','rent expense'].map(n=>[n,'6100']),
+  ...['广告','广告费','广告费用','advertising','advertising expense'].map(n=>[n,'6200']),
+  ...['水电','水电费','水电费用','utilities','utilities expense'].map(n=>[n,'6300']),
+  ...['保险','保险费','保险费用','insurance','insurance expense'].map(n=>[n,'6400']),
+  ...['重组','重组费','重组费用','restructuring','restructuring costs'].map(n=>[n,'6700']),
+]);
+function expenseSpec(p){
+  const entered = Object.prototype.hasOwnProperty.call(p,'expenseName');
+  const legacy = !entered && ACC[p.acct]?.pl==='opx' ? p.acct : null;
+  const name = entered && typeof p.expenseName==='string' ? p.expenseName.trim() : legacy ? ACC[legacy].zh : '';
+  const acct = legacy || EXPENSE_ACCOUNTS.get(name.normalize('NFKC').toLowerCase()) || '6900';
+  return {name,acct,entered};
+}
 
 /* ================= transaction templates ================= */
 const TPL_CATS = [['op','日常经营 Operating'],['inv','投资活动 Investing'],['fin','筹资活动 Financing'],['adj','期末调整 Adjusting'],['oci','其他综合收益 OCI'],['disc','终止经营 Discontinued operations']];
@@ -623,10 +637,10 @@ const TEMPLATES = [
     note:p=>p.what==='payable'?'这笔工资的费用在上一期已经计提，本期付款只减少负债，不再确认费用。':'工资按员工所属部门归入「功能」：销售人员 → 销售费用，行政人员 → 管理费用。按性质列报时它们都叫「员工福利费用」。',
     build(p){const a=money(p.amt);if(!pos(a))return bad();return ok([[p.what==='payable'?D('2100',a):D('6000',a,p.fn),C('1000',a)]]);}},
   {id:'payExpense',cat:'op',zh:'支付营业费用',
-    fields:[{k:'acct',t:'sel',label:'费用类型',opts:[['6100','租金 Rent'],['6200','广告 Advertising'],['6300','水电 Utilities'],['6700','重组费用 Restructuring'],['6900','其他 Other']],def:'6100'},F.amt('金额'),F.pay('cash','赊账（应付账款）'),F.fn('auto',true)],
-    memo:p=>`${p.pay==='cash'?'支付':'赊欠'}${ACC[p.acct].zh} ${m$(money(p.amt))}`,
-    note:p=>p.acct==='6700'?'重组费用列在营业利润内，但未必会重复发生，分析盈利质量时要留意（第 3 章）。':'营业费用按功能归类后列在「营业费用」下。',
-    build(p){const a=money(p.amt);if(!pos(a))return bad();const fn=p.fn==='auto'?ACC[p.acct].fn:p.fn;return ok([[D(p.acct,a,fn),C(p.pay==='cash'?'1000':'2000',a)]]);}},
+    fields:[{k:'expenseName',t:'text',label:'这是什么费用？',placeholder:'例如：交通费、办公用品、软件订阅费',max:60,full:true},F.amt('金额'),F.pay('cash','赊账（应付账款）'),F.fn('auto',true)],
+    memo:p=>`${p.pay==='cash'?'支付':'赊欠'}${expenseSpec(p).name || '费用'} ${m$(money(p.amt))}`,
+    note:p=>expenseSpec(p).acct==='6700'?'重组费用列在营业利润内，但未必会重复发生，分析盈利质量时要留意（第 3 章）。':expenseSpec(p).entered?'费用名称可自由填写；在损益表选择「按性质」可按名称汇总。':'营业费用按功能归类后列在「营业费用」下。',
+    build(p){const e=expenseSpec(p);if(!e.name)return bad('请填写费用名称，例如交通费');if(e.name.length>60)return bad('费用名称最多 60 个字符');const a=money(p.amt);if(!pos(a))return bad();const fn=p.fn==='auto'?ACC[e.acct].fn:p.fn;const d=D(e.acct,a,fn);if(e.entered)d.expenseName=e.name;return ok([[d,C(p.pay==='cash'?'1000':'2000',a)]]);}},
   {id:'prepay',cat:'op',zh:'预付费用',fields:[{k:'what',t:'sel',label:'预付内容',opts:[['insurance','保险费'],['rent','租金']],def:'insurance'},F.amt('预付金额')],
     memo:p=>`预付${p.what==='rent'?'租金':'保险费'} ${m$(money(p.amt))}`,
     note:'预付款是资产（未来受益）。期末再用调整分录把已耗用部分转为费用。',
@@ -840,7 +854,7 @@ function runTpl(s, id, p, excludeId){
   let r;
   try { r = t.build(p, ctx) || {err:'无法生成分录'}; } catch (e) { r = {err:'输入有误：' + e.message}; }
   if (r.err) return r;
-  r.groups = r.groups.map(g => g.filter(l => l.s).map(l => { const fn = normFn(l.a, l.fn); return fn ? {a:l.a, s:Math.round(l.s), fn} : {a:l.a, s:Math.round(l.s)}; })).filter(g => g.length);
+  r.groups = r.groups.map(g => g.filter(l => l.s).map(l => { const fn = normFn(l.a, l.fn); const out=fn ? {a:l.a, s:Math.round(l.s), fn} : {a:l.a, s:Math.round(l.s)}; if(l.expenseName)out.expenseName=l.expenseName; return out; })).filter(g => g.length);
   if (!r.groups.length) return {err:'金额为零，不需要记账'};
   if (r.groups.some(g => g.some(l=>!Number.isSafeInteger(l.s)))) return {err:'金额过大或格式不正确，请检查输入'};
   for (const g of r.groups) if (g.reduce((x, l) => x + l.s, 0) !== 0) return {err:'分录借贷不平衡'};
@@ -906,6 +920,7 @@ function loadDraft(){
     const d = JSON.parse(localStorage.getItem(draftKey()) || 'null');
     if (!d || !TPL[d.tpl] || !d.params || !d.custom || !Array.isArray(d.custom.rows) || !d.custom.rows.every(r => ACC[r.a])) return;
     UI.mode = d.mode === 'custom' ? 'custom' : 'tpl'; UI.tpl = d.tpl; UI.params = d.params; UI.custom = d.custom;
+    if(UI.tpl==='payExpense' && !Object.prototype.hasOwnProperty.call(UI.params,'expenseName')) { UI.params.expenseName=expenseSpec(UI.params).name; delete UI.params.acct; }
     UI.editing = S.txns.some(t => t.id === d.editing) ? d.editing : null;
     UI.lastDate = d.lastDate || UI.lastDate; UI.draftRestored = true; UI.draftDirty = true;
   } catch (e) {}
@@ -976,7 +991,7 @@ function compute(){
   entries.forEach((e, i) => e.no = i + 1);
   const byId = {}; entries.forEach(e => byId[e.id] = e);
   const POST = [];
-  entries.forEach(e => e.groups.forEach((g, gi) => g.forEach(l => POST.push({id:e.id, g:gi, a:l.a, s:l.s, fn:l.fn || null, adj:!!e.adj}))));
+  entries.forEach(e => e.groups.forEach((g, gi) => g.forEach(l => POST.push({id:e.id, g:gi, a:l.a, s:l.s, fn:l.fn || null, adj:!!e.adj,...(l.expenseName?{expenseName:l.expenseName}:{})}))));
   const OB = S.opening, MV = {};
   POST.forEach(p => { MV[p.a] = (MV[p.a] || 0) + p.s; });
   const bal = a => (OB[a] || 0) + (MV[a] || 0);
@@ -1134,12 +1149,21 @@ function computeClosing(X){
 const lang = () => S.settings.lang;
 function lab(en, zh){
   const l = lang();
+  if(en===zh)return `<span class="en">${esc(en)}</span>`;
   if (l === 'en') return `<span class="en">${esc(en)}</span>`;
   if (l === 'zh') return `<span class="en">${esc(zh)}</span>`;
   return `<span class="en">${esc(en)}</span><span class="zh">${esc(zh)}</span>`;
 }
 const acctLab = a => lab(ACC[a].en, ACC[a].zh);
 const acctZh = a => ACC[a].zh;
+const lineName = l => l.expenseName || acctZh(l.a);
+const lineAcctLab = l => l.expenseName ? `<span class="en">${esc(l.expenseName)}</span>${l.expenseName!==acctZh(l.a)?`<span class="zh">${esc(lang()==='en'?ACC[l.a].en:acctZh(l.a))}</span>`:''}` : acctLab(l.a);
+function expenseNatureRows(x){
+  const posts=R.POST.filter(p=>p.a===x.a.c);
+  if(!posts.some(p=>p.expenseName))return [x];
+  const names=[...new Set(posts.map(p=>p.expenseName || x.a.natZh || x.a.zh))];
+  return names.map(name=>({a:{...x.a,natEn:name,natZh:name},...R.col(p=>p.a===x.a.c && (p.expenseName || x.a.natZh || x.a.zh)===name,1)}));
+}
 
 /* ================= trace objects ================= */
 function T(ids, why, o = {}){
@@ -1220,7 +1244,7 @@ function plRows(part){
       const trInc = Tsum(`收入及其他收益 = ${inc.map(x => `${x.a.zh} ${m$(x.amt)}`).join(' + ')} = ${m$(incTot)}`, ...its);
       b.s('Total revenue and other income', '收入及其他收益合计', incTot, trInc, 'out', 1);
       b.h('Expenses:', '费用：');
-      const exps = [...P.opx.filter(nz), ...P.oth.filter(x => x.a.t === 'X' && nz(x)).map(x => ({...x, amt:-x.amt, ids:new Map([...x.ids].map(([k, v]) => [k, -v]))}))];
+      const exps = [...P.opx.flatMap(expenseNatureRows).filter(nz), ...P.oth.filter(x => x.a.t === 'X' && nz(x)).map(x => ({...x, amt:-x.amt, ids:new Map([...x.ids].map(([k, v]) => [k, -v]))}))];
       const ets = exps.map(x => T(x.ids, `按性质列报：${x.a.natZh || x.a.zh}，不管属于哪个部门都合并在这一行。`));
       exps.forEach((x, i) => b.l(x.a.natEn || x.a.en, x.a.natZh || x.a.zh, x.amt, ets[i], 'in', 1));
       const expTot = exps.reduce((s, x) => s + x.amt, 0);
@@ -1549,7 +1573,7 @@ function jeHTML(e, opt = {}){
   if (!hidden) {
     lines = e.groups.map((g, gi) => {
       const ordered = [...g.filter(l => l.s > 0), ...g.filter(l => l.s < 0)];
-      return ordered.map(l => `<tr><td class="${l.s < 0 ? 'cra' : ''}">${acctLab(l.a)}${l.fn ? `<span class="fn">${FNZ(l.fn)}</span>` : ''}</td><td class="ref">${l.a}</td><td class="amt dr-amt">${l.s > 0 ? fmt(l.s) : ''}</td><td class="amt cr-amt">${l.s < 0 ? fmt(-l.s) : ''}</td></tr>`).join('') + (gi < e.groups.length - 1 ? '<tr class="gs"><td colspan="4"></td></tr>' : '');
+      return ordered.map(l => `<tr><td class="${l.s < 0 ? 'cra' : ''}">${lineAcctLab(l)}${l.fn ? `<span class="fn">${FNZ(l.fn)}</span>` : ''}</td><td class="ref">${l.a}</td><td class="amt dr-amt">${l.s > 0 ? fmt(l.s) : ''}</td><td class="amt cr-amt">${l.s < 0 ? fmt(-l.s) : ''}</td></tr>`).join('') + (gi < e.groups.length - 1 ? '<tr class="gs"><td colspan="4"></td></tr>' : '');
     }).join('');
     lines = `<table class="jt"><tbody>${lines}</tbody></table>`;
   } else lines = `<div class="veil">练习模式：先在纸上写出这笔分录（借哪个账户、贷哪个账户、金额），再核对。<button class="btn small" data-act="revealJE" data-id="${e.id}">显示分录</button></div>`;
@@ -1559,7 +1583,7 @@ function jeHTML(e, opt = {}){
   return `<article class="je${hit ? ' hit' : ''}" id="je-${e.id}"><div class="je-h"><span class="je-no">${opt.closing ? e.no : 'J' + e.no}</span>${opt.closing ? '' : `<span class="je-date">${e.date}</span>`}<span class="je-memo">${esc(e.memo)}</span>${tags}${!e.auto && !opt.closing ? `<span class="tx-tools"><button class="btn small" data-act="edit" data-id="${esc(e.id)}">编辑</button><button class="btn small" data-act="duplicate" data-id="${esc(e.id)}">复制</button></span>` : ''}</div>${meta.length ? `<p class="je-meta">${esc(meta.join(' · '))}</p>` : ''}${lines}${why}</article>`;
 }
 function lineWhy(l){
-  const A = ACC[l.a], dr = l.s > 0, n = A.zh;
+  const A = ACC[l.a], dr = l.s > 0, n = lineName(l);
   switch (A.t) {
     case 'A': return dr ? `${n}（资产）增加，记借方` : `${n}（资产）减少，记贷方`;
     case 'XA': return dr ? `${n}（资产备抵账户）减少，记借方` : `${n}（资产备抵账户）增加，使资产净额减少，记贷方`;
@@ -1680,11 +1704,11 @@ function fieldHTML(f, p){
   const id = 'f-' + f.k, v = p[f.k] ?? '';
   let ctl;
   if (f.t === 'sel') ctl = `<select id="${id}" data-f="${f.k}">${f.opts.map(([k, l]) => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
-  else ctl = `<input id="${id}" data-f="${f.k}" type="text" inputmode="${f.t === 'int' || f.t === 'num' ? 'decimal' : 'decimal'}" value="${esc(v)}" autocomplete="off">`;
+  else ctl = `<input id="${id}" data-f="${f.k}" type="text" inputmode="${f.t==='text'?'text':'decimal'}" value="${esc(v)}"${f.placeholder?` placeholder="${esc(f.placeholder)}"`:''}${f.max?` maxlength="${f.max}"`:''} autocomplete="off">`;
   return `<div class="field${f.full ? ' full' : ''}"><label for="${id}">${esc(f.label)}</label>${f.t === 'money' ? `<div class="affix"><span class="pre">${esc(cur())}</span>${ctl}</div>` : ctl}</div>`;
 }
 function miniEntry(groups){
-  return `<table class="mini"><tbody>${groups.map((g, gi) => [...g.filter(l => l.s > 0), ...g.filter(l => l.s < 0)].map(l => `<tr><td class="${l.s < 0 ? 'ca' : ''}">${l.s > 0 ? '<span class="dr">借</span>' : '<span class="cr">贷</span>'} ${esc(acctZh(l.a))}${l.fn ? `<span class="fn">${FNZ(l.fn)}</span>` : ''}</td><td class="amt dr-amt">${l.s > 0 ? fmt(l.s) : ''}</td><td class="amt cr-amt">${l.s < 0 ? fmt(-l.s) : ''}</td></tr>`).join('') + (gi < groups.length - 1 ? '<tr class="gs"><td colspan="3"></td></tr>' : '')).join('')}</tbody></table>`;
+  return `<table class="mini"><tbody>${groups.map((g, gi) => [...g.filter(l => l.s > 0), ...g.filter(l => l.s < 0)].map(l => `<tr><td class="${l.s < 0 ? 'ca' : ''}">${l.s > 0 ? '<span class="dr">借</span>' : '<span class="cr">贷</span>'} ${esc(lineName(l))}${l.fn ? `<span class="fn">${FNZ(l.fn)}</span>` : ''}</td><td class="amt dr-amt">${l.s > 0 ? fmt(l.s) : ''}</td><td class="amt cr-amt">${l.s < 0 ? fmt(-l.s) : ''}</td></tr>`).join('') + (gi < groups.length - 1 ? '<tr class="gs"><td colspan="3"></td></tr>' : '')).join('')}</tbody></table>`;
 }
 function previewBlock(r, note){
   if (r.err) return `<div class="preview"><span class="ph">分录预览</span><p class="err">${esc(r.err)}</p>${note ? `<p class="note">${esc(note)}</p>` : ''}</div>`;
@@ -1789,7 +1813,7 @@ function benchAI(){
 }
 function filteredEntries(){
   const f = UI.filters, q = f.query.trim().toLowerCase();
-  return R.entries.filter(e => (!f.from || e.date >= f.from) && (!f.to || e.date <= f.to) && (f.kind==='all' || (f.kind==='regular' ? !e.adj : e.adj)) && (!q || [e.memo,e.party,e.ref,e.date,'J'+e.no,e.id,...e.groups.flat().map(l=>l.a+' '+ACC[l.a].zh+' '+ACC[l.a].en)].join(' ').toLowerCase().includes(q)));
+  return R.entries.filter(e => (!f.from || e.date >= f.from) && (!f.to || e.date <= f.to) && (f.kind==='all' || (f.kind==='regular' ? !e.adj : e.adj)) && (!q || [e.memo,e.party,e.ref,e.date,'J'+e.no,e.id,...e.groups.flat().map(l=>l.a+' '+ACC[l.a].zh+' '+ACC[l.a].en+' '+(l.expenseName || ''))].join(' ').toLowerCase().includes(q)));
 }
 function hasFilters(){ const f=UI.filters; return !!(f.query || f.from || f.to || f.kind!=='all'); }
 function entryListHTML(entries){
@@ -1955,6 +1979,7 @@ function addTpl(){
   const r = runTpl(S, UI.tpl, p, UI.editing);
   if (r.err) { toast(r.err); return; }
   const fp = {}; t.fields.forEach(f => fp[f.k] = p[f.k]);
+  if(UI.tpl==='payExpense')fp.expenseName=expenseSpec(p).name;
   if (!commit({date:p.date, tpl:UI.tpl, p:fp, party:p.party || '', ref:p.ref || '', memoUser:p.memo || '', memo:p.memo || safeMemo(t, fp), adj:isAdjTpl(t), groups:r.groups, calc:r.calc || '', shares:r.shares || 0})) return;
   const keep = {date:p.date}; startTpl(UI.tpl); Object.assign(UI.params, keep);
   renderBench();
@@ -1971,7 +1996,7 @@ function addCustom(){
 function editTx(id){
   const t = S.txns.find(x => x.id === id); if (!t) return;
   UI.editing = id; UI.sel = id;
-  if (t.tpl && TPL[t.tpl]) { UI.mode = 'tpl'; UI.tpl = t.tpl; UI.params = {...defaults(t.tpl), ...t.p, date:t.date, memo:t.memoUser || '', party:t.party || '', ref:t.ref || ''}; }
+  if (t.tpl && TPL[t.tpl]) { UI.mode = 'tpl'; UI.tpl = t.tpl; UI.params = {...defaults(t.tpl), ...t.p, date:t.date, memo:t.memoUser || '', party:t.party || '', ref:t.ref || ''}; if(t.tpl==='payExpense') { UI.params.expenseName=expenseSpec(t.p || {}).name; delete UI.params.acct; } }
   else {
     UI.mode = 'custom';
     UI.custom = {date:t.date, memo:t.memo, party:t.party || '', ref:t.ref || '', adj:!!t.adj, rows:t.groups.flat().map(l => ({a:l.a, dr:l.s > 0 ? (l.s / 100).toString() : '', cr:l.s < 0 ? (-l.s / 100).toString() : '', fn:l.fn || ''}))};
@@ -2110,6 +2135,7 @@ function validateBackup(s){
     if (t.shares != null && !Number.isFinite(t.shares)) throw new Error(`第 ${i+1} 笔交易的股数无效`);
     for (const g of t.groups) {
       if (!Array.isArray(g) || !g.length || g.some(l=>!l || !ACC[l.a] || !Number.isSafeInteger(l.s) || l.s===0 || (l.fn && !FN_LABEL[l.fn]))) throw new Error(`第 ${i+1} 笔交易包含无效科目或金额`);
+      if(g.some(l=>l.expenseName!=null && (ACC[l.a].pl!=='opx' || typeof l.expenseName!=='string' || !l.expenseName.trim() || l.expenseName.length>60))) throw new Error(`第 ${i+1} 笔交易的费用名称无效`);
       if (g.reduce((n,l)=>n+l.s,0)!==0) throw new Error(`第 ${i+1} 笔交易借贷不平衡`);
     }
   });
@@ -2147,8 +2173,8 @@ function importJSON(text){
 }
 function csvText(entries){
   const cell = value => { let v=String(value ?? ''); if (/^\s*[=+\-@]/.test(v)) v="'"+v; return '"'+v.replace(/"/g,'""')+'"'; };
-  const rows=[['会计年度','货币','日期','分录编号','固定交易编号','摘要','往来对象','单据编号','分组','科目代码','科目名称','借方金额','贷方金额','费用功能','分录类型']];
-  entries.forEach(e=>e.groups.forEach((g,i)=>g.forEach(l=>rows.push([S.company.year,cur(),e.date,'J'+e.no,e.id,e.memo,e.party||'',e.ref||'',i+1,l.a,acctZh(l.a),l.s>0?(l.s/100).toFixed(2):'',l.s<0?(-l.s/100).toFixed(2):'',l.fn?FNZ(l.fn):'',e.auto?'系统自动调整':e.adj?'调整':'日常']))));
+  const rows=[['会计年度','货币','日期','分录编号','固定交易编号','摘要','往来对象','单据编号','分组','科目代码','科目名称','借方金额','贷方金额','费用功能','分录类型','费用名称']];
+  entries.forEach(e=>e.groups.forEach((g,i)=>g.forEach(l=>rows.push([S.company.year,cur(),e.date,'J'+e.no,e.id,e.memo,e.party||'',e.ref||'',i+1,l.a,acctZh(l.a),l.s>0?(l.s/100).toFixed(2):'',l.s<0?(-l.s/100).toFixed(2):'',l.fn?FNZ(l.fn):'',e.auto?'系统自动调整':e.adj?'调整':'日常',l.expenseName || (ACC[l.a].pl==='opx'?acctZh(l.a):'')]))));
   return '\uFEFF'+rows.map(r=>r.map(cell).join(',')).join('\r\n');
 }
 function exportCsv(){
