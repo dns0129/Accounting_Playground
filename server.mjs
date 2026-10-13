@@ -64,6 +64,9 @@ export function createApp({
         res.setHeader('Vary', 'Origin');
       }
       if (req.method === 'OPTIONS') {
+        if (origin === allowedOrigin && allowedOrigin && req.headers['access-control-request-private-network'] === 'true') {
+          res.setHeader('Access-Control-Allow-Private-Network', 'true');
+        }
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Accounting-AI');
         res.writeHead(204); res.end(); return;

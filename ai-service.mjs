@@ -1,6 +1,8 @@
 import { resolve } from 'node:path';
 import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { InMemoryCredentialStore } from '@earendil-works/pi-ai';
+import { localSubscription } from './local-subscription.mjs';
 import {
   createAgentSession, DefaultResourceLoader, ModelRuntime,
   SessionManager, SettingsManager,
@@ -30,19 +32,39 @@ export function parseModelJSON(text) {
   }
 }
 
-export async function createModelRuntime() {
+const loginSources = new WeakMap();
+export async function createModelRuntime({useShared = true, loadShared = localSubscription,
+  localEnabled = process.env.ACCT_USE_LOCAL_SUBSCRIPTION === '1'
+    || (process.platform === 'darwin' && process.env.ACCT_USE_LOCAL_SUBSCRIPTION !== '0')} = {}) {
   await mkdir(agentDir, { recursive: true, mode: 0o700 });
-  const runtime = await ModelRuntime.create({
+  let runtime = await ModelRuntime.create({
     authPath: resolve(agentDir, 'auth.json'),
     modelsPath: null,
     allowModelNetwork: false,
     refreshOnCreate: false,
   });
-  const source = runtime.getProvider(provider);
-  if (!source?.auth.oauth) throw new Error('所选通道不支持 ChatGPT 订阅登录。');
+  const entries = await runtime.listCredentials();
+  if (useShared && localEnabled && (!process.env.PI_PROVIDER || provider === 'openai-codex')
+      && !entries.some(c => ['openai','openai-codex'].includes(c.providerId) && c.type === 'oauth')) {
+    const shared = await loadShared();
+    if (shared) {
+      const credentials = new InMemoryCredentialStore();
+      await credentials.modify('openai-codex', async () => shared.credential);
+      runtime = await ModelRuntime.create({credentials, modelsPath:null, allowModelNetwork:false, refreshOnCreate:false});
+      loginSources.set(runtime, shared.source);
+    }
+  }
   // Remove the API-key auth method as well as checking credential metadata. This also
   // prevents a concurrent logout from falling back to an ambient API key mid-request.
-  runtime.registerNativeProvider({...source, auth:{oauth:source.auth.oauth}});
+  for (const id of ['openai', 'openai-codex']) {
+    const source = runtime.getProvider(id);
+    if (source?.auth.oauth) {
+      const oauth = loginSources.has(runtime) ? {...source.auth.oauth, refresh:async () => {
+        throw new AIError('not_authenticated', '本机共享授权即将过期，请在 Pi／Codex 重新登录，或在财报助手中登录。', 503);
+      }} : source.auth.oauth;
+      runtime.registerNativeProvider({...source, auth:{oauth}});
+    }
+  }
   return runtime;
 }
 
@@ -68,13 +90,14 @@ export function createPiBackend({ loadRuntime = createModelRuntime, createSessio
 
   return {
     async status() {
-      const { configured, model, selectedProvider } = await context();
+      const { runtime, configured, model, selectedProvider } = await context();
       return {
         configured: configured && !!model,
         provider:selectedProvider, model: modelId, label: 'GPT', billing: 'chatgpt-subscription',
+        source: loginSources.get(runtime) || '财报助手登录',
         message: !model ? '所选 GPT 模型不在 pi 的模型列表中。' : configured
-          ? '已配置 ChatGPT 登录；实际可用性与额度由模型服务确认。'
-          : '请先在云端完成 ChatGPT 登录，再刷新连接。',
+          ? `已找到${loginSources.get(runtime) || 'ChatGPT 登录'}；实际可用性与额度由模型服务确认。`
+          : '请在网页中登录 ChatGPT，或使用本机已有的 Pi／Codex 登录。',
       };
     },
 

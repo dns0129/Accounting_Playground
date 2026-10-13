@@ -29,7 +29,17 @@
 - 本页沿用课程的 IFRS 科目和全年会计循环。财务记录以此科目表生成报表；有额外科目或税务口径要求时，应自行核对。每个场景保存一份当前年度的账本，开始新年度前先备份。
 - 「AI 描述」和「AI 出新题」现在会显示在普通浏览器中。连接云端 pi agent 后，可使用已授权的 ChatGPT 订阅生成分录、题目和详解；未连接时会显示连接状态。Claude Artifacts 中原有的 AI 调用仍可使用。
 
-### 云端 GPT / pi agent
+### 本机 GPT / pi agent（和数学助手相同的方式）
+
+无需租用或部署云服务器。在 Mac 上下载本仓库 ZIP 并解压，双击 **启动财报助手.command**。首次启动会安装依赖，随后自动打开 `http://127.0.0.1:8792`。需要 Node.js 24.5 或更新版本；启动器也会寻找 Codex 自带的 Node。保持启动窗口打开即可使用。
+
+优先使用本项目 `.pi/auth.json` 的订阅登录；没有时，自动检测本机 `~/.pi/agent/auth.json`、`~/.codex/auth.json`（支持 `CODEX_HOME`）中尚未过期的 Codex 订阅授权。共享授权只读、只用于内存请求，不复制或刷新其他应用的登录。共享授权失效时，在对应应用重新登录，或点击本页「登录 ChatGPT」保存财报助手自己的授权。API Key 不会用于付费请求。
+
+在 [GitHub 网页](https://dns0129.github.io/Accounting_Playground/) 上点击「登录 ChatGPT」，会显示下载和「连接本机 pi」入口。先启动本机助手，再点击连接；浏览器询问本地网络权限时允许。浏览器阻止 HTTPS 网页访问本机 HTTP 服务时，直接使用启动器打开的本机网页版，功能相同。GitHub 网页和本机网页的数据按浏览器来源分别保存，换入口前请分别备份两个账本，再导入。
+
+启动器监听本机回环地址，允许此 GitHub 网页来源访问 AI 接口。不会把模型登录令牌交给网页。Linux/Windows 可自行运行 `npm ci` 后用 `ACCT_USE_LOCAL_SUBSCRIPTION=1 PORT=8792 npm start`（Windows 请采用对应的环境变量语法）。云端默认不检测共享本机登录，可设置 `ACCT_USE_LOCAL_SUBSCRIPTION=0` 禁用。
+
+### 可选：云端 GPT / pi agent
 
 需要 Node.js 24.5 或更新版本。项目使用 pi 官方 SDK（`@earendil-works/pi-coding-agent`），默认模型为 `openai/gpt-6.1-sol`。
 
@@ -46,7 +56,7 @@ npm start
 
 也可以直接在网页顶部点击「登录 ChatGPT」，或打开「AI 连接」点击「使用 ChatGPT 登录」。网页会生成登录码并显示「打开 ChatGPT 授权页」按钮；在官方页面输入登录码并确认账户后，本页自动检测结果、保存授权并更新 AI 连接，无需运行终端命令。可随时点击「取消登录」，登录码过期后可重新获取。关闭弹窗不会中断官方页面上的授权。
 
-网页登录需要连接此项目的云端服务。GitHub Pages 仅承载静态网页，无法单独运行授权接口；如使用 GitHub Pages，应在「连接设置」中填写已部署的 HTTPS AI 服务地址和连接口令，并配置服务的 `APP_ORIGIN`。静态网页与 AI 服务需要分别部署。
+GitHub Pages 仅承载静态网页，无法单独运行 pi agent。默认采用上面的本机连接方式；若已有云端服务，也可在「连接设置」填写其 HTTPS 地址与连接口令，并配置服务的 `APP_ORIGIN`。
 
 服务默认监听 `127.0.0.1:3000`，从这个服务打开网页后，在「AI 连接」中留空服务地址，并点击「刷新连接」。只使用 ChatGPT OAuth 授权，缺少订阅登录时会报错；即使环境设置了 `OPENAI_API_KEY`，也不会自动切到 API 付费。
 

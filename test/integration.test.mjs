@@ -7,6 +7,7 @@ import { createApp } from '../server.mjs';
 import { createWebLogin } from '../web-login.mjs';
 import { AIError, createModelRuntime, createPiBackend, parseModelJSON, provider } from '../ai-service.mjs';
 import { InMemoryCredentialStore } from '@earendil-works/pi-ai';
+import { localSubscription } from '../local-subscription.mjs';
 import { createAgentSession, DefaultResourceLoader, ModelRuntime, SessionManager, SettingsManager } from '@earendil-works/pi-coding-agent';
 
 const status = { configured:true, provider:'openai', model:'gpt-6.1-sol', message:'ChatGPT 登录已配置。' };
@@ -45,9 +46,9 @@ async function page(t, base, extra = {}) {
   virtualConsole.on('jsdomError', error => errors.push(error));
   const html = await (await fetch(base)).text();
   const dom = new JSDOM(html, {
-    url:base, runScripts:'dangerously', virtualConsole,
+    url:extra.pageUrl || base, runScripts:'dangerously', virtualConsole,
     beforeParse(window) {
-      window.fetch = (url, options) => fetch(new URL(url, base), options);
+      window.fetch = (url, options) => extra.fetchSpy ? extra.fetchSpy(url, options) : fetch(new URL(url, base), options);
       window.AbortController = AbortController;
       window.AbortSignal = AbortSignal;
       window.scrollTo = () => {};
@@ -312,4 +313,84 @@ test('the installed pi SDK can construct the app session with no tools or contex
     assert.match(session.systemPrompt,/IFRS tutor/);
     assert.equal(loader.getAgentsFiles().agentsFiles.length,0);
   } finally {session.dispose();}
+});
+
+test('shared subscription selects only valid OAuth and never exposes refresh credentials', async () => {
+  const now = Date.now();
+  const token = expiry => `synthetic.${Buffer.from(JSON.stringify({exp:expiry})).toString('base64url')}.synthetic`;
+  const files = new Map();
+  const read = async path => { if (!files.has(path)) throw new Error('missing'); return JSON.stringify(files.get(path)); };
+  const options = {home:'/synthetic', codexHome:'/synthetic/codex', read, now};
+  files.set('/synthetic/codex/auth.json', {auth_mode:'apikey', tokens:{access_token:token((now+3600000)/1000)}});
+  assert.equal(await localSubscription(options), null);
+  files.set('/synthetic/codex/auth.json', {auth_mode:'chatgpt', tokens:{access_token:token((now+3600000)/1000),refresh_token:'must-not-copy'}});
+  const shared = await localSubscription(options);
+  assert.equal(shared.source, '本机 Codex 登录');
+  assert.equal(shared.credential.refresh, '');
+  files.set('/synthetic/.pi/agent/auth.json', {'openai-codex':{type:'oauth',access:token((now+7200000)/1000),refresh:'must-not-copy'}});
+  assert.equal((await localSubscription(options)).source, '本机 Pi 登录');
+  files.set('/synthetic/.pi/agent/auth.json', {'openai-codex':{type:'oauth',access:token((now+1000)/1000)}});
+  assert.equal((await localSubscription(options)).source, '本机 Codex 登录');
+  files.set('/synthetic/codex/auth.json', {tokens:{access_token:token((now+1000)/1000)}});
+  assert.equal(await localSubscription(options), null);
+});
+
+test('GitHub Pages guides local pi setup without requesting nonexistent login API', async t => {
+  const base = await listen(t, {backend:{status:async () => status}});
+  const calls = [];
+  const {document, window, errors} = await page(t, base, {
+    pageUrl:'https://dns0129.github.io/Accounting_Playground/',
+    fetchSpy:async url => { calls.push(url); throw new Error('unexpected network'); },
+  });
+  await delay(100);
+  document.querySelector('[data-act="aiLogin"]').click();
+  await delay(50);
+  assert.match(document.querySelector('#ai-login-panel').textContent, /连接本机 pi/);
+  assert.match(document.querySelector('#ai-login-panel').textContent, /无需部署云服务器/);
+  assert.deepEqual(calls, []);
+  assert.equal(window.AccountingAI.needsLocal, true);
+  assert.deepEqual(errors, []);
+});
+
+test('pi runtime uses an injected shared OAuth login in memory with refresh disabled', async () => {
+  const runtime = await createModelRuntime({localEnabled:true, loadShared:async () => ({
+    source:'本机 Codex 登录', credential:{type:'oauth',access:'synthetic-access',refresh:'',expires:Date.now()+3600000},
+  })});
+  const backend = createPiBackend({loadRuntime:async () => runtime});
+  const metadata = await backend.status();
+  assert.equal(metadata.provider, 'openai-codex');
+  assert.equal(metadata.configured, true);
+  assert.equal(metadata.source, '本机 Codex 登录');
+  assert.ok(!JSON.stringify(metadata).includes('synthetic-access'));
+  assert.equal(runtime.getProvider('openai-codex').auth.apiKey, undefined);
+  await assert.rejects(runtime.getProvider('openai-codex').auth.oauth.refresh({}), /本机共享授权即将过期/);
+});
+
+test('GitHub local connection reuses configured pi without starting a new authorization', async t => {
+  const base = await listen(t, {backend:{status:async () => status}});
+  const calls = [];
+  const {document, window} = await page(t, base, {
+    pageUrl:'https://dns0129.github.io/Accounting_Playground/',
+    fetchSpy:async url => {
+      calls.push(url);
+      return new Response(JSON.stringify({...status, source:'本机 Codex 登录', message:'已找到本机 Codex 登录。'}), {status:200, headers:{'Content-Type':'application/json'}});
+    },
+  });
+  await delay(100);
+  document.querySelector('[data-act="aiLogin"]').click();
+  document.querySelector('[data-act="aiConnectLocal"]').click();
+  await until(() => document.querySelector('#ai-login-panel').textContent.includes('已找到本机 Codex 登录'));
+  assert.equal(window.AccountingAI.base, 'http://127.0.0.1:8792');
+  assert.deepEqual(calls, ['http://127.0.0.1:8792/api/ai/status']);
+});
+
+test('local gateway permits private network preflight only for the configured website', async t => {
+  const origin = 'https://dns0129.github.io';
+  const base = await listen(t, {backend:{status:async () => status}, appOrigin:origin});
+  const allowed = await fetch(base+'/api/ai/status', {method:'OPTIONS', headers:{Origin:origin,'Access-Control-Request-Private-Network':'true'}});
+  assert.equal(allowed.status, 204);
+  assert.equal(allowed.headers.get('Access-Control-Allow-Private-Network'), 'true');
+  const denied = await fetch(base+'/api/ai/status', {method:'OPTIONS', headers:{Origin:'https://untrusted.example','Access-Control-Request-Private-Network':'true'}});
+  assert.equal(denied.status, 403);
+  assert.equal(denied.headers.get('Access-Control-Allow-Private-Network'), null);
 });

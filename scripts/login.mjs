@@ -11,7 +11,7 @@ if (!['openai', 'openai-codex'].includes(loginProvider)) throw new Error('只支
 if (deviceLogin && process.env.PI_PROVIDER && process.env.PI_PROVIDER !== loginProvider) {
   throw new Error('设备授权使用 openai-codex；请移除 PI_PROVIDER 覆盖或将其设为 openai-codex。');
 }
-const runtime = await createModelRuntime();
+const runtime = await createModelRuntime({useShared:false});
 const devicePath = resolve(agentDir, 'device-id');
 let deviceId;
 try { deviceId = (await readFile(devicePath, 'utf8')).trim(); }

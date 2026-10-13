@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { agentDir, AIError, createModelRuntime } from './ai-service.mjs';
 
 export function createWebLogin({
-  loadRuntime = createModelRuntime,
+  loadRuntime = () => createModelRuntime({useShared:false}),
   secureCredentials = () => chmod(resolve(agentDir, 'auth.json'), 0o600),
   startTimeoutMs = 20000,
 } = {}) {
