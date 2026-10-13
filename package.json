@@ -1,0 +1,20 @@
+{
+  "name": "accounting-playground",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --use-env-proxy server.mjs",
+    "login": "node --use-env-proxy scripts/login.mjs",
+    "login:cloud": "node --use-env-proxy scripts/login.mjs --device",
+    "test": "node --test test/*.test.mjs"
+  },
+  "engines": { "node": ">=24.5.0" },
+  "dependencies": {
+    "@earendil-works/pi-ai": "1.1.0",
+    "@earendil-works/pi-coding-agent": "1.1.0"
+  },
+  "devDependencies": {
+    "jsdom": "26.1.0"
+  }
+}

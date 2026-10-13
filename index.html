@@ -308,6 +308,10 @@ table.wk{border-collapse:collapse;width:100%;font:12.5px var(--f-num);min-width:
 .modal-box{background:var(--sheet);border:1px solid var(--rule2);border-radius:12px;padding:18px;width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto;display:flex;flex-direction:column;gap:12px}
 .modal-box h3{margin:0;font:600 17px var(--f-doc)}
 .modal-box textarea{width:100%;min-height:120px;font:12px var(--f-num);padding:8px;border:1px solid var(--rule2);border-radius:6px;background:var(--sheet2)}
+.login-code{display:block;text-align:center;font:600 26px/1.4 var(--f-num);letter-spacing:.12em;padding:12px;border:1px dashed var(--accent);border-radius:8px;background:var(--accent-soft);user-select:all;margin:8px 0}
+.login-link{text-decoration:none}
+.login-settings{border-top:1px solid var(--rule);padding-top:10px}
+.login-settings summary{cursor:pointer;color:var(--muted);font-size:12.5px;margin-bottom:8px}
 .toast{position:fixed;z-index:50;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--sheet);border-radius:8px;padding:8px 10px 8px 14px;display:flex;gap:12px;align-items:center;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:calc(100vw - 32px)}
 .toast button{border:0;background:var(--sheet);color:var(--ink);border-radius:5px;padding:3px 10px;cursor:pointer;font-size:12.5px;font-weight:500}
 .ai-out{white-space:pre-wrap}
@@ -412,6 +416,60 @@ table.wk{border-collapse:collapse;width:100%;font:12.5px var(--f-num);min-width:
 <div class="modal" id="modal" hidden></div>
 <div class="toast" id="toast" hidden></div>
 
+<script>
+// Keep the original sample.json contract while model authorization stays on the server.
+window.AccountingAI = (() => {
+  const key = 'acct2102-ai-connection';
+  let config = {base:'', token:''};
+  try { config = {...config, ...JSON.parse(sessionStorage.getItem(key) || '{}')}; } catch (e) {}
+  let status = {configured:false, message:'正在检查 AI 连接…'};
+  const headers = () => ({'Content-Type':'application/json', 'X-Accounting-AI':'1', ...(config.token ? {Authorization:'Bearer ' + config.token} : {})});
+  const failure = (code, message) => Object.assign(new Error(message), {code});
+  async function request(path, options = {}) {
+    if (location.protocol === 'file:' && !config.base) throw failure('offline', '请通过云端服务打开本页，或在「AI 连接」中填写服务地址。');
+    try {
+      const response = await fetch(config.base + '/api/ai/' + path, {...options, headers:headers()});
+      let body;
+      try { body = await response.json(); } catch (e) { throw failure('offline', '当前地址没有可用的 AI 服务，请检查「AI 连接」。'); }
+      if (!response.ok) throw failure(body.error?.code || 'upstream_error', body.error?.message || 'AI 服务暂时不可用。');
+      return body;
+    } catch (e) {
+      if (options.signal?.aborted) throw failure('cancelled', '已停止请求。');
+      if (e.code) throw e;
+      throw failure('offline', '无法连接 AI 服务，请检查云端服务和连接地址。');
+    }
+  }
+  return {
+    get status(){ return status; },
+    get base(){ return config.base; },
+    get token(){ return config.token; },
+    save(base, token){
+      base = base.trim().replace(/\/+$/, '');
+      if (base) {
+        const url = new URL(base);
+        if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash || url.pathname !== '/') throw failure('invalid_request', '服务地址应是完整的 HTTP/HTTPS 地址，不包含路径、口令或查询参数。');
+        if (url.protocol === 'http:' && !['localhost','127.0.0.1','[::1]'].includes(url.hostname)) throw failure('invalid_request', '远程 AI 服务地址需要使用 HTTPS。');
+        base = url.origin;
+      }
+      config = {base, token:token.trim()};
+      try { sessionStorage.setItem(key, JSON.stringify(config)); } catch (e) {}
+    },
+    async refresh(){
+      try { status = await request('status', {signal:AbortSignal.timeout(6000)}); }
+      catch (e) { status = {configured:false, message:e.code === 'cancelled' ? '检查连接超时，请稍后刷新。' : e.message}; }
+      return status;
+    },
+    loginStatus(){ return request('login', {signal:AbortSignal.timeout(6000)}); },
+    startLogin(){ return request('login', {method:'POST', body:'{}', signal:AbortSignal.timeout(25000)}); },
+    cancelLogin(id){ return request('login/cancel', {method:'POST', body:JSON.stringify({id}), signal:AbortSignal.timeout(6000)}); },
+    async json(prompt, {signal, task = 'transaction'} = {}) {
+      const body = await request('json', {method:'POST', signal, body:JSON.stringify({prompt, task})});
+      if (!body.result || typeof body.result !== 'object' || Array.isArray(body.result)) throw failure('invalid_json', 'AI 返回的内容无法识别，请再试一次。');
+      return body.result;
+    },
+  };
+})();
+</script>
 <script>
 (() => {
 'use strict';
@@ -774,7 +832,8 @@ const SAMPLE = [
 let S, R, TRACES = [];
 const UI = {mode:'tpl', tpl:'sale', params:null, editing:null, sel:null, custom:null, lf:'all', revealed:new Set(), openWhy:new Set(),
   guesses:{}, marks:{}, showAns:false, showSettings:false, lastDate:null, ai:{text:'',status:'idle',res:null,err:'',ctl:null},
-  sample:null, dl:null, undo:null, lastEq:null, labFrom:null, qai:{ch:3, type:'mc', status:'idle', err:'', ctl:null}};
+  sample:window.AccountingAI, aiProvider:'GPT', aiConnected:false, aiMessage:'正在检查 AI 连接…', login:{state:'idle'}, dl:null, undo:null, lastEq:null, labFrom:null, qai:{ch:3, type:'mc', status:'idle', err:'', ctl:null}};
+let aiLoginTimer = null, aiLoginEpoch = 0;
 
 function blankState(){
   return {v:1, seq:0, company:{name:'New Company Limited', year:2026, cur:'HK$'},
@@ -1636,7 +1695,7 @@ function custMsg(){
 function benchAI(){
   const a = UI.ai;
   let out = '';
-  if (a.status === 'busy') out = `<p class="tdesc"><span class="spin"></span>Claude 正在分析这笔交易…</p>`;
+  if (a.status === 'busy') out = `<p class="tdesc"><span class="spin"></span>${esc(UI.aiProvider)} 正在分析这笔交易…</p>`;
   else if (a.status === 'error') out = `<p class="err">${esc(a.err)}</p>`;
   else if (a.status === 'done' && a.res) {
     const r = a.res;
@@ -1645,9 +1704,9 @@ function benchAI(){
       <div class="actions"><button class="btn primary" data-act="aiAccept">记入日记账</button><button class="btn" data-act="aiEdit">在自定义分录中修改</button></div>
       <p class="hint">AI 也会出错。记账前请对照上面的解释检查一遍，这本身就是很好的练习。</p>`;
   }
-  return `<p class="tdesc">用一句话描述交易（中英文都可以），由 Claude 按本页的会计科目生成分录和解释。</p>
+  return `${aiConnectionHTML()}<p class="tdesc">用一句话描述交易（中英文都可以），由 ${esc(UI.aiProvider)} 按本页的会计科目生成分录和解释。</p>
     <div class="field full"><label for="ai-text">交易描述</label><textarea id="ai-text" data-ai="1" rows="3" placeholder="例：9 月 1 日签发两年期票据 30,000 购入一台送货车">${esc(a.text)}</textarea></div>
-    <div class="actions"><button class="btn primary" data-act="aiGo"${a.status === 'busy' ? ' disabled' : ''}>生成分录</button>${a.status === 'busy' ? '<button class="btn" data-act="aiStop">停止</button>' : ''}</div>${out}`;
+    <div class="actions"><button class="btn primary" data-act="aiGo"${a.status === 'busy' || !UI.aiConnected ? ' disabled' : ''}>生成分录</button>${a.status === 'busy' ? '<button class="btn" data-act="aiStop">停止</button>' : ''}</div>${out}`;
 }
 function renderBench(){
   const list = R.entries.map(e => {
@@ -1671,6 +1730,8 @@ function renderHeader(){
   $('#toolbar').innerHTML = seg('view', quiz ? 'quiz' : 'lab', [['lab', '工作台'], ['quiz', '练习题']]) + (quiz ? '' : seg('lang', st.lang, [['both', '中英'], ['en', 'EN'], ['zh', '中文']]) +
     `<button class="btn" data-act="practice" aria-pressed="${!!st.practice}">练习模式</button>
      <button class="btn" data-act="settings" aria-pressed="${UI.showSettings}">设置</button>
+     <button class="btn" data-act="aiConnection">AI 连接</button>
+     ${UI.aiConnected && UI.aiProvider === 'GPT' ? '<button class="btn" data-act="aiConnection">GPT 已登录</button>' : '<button class="btn primary" data-act="aiLogin">登录 ChatGPT</button>'}
      <button class="btn" data-act="backup">备份</button>`);
   $('#settingsBar').innerHTML = UI.showSettings && !quiz ? `<div class="settings">
     <div class="field wide"><label for="set-name">公司名称</label><input id="set-name" data-set="name" value="${esc(S.company.name)}" autocomplete="off"></div>
@@ -1829,6 +1890,88 @@ function jump(id){
 }
 
 /* ---------- AI ---------- */
+function aiConnectionHTML(){
+  return `<p class="hint">${UI.aiConnected ? esc(UI.aiProvider) + ' · ' + (UI.aiProvider === 'GPT' ? 'ChatGPT 订阅登录已配置' : 'Claude 已连接') : esc(UI.aiMessage)}</p><div class="actions">${UI.aiConnected && UI.aiProvider === 'GPT' ? '' : '<button class="btn primary small" data-act="aiLogin">登录 ChatGPT</button>'}<button class="btn small" data-act="aiConnection">AI 连接</button><button class="btn small" data-act="aiRefresh">刷新连接</button></div>`;
+}
+function aiLoginPanelHTML(){
+  const login = UI.login;
+  if (login.state === 'starting') return '<p class="tdesc"><span class="spin"></span>正在获取登录码…</p>';
+  if (login.state === 'waiting') return `<p class="tdesc">点击下面的官方授权页，输入登录码并确认你的 ChatGPT 账户：</p><code class="login-code" id="ai-device-code">${esc(login.userCode)}</code><div class="actions"><a class="btn primary login-link" id="ai-login-link" href="https://auth.openai.com/codex/device" target="_blank" rel="noopener noreferrer">打开 ChatGPT 授权页 ↗</a><button class="btn" data-act="aiCancelLogin">取消登录</button></div><p class="hint">本页会自动检测登录结果。登录码有效至 ${esc(new Date(login.expiresAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}))}。</p>`;
+  if (login.state === 'authorized') return '<p class="note" role="status">✓ ChatGPT 登录成功，授权已保存。</p>';
+  return `${login.message ? `<p class="err">${esc(login.message)}</p>` : ''}<p class="tdesc">用你的 ChatGPT 账户登录，在 OpenAI 官方页面确认授权后，即可使用 GPT 生成分录和练习题。</p><div class="actions"><button class="btn primary" data-act="aiStartLogin">${['error','cancelled'].includes(login.state) ? '重新登录 ChatGPT' : '使用 ChatGPT 登录'}</button></div>`;
+}
+function stopLoginPolling(){ clearTimeout(aiLoginTimer); aiLoginTimer = null; aiLoginEpoch++; }
+function renderLoginPanel(){
+  const panel = $('#ai-login-panel');
+  if (panel && !$('#modal').hidden) panel.innerHTML = aiLoginPanelHTML();
+}
+function openAIConnection(checkLogin = true){
+  stopLoginPolling();
+  const bridge = window.AccountingAI;
+  $('#modal').innerHTML = `<section class="modal-box" role="dialog" aria-modal="true" aria-labelledby="ai-connection-title"><header class="bhead"><h3 id="ai-connection-title">登录 ChatGPT · AI 连接</h3><button class="btn" data-act="closeModal">关闭</button></header><div id="ai-login-panel" aria-live="polite">${aiLoginPanelHTML()}</div><details class="login-settings" id="ai-connection-settings"><summary>连接设置</summary><div class="fields"><div class="field full"><label for="ai-base">AI 服务地址</label><input id="ai-base" type="url" value="${esc(bridge.base)}" placeholder="留空使用当前网页的服务" autocomplete="off"></div><div class="field full"><label for="ai-token">连接口令（如有）</label><input id="ai-token" type="password" value="${esc(bridge.token)}" autocomplete="off"></div></div><p class="hint">${esc(UI.aiMessage)}<br>连接口令仅保存在本标签页会话中。</p><div class="actions"><button class="btn" data-act="aiSaveConnection">保存并连接</button></div></details><p class="err" id="ai-connection-error"></p></section>`;
+  $('#modal').hidden = false;
+  const button = $('#modal [data-act="aiStartLogin"]'); if (button) button.focus();
+  if (checkLogin) pollAILogin(aiLoginEpoch);
+}
+async function acceptAILogin(login, epoch){
+  if (epoch !== aiLoginEpoch) return;
+  UI.login = login; renderLoginPanel();
+  if (login.state === 'authorized') await refreshAIConnection();
+  if (epoch === aiLoginEpoch && ['starting','waiting'].includes(login.state) && $('#ai-login-panel') && !$('#modal').hidden) {
+    aiLoginTimer = setTimeout(() => pollAILogin(epoch), 2000);
+  }
+}
+async function pollAILogin(epoch){
+  try { await acceptAILogin(await window.AccountingAI.loginStatus(), epoch); }
+  catch (e) {
+    if (epoch !== aiLoginEpoch) return;
+    UI.login = {state:'error', message:e.code === 'cancelled' ? '检查登录超时，请重新连接。' : e.message}; renderLoginPanel();
+  }
+}
+function saveLoginConnection(){
+  try { window.AccountingAI.save($('#ai-base').value, $('#ai-token').value); return true; }
+  catch (e) { $('#ai-connection-error').textContent = e.message || 'AI 服务地址不正确。'; $('#ai-connection-settings').open = true; return false; }
+}
+async function startAILogin(){
+  if (!saveLoginConnection()) return;
+  stopLoginPolling(); const epoch = aiLoginEpoch;
+  UI.login = {state:'starting'}; renderLoginPanel();
+  try { await acceptAILogin(await window.AccountingAI.startLogin(), epoch); }
+  catch (e) {
+    if (epoch !== aiLoginEpoch) return;
+    UI.login = {state:'error', message:e.code === 'cancelled' ? '获取登录码超时，请重试。' : e.message}; renderLoginPanel();
+    if (['offline','gateway_auth'].includes(e.code)) $('#ai-connection-settings').open = true;
+  }
+}
+async function cancelAILogin(){
+  const id = UI.login.id;
+  stopLoginPolling(); const epoch = aiLoginEpoch;
+  try { await acceptAILogin(await window.AccountingAI.cancelLogin(id), epoch); }
+  catch (e) {
+    if (epoch !== aiLoginEpoch) return;
+    UI.login = {state:'error', message:e.message}; renderLoginPanel();
+  }
+}
+async function refreshAIConnection(){
+  const status = await window.AccountingAI.refresh();
+  UI.sample = window.AccountingAI; UI.aiProvider = 'GPT';
+  UI.aiConnected = !!status.configured; UI.aiMessage = status.message;
+  if (!UI.aiConnected) {
+    const native = await use('sample');
+    if (native) { UI.sample = native; UI.aiProvider = 'Claude'; UI.aiConnected = true; UI.aiMessage = '已连接 Claude Artifacts。'; }
+  }
+  renderHeader(); renderBench();
+  if (S.settings.view === 'quiz') { const side = $('#qside'); if (side) side.innerHTML = quizSideHTML(); }
+}
+function aiFailureMessage(e, invalidMessage){
+  const code = e && e.code;
+  if (typeof e === 'string') return e;
+  if (code === 'rate_limited') return e.message || '请求太频繁或已达到用量上限，请稍后再试。';
+  if (code === 'invalid_json') return invalidMessage;
+  if (code === 'refused') return 'AI 没有处理这段描述，请换个说法。';
+  if (['not_authenticated','gateway_auth','offline','timeout','model_unavailable','upstream_error','server_error'].includes(code)) return e.message;
+  return '连接出了问题，请稍后再试。';
+}
 function aiPrompt(text){
   const b = balancesOf(S, null);
   const coa = VISIBLE.map(a => `${a.c} | ${a.en} | ${a.zh} | ${TYPE_EN[a.t]}`).join('\n');
@@ -1882,19 +2025,21 @@ function parseAI(j){
   return {date, memo:String(j.memo || 'AI 生成的分录').slice(0, 120), adj:!!j.adjusting, groups:out, explain:String(j.explain || ''), assumptions:String(j.assumptions || '')};
 }
 async function aiGo(){
+  if (!UI.aiConnected) { openAIConnection(); return; }
   const text = (UI.ai.text || '').trim();
   if (!text) { toast('先写一句交易描述'); return; }
   const ctl = new AbortController();
   UI.ai = {...UI.ai, status:'busy', res:null, err:'', ctl}; renderBench();
   try {
-    const j = await UI.sample.json(aiPrompt(text), {signal:ctl.signal});
+    const j = await UI.sample.json(aiPrompt(text), {signal:ctl.signal, task:'transaction'});
     UI.ai = {...UI.ai, status:'done', res:parseAI(j), ctl:null};
   } catch (e) {
     const code = e && e.code;
     if (code === 'cancelled') UI.ai = {...UI.ai, status:'idle', ctl:null};
-    else if (code === 'not_granted' || code === 'sampling_disabled' || code === 'not_declared' || code === 'capability_disabled' || code === 'capability_removed') { UI.sample = null; UI.mode = 'tpl'; UI.ai = {...UI.ai, status:'idle', ctl:null}; toast('这个页面现在不能调用 Claude，已切回模板录入。'); }
+    else if (code === 'not_granted' || code === 'sampling_disabled' || code === 'not_declared' || code === 'capability_disabled' || code === 'capability_removed') { UI.sample = window.AccountingAI; UI.aiProvider = 'GPT'; UI.aiConnected = false; UI.aiMessage = 'Claude 连接不可用，请连接云端 GPT。'; UI.ai = {...UI.ai, status:'idle', ctl:null}; }
     else {
-      const msg = typeof e === 'string' ? e : code === 'rate_limited' ? '请求太频繁或已达到用量上限，请稍后再试。' : code === 'invalid_json' ? 'AI 的回答不是有效格式，请点「生成分录」再试一次。' : code === 'refused' ? 'Claude 没有处理这段描述，请换个说法。' : '连接出了问题，请稍后再试。';
+      const msg = aiFailureMessage(e, 'AI 的回答不是有效格式，请点「生成分录」再试一次。');
+      if (['not_authenticated','gateway_auth','offline'].includes(code)) { UI.aiConnected = false; UI.aiMessage = msg; }
       UI.ai = {...UI.ai, status:'error', err:msg, ctl:null};
     }
   }
@@ -2163,10 +2308,10 @@ function cardHTML(q){
 }
 function aiSideHTML(){
   const s = UI.qai;
-  return `<div class="qsec"><h3>让 Claude 出新题</h3><div class="fields"><div class="field"><label for="qai-ch">章节</label><select id="qai-ch" data-qai="ch">${[1, 2, 3, 4].map(c => `<option value="${c}"${+s.ch === c ? ' selected' : ''}>${CH_NAME[c].split(' · ')[0]}</option>`).join('')}</select></div>
+  return `<div class="qsec"><h3>让 ${esc(UI.aiProvider)} 出新题</h3>${aiConnectionHTML()}<div class="fields"><div class="field"><label for="qai-ch">章节</label><select id="qai-ch" data-qai="ch">${[1, 2, 3, 4].map(c => `<option value="${c}"${+s.ch === c ? ' selected' : ''}>${CH_NAME[c].split(' · ')[0]}</option>`).join('')}</select></div>
     <div class="field"><label for="qai-type">题型</label><select id="qai-type" data-qai="type"><option value="mc"${s.type === 'mc' ? ' selected' : ''}>选择题</option><option value="num"${s.type === 'num' ? ' selected' : ''}>计算题</option></select></div></div>
-    <div class="actions"><button class="btn primary small" data-act="qAiGo"${s.status === 'busy' ? ' disabled' : ''}>出一道新题</button>${s.status === 'busy' ? '<button class="btn small" data-act="qAiStop">停止</button>' : ''}</div>
-    ${s.status === 'busy' ? '<p class="tdesc"><span class="spin"></span>Claude 正在出题…</p>' : s.err ? `<p class="err">${esc(s.err)}</p>` : '<p class="tdesc">按课件重点出题，新题出现在列表最上面。会用你自己的 Claude 额度。</p>'}</div>`;
+    <div class="actions"><button class="btn primary small" data-act="qAiGo"${s.status === 'busy' || !UI.aiConnected ? ' disabled' : ''}>出一道新题</button>${s.status === 'busy' ? '<button class="btn small" data-act="qAiStop">停止</button>' : ''}</div>
+    ${s.status === 'busy' ? `<p class="tdesc"><span class="spin"></span>${esc(UI.aiProvider)} 正在出题…</p>` : s.err ? `<p class="err">${esc(s.err)}</p>` : `<p class="tdesc">按课件重点出题，新题出现在列表最上面。${UI.aiProvider === 'GPT' ? '使用云端已授权的 ChatGPT 订阅。' : '使用你自己的 Claude 额度。'}</p>`}</div>`;
 }
 function quizSideHTML(){
   const qs = allQs(), all = qStats(qs);
@@ -2283,7 +2428,7 @@ function parseAIQ(j, ch, type){
   return {...base, type:'num', blanks, cur:String(j.currency || '$').slice(0, 4)};
 }
 async function qAiGo(){
-  if (!UI.sample) return;
+  if (!UI.aiConnected) { openAIConnection(); return; }
   const ch = +UI.qai.ch || 3, type = UI.qai.type === 'num' ? 'num' : 'mc';
   const existing = allQs().filter(q => q.ch === ch).map(q => '- ' + q.prompt.replace(/<[^>]+>/g, ' ').replace(/&[#a-z0-9]+;/gi, ' ').replace(/\s+/g, ' ').slice(0, 80)).join('\n');
   const shape = type === 'mc'
@@ -2307,7 +2452,7 @@ ${type === 'mc' ? '- exactly 4 options; "answer" is the 0-based index of the cor
   UI.qai = {...UI.qai, status:'busy', err:'', ctl};
   const side = document.getElementById('qside'); if (side) side.innerHTML = quizSideHTML();
   try {
-    const j = await UI.sample.json(prompt, {signal:ctl.signal, cache:false});
+    const j = await UI.sample.json(prompt, {signal:ctl.signal, cache:false, task:'quiz'});
     const q = parseAIQ(j, ch, type);
     QZ.ai.unshift(q); QZ.ch = 'all'; QZ.type = 'all'; QZ.wrong = false; qSave();
     UI.qai = {...UI.qai, status:'idle', err:'', ctl:null};
@@ -2317,8 +2462,12 @@ ${type === 'mc' ? '- exactly 4 options; "answer" is the 0-based index of the cor
   } catch (e) {
     const code = e && e.code;
     if (code === 'cancelled') UI.qai = {...UI.qai, status:'idle', err:'', ctl:null};
-    else if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].includes(code)) { UI.sample = null; UI.qai = {...UI.qai, status:'idle', err:'', ctl:null}; toast('这个页面现在不能调用 Claude，AI 出题已隐藏。'); }
-    else UI.qai = {...UI.qai, status:'error', ctl:null, err: typeof e === 'string' ? e : code === 'rate_limited' ? '请求太频繁或已达到用量上限，请稍后再试。' : code === 'invalid_json' ? 'AI 的回答不是有效格式，请再点一次。' : '连接出了问题，请稍后再试。'};
+    else if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].includes(code)) { UI.sample = window.AccountingAI; UI.aiProvider = 'GPT'; UI.aiConnected = false; UI.aiMessage = 'Claude 连接不可用，请连接云端 GPT。'; UI.qai = {...UI.qai, status:'idle', err:'', ctl:null}; }
+    else {
+      const msg = aiFailureMessage(e, 'AI 的回答不是有效格式，请再点一次。');
+      if (['not_authenticated','gateway_auth','offline'].includes(code)) { UI.aiConnected = false; UI.aiMessage = msg; }
+      UI.qai = {...UI.qai, status:'error', ctl:null, err:msg};
+    }
   }
   if (S.settings.view === 'quiz') renderQuiz();
 }
@@ -2353,8 +2502,17 @@ document.addEventListener('click', ev => {
     case 'lang': S.settings.lang = v; save(); renderAll(); break;
     case 'practice': S.settings.practice = !S.settings.practice; save(); $('#trace').hidden = true; renderAll(); break;
     case 'settings': UI.showSettings = !UI.showSettings; renderHeader(); break;
+    case 'aiConnection': openAIConnection(); break;
+    case 'aiLogin': openAIConnection(false); startAILogin(); break;
+    case 'aiStartLogin': startAILogin(); break;
+    case 'aiCancelLogin': cancelAILogin(); break;
+    case 'aiRefresh': refreshAIConnection(); break;
+    case 'aiSaveConnection': {
+      if (!saveLoginConnection()) break;
+      stopLoginPolling(); UI.login = {state:'idle'}; $('#modal').hidden = true; refreshAIConnection(); break;
+    }
     case 'backup': openBackup(); break;
-    case 'closeModal': $('#modal').hidden = true; break;
+    case 'closeModal': stopLoginPolling(); $('#modal').hidden = true; break;
     case 'dlJson': if (!UI.dl) { downloadFile('acct2102-statement-lab.json', JSON.stringify(S, null, 1)); toast('已下载备份'); break; } UI.dl.save({filename:'acct2102-statement-lab.json', data:JSON.stringify(S, null, 1)}).then(() => toast('已下载备份')).catch(e => { const m = $('#bk-msg'); if (m && e && e.code !== 'declined') m.textContent = '下载没有成功，可以改用「复制 JSON」。'; }); break;
     case 'copyJson': { const ta = $('#bk-text'); const txt = ta ? ta.value : JSON.stringify(S); try { navigator.clipboard.writeText(txt).then(() => toast('已复制'), () => { ta && ta.select(); toast('请按 Ctrl/⌘ + C 复制已选中的文本'); }); } catch (e) { ta && ta.select(); } break; }
     case 'importText': importJSON(($('#bk-text') || {}).value || ''); break;
@@ -2392,7 +2550,7 @@ document.addEventListener('click', ev => {
   }
 });
 document.addEventListener('keydown', ev => {
-  if (ev.key === 'Escape') { if (!$('#modal').hidden) $('#modal').hidden = true; else if (!$('#trace').hidden) $('#trace').hidden = true; return; }
+  if (ev.key === 'Escape') { if (!$('#modal').hidden) { stopLoginPolling(); $('#modal').hidden = true; } else if (!$('#trace').hidden) $('#trace').hidden = true; return; }
   if (ev.key !== 'Enter' && ev.key !== ' ') return;
   const t = ev.target;
   if (t.matches && t.matches('[data-t]')) { ev.preventDefault(); const x = TRACES[+t.dataset.t]; if (x) openTrace(x); }
@@ -2479,7 +2637,7 @@ startTpl('sale');
 UI.custom = blankCustom();
 renderAll();
 const use = window.claude && typeof window.claude.use === 'function' ? n => window.claude.use(n).catch(() => null) : () => Promise.resolve(null);
-use('sample').then(fn => { if (fn) { UI.sample = fn; if (S.settings.view === 'quiz') { const side = document.getElementById('qside'); if (side) side.innerHTML = quizSideHTML(); } else renderBench(); } });
+refreshAIConnection();
 use('downloads').then(d => { if (d) UI.dl = d; });
 })();
 </script>
