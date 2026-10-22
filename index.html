@@ -411,23 +411,105 @@ table.wk{border-collapse:collapse;width:100%;font:12.5px var(--f-num);min-width:
 @media (max-width:600px){.mrow{grid-template-columns:minmax(0,1fr) 20px}.mrow select{grid-column:1}.qje .crow,.qje .chead,.qje .ctot{grid-template-columns:minmax(0,1fr) 72px 72px 24px}}
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:520px){.fields{grid-template-columns:1fr}.eq-term .v{font-size:22px}.brand h1{font-size:25px}}
+/* ---------- layout v2: one calm header, sticky navigation, more breathing room ---------- */
+:root{--topH:0px}
+.app{gap:16px;padding-block:0 80px}
+.top{position:sticky;top:0;z-index:25;margin-inline:-16px;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top,0px));background:var(--ground);border-bottom:1px solid var(--rule);align-items:center;gap:10px 20px}
+.brand{min-width:0;flex:1 1 240px;display:flex;flex-direction:column;gap:3px}
+.brand-t{display:flex;align-items:baseline;gap:10px}
+.brand .brand-t h1{margin:0;font:600 21px/1.2 var(--f-doc);letter-spacing:-.01em;white-space:nowrap}
+.brand-t .sub{font:500 11px var(--f-num);letter-spacing:.06em;color:var(--muted);white-space:nowrap}
+.co-line{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toolbar{gap:10px;justify-content:flex-end}
+.savedot{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);white-space:nowrap;padding-inline:2px}
+.savedot::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}
+.savedot.bad{color:var(--bad);font-weight:600}.savedot.bad::before{background:var(--bad)}
+.menu-wrap{position:relative}
+.menu{position:absolute;right:0;top:calc(100% + 8px);z-index:40;width:272px;max-width:calc(100vw - 24px);background:var(--sheet);border:1px solid var(--rule2);border-radius:10px;box-shadow:0 14px 40px rgba(0,0,0,.18);padding:6px;display:flex;flex-direction:column}
+.menu .mlabel{font:500 11px var(--f-num);letter-spacing:.05em;color:var(--muted);padding:8px 10px 6px}
+.menu .seg{margin:0 8px 8px;align-self:flex-start}
+.menu .mi{display:flex;justify-content:space-between;align-items:center;gap:12px;border:0;background:none;text-align:left;padding:9px 10px;border-radius:7px;font-size:13.5px;cursor:pointer;color:var(--ink);width:100%}
+.menu .mi:hover,.menu .mi:focus-visible{background:var(--sheet2)}
+.menu .mi .k{font-size:11.5px;color:var(--muted);white-space:nowrap}
+.menu hr{border:0;border-top:1px solid var(--rule);margin:4px 6px}
+#settingsBar:empty{display:none}
+#settingsBar,#bench,#board,#quiz,.qcard{scroll-margin-top:calc(var(--topH) + 12px)}
+.je{scroll-margin-top:calc(var(--topH) + 64px)}
+.safety{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;padding:10px 16px;font-size:13px}
+.starter{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:10px 46px 10px 16px;border-radius:10px;border:1px solid var(--rule);background:var(--accent-soft)}
+.starter-copy{flex:1 1 280px;font-size:13px;color:var(--ink2);line-height:1.6}
+.starter-copy strong{display:inline;margin:0 6px 0 0;color:var(--ink)}
+.starter .x{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:none;font-size:18px;line-height:1;color:var(--muted);cursor:pointer;padding:6px 8px;border-radius:6px}
+.starter .x:hover{background:var(--sheet);color:var(--ink)}
+.eq{padding:10px 16px;gap:8px 16px;box-shadow:none}
+.eq-terms{flex:1 1 auto;align-items:baseline;gap:4px 14px}
+.eq-term{flex-direction:row;align-items:baseline;gap:8px;padding:2px 6px}
+.eq-term .k{font-size:12px}
+.eq-term .v{font-size:21px}
+.eq-op{font-size:20px;line-height:1}
+.chip.sum{padding:5px 12px 5px 6px;font-size:12.5px;background:var(--sheet)}
+.chk{border-bottom:1px solid var(--rule);padding:10px 0}.chk:first-child{padding-top:0}.chk:last-child{border-bottom:0}
+.chk b{display:block;font-size:13.5px;color:var(--ok);margin-bottom:3px}.chk.bad b{color:var(--bad)}
+.chk p{margin:0;font-size:12.5px;line-height:1.6;color:var(--ink2)}
+.work{grid-template-columns:minmax(320px,380px) minmax(0,1fr);gap:16px}
+@media (min-width:1001px){.bench{top:calc(var(--topH) + 12px);max-height:calc(100vh - var(--topH) - 24px)}}
+.btabs{display:flex;gap:4px;padding:4px 10px 0;border-bottom:1px solid var(--rule);position:sticky;top:0;z-index:3;background:var(--sheet);border-radius:10px 10px 0 0}
+.btabs button{border:0;background:none;padding:11px 12px 10px;font-size:13.5px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer}
+.btabs button:hover{color:var(--ink)}
+.btabs button[aria-selected="true"]{color:var(--ink);font-weight:600;border-bottom-color:var(--accent)}
+.btabs .count{font:500 11px var(--f-num);color:var(--muted);margin-left:6px}
+.bsec{padding:16px 18px;gap:12px}
+.bhint{font-size:12px;color:var(--muted)}
+.bench .txl{max-height:none;padding:4px 10px 16px}
+.filters-d{border:1px solid var(--rule);border-radius:8px;padding:8px 10px}
+.filters-d summary{cursor:pointer;font-size:12.5px;color:var(--accent);font-weight:500}
+.filters-d[open] summary{margin-bottom:6px}
+.list-meta{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+.list-meta .count{font:500 12px var(--f-num);color:var(--muted);margin-right:auto}
+.tabs{position:sticky;top:var(--topH);z-index:6;background:var(--sheet);border-radius:10px 10px 0 0;padding-inline:12px}
+.pane{padding:22px 26px 28px}
+.pane-bar{margin-bottom:18px}
+.stepnav{display:flex;justify-content:space-between;gap:12px;margin-top:28px;padding-top:18px;border-top:1px solid var(--rule)}
+.stepnav button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;max-width:48%;border:1px solid var(--rule);background:var(--sheet);border-radius:9px;padding:10px 14px;cursor:pointer;text-align:left;color:var(--ink)}
+.stepnav button:hover{border-color:var(--accent)}
+.stepnav .next{margin-left:auto;align-items:flex-end;text-align:right}
+.stepnav .k{font-size:11.5px;color:var(--muted)}
+.stepnav .t{font-size:14px;font-weight:600}
+.stepnav .t .n{font:500 11.5px var(--f-num);color:var(--accent);margin-right:6px}
+.trace{top:calc(var(--topH) + 12px)}
+.qside{top:calc(var(--topH) + 12px);max-height:calc(100vh - var(--topH) - 24px)}
+@media (max-width:860px){
+  .top{position:static;flex-wrap:wrap}
+  .toolbar{width:100%;justify-content:flex-start}
+  .toolbar > .seg{flex:1 1 auto}.toolbar > .seg button{flex:1}
+  .menu-wrap{margin-left:auto}
+  .pane{padding:18px 16px 24px}
+}
+@media (max-width:600px){
+  .top{margin-inline:-10px;padding-inline:10px}
+  .savedot{display:none}
+  .eq-terms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;gap:4px}
+  .eq-op{display:none}
+  .eq-term{flex-direction:column;gap:0;padding:0}
+  .eq-term .v{font-size:18px}
+  .stepnav{flex-direction:column}.stepnav button{max-width:none}.stepnav .next{margin-left:0}
+}
+@media (max-width:700px){.trace{top:auto}}
 </style>
 
 </head>
 <body>
 <div class="app" id="app">
-  <header class="top">
+  <header class="top" id="top">
     <div class="brand">
-      <div class="eyebrow">ACCT 2102 · Intermediate Accounting I · IFRS</div>
-      <h1>财报实验室<span class="sub">Statement Lab</span></h1>
+      <div class="brand-t"><h1>财报实验室</h1><span class="sub">ACCT 2102 · IFRS</span></div>
       <div class="co-line" id="coLine"></div>
     </div>
     <div class="toolbar" id="toolbar"></div>
   </header>
-  <section id="taskBar" class="taskbar" aria-label="选择使用场景"></section>
-  <section id="starter" class="starter" aria-label="开始使用"></section>
-  <div id="saveStatus" class="safety" role="status" aria-live="polite"></div>
+  <div id="saveStatus" class="safety failed" role="alert" hidden></div>
   <div id="settingsBar"></div>
+  <section id="starter" class="starter" aria-label="新手路线" hidden></section>
   <div class="labban" id="labBanner" hidden></div>
   <section class="eq" id="eqBox" aria-label="会计恒等式与勾稽检查"></section>
   <section class="quiz" id="quiz" hidden aria-label="练习题"></section>
@@ -885,8 +967,16 @@ let S, R, TRACES = [];
 const UI = {mode:'tpl', tpl:'sale', params:null, editing:null, sel:null, custom:null, lf:'all', revealed:new Set(), openWhy:new Set(),
   guesses:{}, marks:{}, showAns:false, showSettings:false, lastDate:null, ai:{text:'',status:'idle',res:null,err:'',ctl:null},
   sample:window.AccountingAI, aiProvider:'GPT', aiConnected:false, aiMessage:'正在检查 AI 连接…', login:{state:'idle'}, dl:null, undo:null, lastEq:null, labFrom:null, qai:{ch:3, type:'mc', status:'idle', err:'', ctl:null},
+  menuOpen:false, tabScroll:{}, viewScroll:{}, toastView:null,
   filters:{query:'',from:'',to:'',kind:'all'}, tplQuery:'', storageError:'', draftDirty:false, draftRestored:false, pendingImport:null};
 let aiLoginTimer = null, aiLoginEpoch = 0;
+// View preferences that make the page reopen where the user left it (per browser)
+const UKEY = 'acct2102-ui-v1';
+let UIP = {benchTab:'entry', starterHidden:{}, scroll:null};
+try { const u = JSON.parse(localStorage.getItem(UKEY) || 'null'); if (u && typeof u === 'object') UIP = {...UIP, ...u, starterHidden:{...(u.starterHidden || {})}}; } catch (e) {}
+function saveUIP(){ try { localStorage.setItem(UKEY, JSON.stringify(UIP)); } catch (e) {} }
+const topH = () => { const t = document.getElementById('top'); return t && getComputedStyle(t).position === 'sticky' ? t.offsetHeight : 0; };
+function syncTopH(){ document.documentElement.style.setProperty('--topH', topH() + 'px'); }
 
 function blankState(){
   return {v:1, seq:0, company:{name:'New Company Limited', year:2026, cur:'HK$'},
@@ -962,9 +1052,15 @@ function save(){
 }
 
 function renderSaveStatus(){
-  const el = $('#saveStatus'); if (!el) return;
-  el.classList.toggle('failed', !!UI.storageError);
-  el.innerHTML = `<span class="save-state">${UI.storageError ? esc(UI.storageError) : S.savedAt ? '✓ 已保存到此浏览器 · ' + new Date(S.savedAt).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}) : '数据保存在此浏览器，记账后自动保存'}</span><span>换设备前请备份 · 两个账本分别保存</span><span class="actions"><button class="btn small" data-act="backup">备份 / 恢复</button>${UI.storageError && !UI.loadBlocked ? '<button class="btn small" data-act="retrySave">重试保存</button>' : ''}</span>`;
+  const dot = $('#saveDot'), el = $('#saveStatus');
+  if (dot) {
+    dot.className = 'savedot' + (UI.storageError ? ' bad' : '');
+    dot.textContent = UI.storageError ? '保存失败' : S.savedAt ? '已保存 ' + new Date(S.savedAt).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}) : '自动保存';
+    dot.title = '数据保存在此浏览器，两个账本分别保存。换设备前请在「更多 → 备份 / 恢复」导出。';
+  }
+  if (!el) return;
+  el.hidden = !UI.storageError;
+  el.innerHTML = UI.storageError ? `<span class="save-state">${esc(UI.storageError)}</span><span class="actions"><button class="btn small" data-act="backup">备份 / 恢复</button>${!UI.loadBlocked ? '<button class="btn small" data-act="retrySave">重试保存</button>' : ''}</span>` : '';
 }
 function saveDraft(){
   if (!UI.draftDirty) return;
@@ -1004,11 +1100,12 @@ function switchPurpose(next){
   UI.showSettings = false; $('#trace').hidden = true; resetEntryUI(); loadDraft(); renderAll(); return true;
 }
 function renderTaskEntry(){
-  const learn = purpose === 'learn', quiz = S.settings.view === 'quiz';
-  $('#taskBar').innerHTML = `<div><h2>${learn ? '学懂每一笔，读懂每张报表' : '把每一笔财务记录记清楚'}</h2><p>${learn ? '从交易 → 分录 → 报表，逐步看清数字的来龙去脉。' : '选择交易、填写金额，自动生成分录和报表。'}</p></div>${seg('purpose',purpose,[['learn','学习账本'],['record','财务记录']])}`;
-  const el = $('#starter'); el.hidden = quiz;
-  el.innerHTML = learn ? `<div class="starter-copy"><strong>学习专用账本 · 与财务记录独立</strong><p>初次打开载入虚构示例公司。先看一笔分录的解释，再点报表数字追溯来源。</p></div><div class="actions"><button class="btn" data-act="guidedJournal">① 看分录解释</button><button class="btn" data-act="guidedReports">② 看报表来源</button><button class="btn" data-act="view" data-v="quiz">③ 做练习题</button></div>`
-    : `<div class="starter-copy"><strong>${S.txns.length ? '财务记录 · 共 ' + S.txns.length + ' 笔交易' : '从空账本开始，录入第一笔交易'}</strong><p>${S.txns.length ? '搜索和日期筛选用于查找分录；财务报表始终汇总整个会计年度。' : '已有余额先填期初；新公司可从零开始。自动计税默认关闭，可在设置中开启。'}</p></div><div class="actions"><button class="btn" data-act="tab" data-v="opening">填写期初余额</button><button class="btn" data-act="settings">账本设置</button><button class="btn" data-act="exportCsv">导出分录 CSV</button></div>`;
+  const learn = purpose === 'learn', quiz = S.settings.view === 'quiz', el = $('#starter');
+  const show = !quiz && !UIP.starterHidden[purpose] && (learn || !S.txns.length);
+  el.hidden = !show;
+  el.innerHTML = !show ? '' : learn
+    ? `<div class="starter-copy"><strong>第一次用？</strong>按顺序走：先看一笔分录为什么这样记，再点报表数字追溯来源，最后做题检验。</div><div class="actions"><button class="btn small" data-act="guidedJournal">① 看分录解释</button><button class="btn small" data-act="guidedReports">② 看报表来源</button><button class="btn small" data-act="view" data-v="quiz">③ 做练习题</button></div><button class="x" data-act="dismissStarter" aria-label="收起新手路线" title="收起后可在「更多」里重新打开">×</button>`
+    : `<div class="starter-copy"><strong>从空账本开始。</strong>已有余额先填期初；新公司可以直接记第一笔。自动计税默认关闭。</div><div class="actions"><button class="btn small" data-act="tab" data-v="opening">填写期初余额</button><button class="btn small" data-act="settings">账本设置</button></div><button class="x" data-act="dismissStarter" aria-label="收起提示">×</button>`;
   renderSaveStatus();
 }
 function entryDate(){ return UI.lastDate || (purpose === 'record' && +today().slice(0,4) === +S.company.year ? today() : `${S.company.year}-01-01`); }
@@ -1894,14 +1991,33 @@ function renderEntryList(){
 }
 function renderBench(){
   const modes = [['tpl', '模板'], ['custom', '自定义分录']].concat(UI.sample ? [['ai', 'AI 描述']] : []);
-  let body = UI.mode === 'custom' ? benchCustom() : UI.mode === 'ai' && UI.sample ? benchAI() : benchTpl();
-  $('#bench').innerHTML = `<section class="bsec"><div class="bhead"><h2 class="h2">${UI.editing ? `编辑 J${R.byId[UI.editing]?.no || ''}` : '录入交易'}</h2>${seg('mode', UI.mode, modes)}</div>${body}</section>
-    ${UI.draftRestored ? '<div class="bsec draft-note">已恢复未记账的草稿。<button class="btn small" data-act="discardDraft">丢弃草稿</button></div>' : ''}
-    ${purpose==='learn' ? '<section class="bsec">'+learningGuide()+'</section>' : ''}
-    <section class="bsec" id="recordTools" style="padding-bottom:4px"><div class="bhead"><h2 class="h2">查找分录<span class="count" id="entryCount"></span></h2><button class="btn small" data-act="resetFilters">清除筛选</button></div><p class="tdesc">点记录追踪报表变化。筛选仅影响分录列表和 CSV 导出。</p>
-    <div class="record-filters"><div class="field full"><label for="txQuery">搜索记录</label><input id="txQuery" type="search" data-filter="query" value="${esc(UI.filters.query)}" placeholder="摘要、往来对象、单据编号或科目" autocomplete="off"></div><div class="field"><label for="txFrom">开始日期</label><input id="txFrom" type="date" data-filter="from" value="${esc(UI.filters.from)}"></div><div class="field"><label for="txTo">结束日期</label><input id="txTo" type="date" data-filter="to" value="${esc(UI.filters.to)}"></div><div class="field full"><label for="txKind">分录类型</label><select id="txKind" data-filter="kind"><option value="all"${UI.filters.kind==='all'?' selected':''}>全部分录</option><option value="regular"${UI.filters.kind==='regular'?' selected':''}>日常分录</option><option value="adjust"${UI.filters.kind==='adjust'?' selected':''}>调整分录（含自动计税）</option></select></div></div><div id="entrySummary" class="record-summary" aria-live="polite"></div><div class="actions"><button class="btn small" data-act="exportCsv">导出匹配分录 CSV</button>${UI.sel ? '<button class="btn small" data-act="clearSel">取消追踪</button>' : ''}</div></section>
-    <ol class="txl" id="entryList"></ol>`;
+  const body = UI.mode === 'custom' ? benchCustom() : UI.mode === 'ai' && UI.sample ? benchAI() : benchTpl();
+  const tab = UIP.benchTab === 'list' ? 'list' : 'entry', f = UI.filters;
+  const filtersOpen = !!(f.from || f.to || f.kind !== 'all');
+  $('#bench').innerHTML = `<div class="btabs" role="tablist" aria-label="录入与记录">
+      <button role="tab" id="btab-entry" type="button" data-act="benchTab" data-v="entry" aria-controls="bpane-entry" aria-selected="${tab === 'entry'}" tabindex="${tab === 'entry' ? 0 : -1}">${UI.editing ? `编辑 J${R.byId[UI.editing]?.no || ''}` : '记一笔'}</button>
+      <button role="tab" id="btab-list" type="button" data-act="benchTab" data-v="list" aria-controls="bpane-list" aria-selected="${tab === 'list'}" tabindex="${tab === 'list' ? 0 : -1}">分录列表<span class="count">${R.entries.length}</span></button>
+    </div>
+    <div id="bpane-entry" role="tabpanel" aria-labelledby="btab-entry"${tab === 'entry' ? '' : ' hidden'}>
+      <section class="bsec"><div class="bhead"><span class="bhint">${UI.editing ? '改完点「保存修改」' : '录入方式'}</span>${seg('mode', UI.mode, modes)}</div>${body}</section>
+      ${UI.draftRestored ? '<div class="bsec draft-note">已恢复未记账的草稿。<button class="btn small" data-act="discardDraft">丢弃草稿</button></div>' : ''}
+      ${purpose === 'learn' ? '<section class="bsec">' + learningGuide() + '</section>' : ''}
+    </div>
+    <div id="bpane-list" role="tabpanel" aria-labelledby="btab-list"${tab === 'list' ? '' : ' hidden'}>
+      <section class="bsec" id="recordTools">
+        <div class="field full"><label for="txQuery">搜索记录</label><input id="txQuery" type="search" data-filter="query" value="${esc(f.query)}" placeholder="摘要、往来对象、单据编号或科目" autocomplete="off"></div>
+        <details class="filters-d"${filtersOpen ? ' open' : ''}><summary>按日期和类型筛选</summary><div class="record-filters"><div class="field"><label for="txFrom">开始日期</label><input id="txFrom" type="date" data-filter="from" value="${esc(f.from)}"></div><div class="field"><label for="txTo">结束日期</label><input id="txTo" type="date" data-filter="to" value="${esc(f.to)}"></div><div class="field full"><label for="txKind">分录类型</label><select id="txKind" data-filter="kind"><option value="all"${f.kind === 'all' ? ' selected' : ''}>全部分录</option><option value="regular"${f.kind === 'regular' ? ' selected' : ''}>日常分录</option><option value="adjust"${f.kind === 'adjust' ? ' selected' : ''}>调整分录（含自动计税）</option></select></div></div></details>
+        <div id="entrySummary" class="record-summary" aria-live="polite"></div>
+        <div class="list-meta"><span class="count" id="entryCount"></span>${hasFilters() ? '<button class="btn small" data-act="resetFilters">清除筛选</button>' : ''}<button class="btn small" data-act="exportCsv">导出 CSV</button>${UI.sel ? '<button class="btn small" data-act="clearSel">取消追踪</button>' : ''}</div>
+        <p class="tdesc">点一条记录，右边报表会高亮它影响的每一行。筛选只影响此列表和 CSV。</p>
+      </section>
+      <ol class="txl" id="entryList"></ol>
+    </div>`;
   renderEntryList();
+}
+function focusEntry(){
+  const el = document.querySelector('#bpane-entry .fields input[data-f]:not([type=date]), #bpane-entry .crow input');
+  if (el) el.focus({preventScroll:true});
 }
 
 /* ================= header, board ================= */
@@ -1909,12 +2025,12 @@ function renderHeader(){
   const st = S.settings, quiz = st.view === 'quiz';
   $('#coLine').innerHTML = quiz ? `第 1–4 章练习题 · 共 ${allQs().length} 道 · 分录题使用工作台的会计科目表`
     : `<b>${esc(S.company.name)}</b> · 截至 ${esc(S.company.year)} 年 12 月 31 日止年度 · ${esc(cur())} · ${st.autoTax ? '自动计税 '+esc(st.tax)+'%' : '自动计税关闭'}`;
-  $('#toolbar').innerHTML = seg('view', quiz ? 'quiz' : 'lab', [['lab', '工作台'], ['quiz', '练习题']]) + (quiz ? '' : seg('lang', st.lang, [['both', '中英'], ['en', 'EN'], ['zh', '中文']]) +
-    `${purpose === 'learn' ? `<button class="btn" data-act="practice" aria-pressed="${!!st.practice}">报表自测${st.practice ? ' · 已开启' : ''}</button>` : ''}
-     <button class="btn" data-act="settings" aria-pressed="${UI.showSettings}">设置</button>
-     <button class="btn" data-act="aiConnection">AI 连接</button>
-     ${UI.aiConnected && UI.aiProvider === 'GPT' ? '<button class="btn" data-act="aiConnection">GPT 已登录</button>' : '<button class="btn primary" data-act="aiLogin">登录 ChatGPT</button>'}
-     <button class="btn" data-act="backup">备份</button>`);
+  const aiBtn = UI.aiConnected && UI.aiProvider === 'GPT' ? '<button class="btn" data-act="aiConnection">GPT 已登录</button>' : '<button class="btn primary" data-act="aiLogin">登录 ChatGPT</button>';
+  $('#toolbar').innerHTML = seg('view', quiz ? 'quiz' : 'lab', [['lab', '工作台'], ['quiz', '练习题']])
+    + (quiz ? '' : seg('purpose', purpose, [['learn', '学习账本'], ['record', '财务记录']]))
+    + '<span class="savedot" id="saveDot" role="status"></span>' + aiBtn
+    + `<div class="menu-wrap"><button class="btn" id="menuBtn" type="button" data-act="menu" aria-haspopup="true" aria-expanded="${UI.menuOpen}">更多 <span aria-hidden="true">▾</span></button>${UI.menuOpen ? menuHTML() : ''}</div>`;
+  renderSaveStatus();
   $('#settingsBar').innerHTML = UI.showSettings && !quiz ? `<div class="settings">
     <div class="field wide"><label for="set-name">公司名称</label><input id="set-name" data-set="name" value="${esc(S.company.name)}" autocomplete="off"></div>
     <div class="field narrow"><label for="set-year">会计年度</label><input id="set-year" data-set="year" value="${esc(S.company.year)}" inputmode="numeric"></div>
@@ -1922,17 +2038,53 @@ function renderHeader(){
     <div class="field narrow"><label for="set-tax">所得税率 %</label><input id="set-tax" data-set="tax" value="${esc(st.tax)}" inputmode="decimal"></div>
     <label class="checkline"><input type="checkbox" id="set-auto" data-set="autoTax"${st.autoTax ? ' checked' : ''}> 年末自动计提所得税</label>
     <p class="hint">${purpose==='record' ? '自动计税默认关闭；开启后会按设定税率估算年末所得税。' : '自动计税用于课程演示，按税前利润 × 税率计算。'}</p>
-    <div class="actions" style="margin-left:auto"><button class="btn" data-act="loadSample">${purpose==='record'?'在学习账本查看示例':'重新载入示例公司'}</button><button class="btn" data-act="blank">新建空账本</button></div></div>` : '';
+    <div class="actions" style="margin-left:auto"><button class="btn" data-act="loadSample">${purpose==='record'?'在学习账本查看示例':'重新载入示例公司'}</button><button class="btn" data-act="blank">新建空账本</button><button class="btn primary" data-act="settings">完成</button></div></div>` : '';
   const E = R;
   const prev = UI.lastEq; const nowEq = [E.totA, E.totL, E.totE].join('|');
   const flash = prev && prev !== nowEq;
   UI.lastEq = nowEq;
   const okAll = E.checks.every(c => c.ok);
+  const nOk = E.checks.filter(c => c.ok).length;
   $('#eqBox').innerHTML = `<div class="eq-terms">
-      <div class="eq-term${flash ? ' eq-flash' : ''}"><span class="k">资产 Assets</span><span class="v">${fmt(E.totA)}</span></div><span class="eq-op">=</span>
-      <div class="eq-term${flash ? ' eq-flash' : ''}"><span class="k">负债 Liabilities</span><span class="v">${fmt(E.totL)}</span></div><span class="eq-op">+</span>
-      <div class="eq-term${flash ? ' eq-flash' : ''}"><span class="k">权益 Equity</span><span class="v">${fmt(E.totE)}</span></div></div>
-    <div class="chips" aria-label="${okAll ? '全部勾稽关系成立' : '有勾稽关系不成立'}">${E.checks.map(c => `<button class="chip${c.ok ? '' : ' bad'}" data-act="chip" data-k="${c.k}"><span class="dot">${c.ok ? '✓' : '✗'}</span>${c.zh}</button>`).join('')}</div>`;
+      <div class="eq-term${flash ? ' eq-flash' : ''}"><span class="k">资产</span><span class="v">${fmt(E.totA)}</span></div><span class="eq-op">=</span>
+      <div class="eq-term${flash ? ' eq-flash' : ''}"><span class="k">负债</span><span class="v">${fmt(E.totL)}</span></div><span class="eq-op">+</span>
+      <div class="eq-term${flash ? ' eq-flash' : ''}"><span class="k">权益</span><span class="v">${fmt(E.totE)}</span></div></div>
+    <button class="chip sum${okAll ? '' : ' bad'}" data-act="checks" aria-label="${okAll ? '全部勾稽关系成立，查看详情' : '有勾稽关系不成立，查看详情'}"><span class="dot">${okAll ? '✓' : '✗'}</span>勾稽检查 ${nOk}/${E.checks.length}</button>`;
+}
+function menuHTML(){
+  const st = S.settings, quiz = st.view === 'quiz';
+  return `<div class="menu" id="menu" role="menu" aria-label="更多">
+    ${quiz ? '' : `<div class="mlabel">报表语言</div>${seg('lang', st.lang, [['both', '中英'], ['en', 'EN'], ['zh', '中文']])}<hr>`}
+    ${!quiz && purpose === 'learn' ? `<button class="mi" role="menuitemcheckbox" aria-checked="${!!st.practice}" data-act="practice"><span>报表自测</span><span class="k">${st.practice ? '已开启' : '关闭'}</span></button>` : ''}
+    ${quiz ? '' : '<button class="mi" role="menuitem" data-act="settings"><span>账本设置</span><span class="k">公司、年度、税率</span></button>'}
+    <button class="mi" role="menuitem" data-act="aiConnection"><span>AI 连接</span><span class="k">${UI.aiConnected ? '已连接' : '未连接'}</span></button>
+    <hr>
+    <button class="mi" role="menuitem" data-act="backup"><span>备份 / 恢复</span><span class="k">JSON</span></button>
+    ${quiz ? '' : '<button class="mi" role="menuitem" data-act="exportCsv"><span>导出分录</span><span class="k">CSV</span></button>'}
+    ${!quiz && UIP.starterHidden[purpose] ? '<button class="mi" role="menuitem" data-act="showStarter"><span>显示新手路线</span></button>' : ''}
+  </div>`;
+}
+function openChecks(){
+  const box = $('#trace'), n = R.checks.filter(c => c.ok).length;
+  box.innerHTML = `<div class="trace-h"><span class="eyebrow">勾稽检查</span><h3>${n} / ${R.checks.length} 项成立</h3><button class="trace-x" data-act="closeTrace" aria-label="关闭">×</button></div><div class="trace-b">${R.checks.map(c => `<div class="chk${c.ok ? '' : ' bad'}"><b>${c.ok ? '✓' : '✗'} ${esc(c.zh)}</b><p>${esc(c.why)}</p></div>`).join('')}</div>`;
+  box.hidden = false; box.querySelector('.trace-x').focus({preventScroll:true});
+}
+// Previous / next step through the accounting cycle, shown under every pane
+const STEP_HINT = {opening:'上年末余额，也是比较数字', journal:'按时间看每笔分录', ledger:'把分录按账户归集', tb:'核对借贷，看期末调整', pl:'利润从哪里来', soce:'净利润和 OCI 怎样进入权益', sfp:'期末的资产、负债和权益', scf:'把利润还原为现金', closing:'临时账户清零，结转到权益'};
+function stepNavHTML(tab){
+  const i = TABS.findIndex(t => t[0] === tab), prev = TABS[i - 1], next = TABS[i + 1];
+  const btn = (t, cls, k) => `<button type="button" class="${cls}" data-act="tab" data-v="${t[0]}"><span class="k">${k}</span><span class="t"><span class="n">${t[1]}</span>${t[2]}</span><span class="k">${STEP_HINT[t[0]]}</span></button>`;
+  return `<nav class="stepnav" aria-label="会计循环上一步和下一步">${prev ? btn(prev, 'prev', '← 上一步') : ''}${next ? btn(next, 'next', '下一步 →') : ''}</nav>`;
+}
+// Switch statement tabs without losing your place: each tab remembers its scroll position
+function goTab(v, how){
+  const old = S.settings.tab;
+  if (v !== old) { UI.tabScroll[old] = window.scrollY; S.settings.tab = v; save(); renderBoard(); }
+  const boardTop = Math.max(0, $('#board').getBoundingClientRect().top + window.scrollY - topH() - 12);
+  let y = boardTop;
+  if (how === 'memory') y = UI.tabScroll[v] ?? (window.scrollY > boardTop ? boardTop : null);
+  if (y != null) window.scrollTo({top:y, behavior:how === 'reveal' ? 'smooth' : 'auto'});
+  if (how !== 'reveal') document.getElementById('tab-' + v)?.focus({preventScroll:true});
 }
 function renderBoard(){
   const tab = S.settings.tab;
@@ -1944,7 +2096,7 @@ function renderBoard(){
   const pane = $('#pane');
   pane.setAttribute('role','tabpanel'); pane.setAttribute('aria-labelledby','tab-'+tab);
   pane.className = 'pane' + (lang() === 'zh' ? ' lang-zh' : '');
-  pane.innerHTML = P();
+  pane.innerHTML = P() + stepNavHTML(tab);
   updateScore();
 }
 function renderAll(){
@@ -2012,10 +2164,10 @@ function updateScore(){
 }
 
 /* ================= actions ================= */
-function toast(msg, undoFn){
+function toast(msg, undoFn, view){
   const t = $('#toast');
-  t.innerHTML = `<span>${esc(msg)}</span>${undoFn ? '<button data-act="undo">撤销</button>' : ''}`;
-  t.hidden = false; UI.undo = undoFn || null;
+  t.innerHTML = `<span>${esc(msg)}</span>${view ? `<button data-act="toastView">${esc(view.label)}</button>` : ''}${undoFn ? '<button data-act="undo">撤销</button>' : ''}`;
+  t.hidden = false; UI.undo = undoFn || null; UI.toastView = view ? view.fn : null;
   clearTimeout(toast._t); toast._t = setTimeout(() => { t.hidden = true; UI.undo = null; }, 7000);
 }
 const snapshot = () => JSON.stringify(S);
@@ -2032,7 +2184,8 @@ function commit(tx){
   } else { S.seq++; tx.id = 'T' + S.seq; tx.seq = S.seq; S.txns.push(tx); UI.sel = tx.id; }
   UI.lastDate = tx.date;
   clearDraft(); const saved = save(); renderAll();
-  toast(saved ? '已记账并保存，可点击记录追踪报表变化。' : '已加入当前账本，但保存失败，请立即备份。', () => restore(snap));
+  const newId = UI.sel, no = R.byId[newId]?.no;
+  toast(saved ? `已记入 J${no}，右侧报表已高亮它影响的行` : '已加入当前账本，但保存失败，请立即备份。', () => restore(snap), {label:'查看分录', fn:() => jump(newId)});
   return true;
 }
 function addTpl(){
@@ -2044,7 +2197,7 @@ function addTpl(){
   if(UI.tpl==='payExpense')fp.expenseName=expenseSpec(p).name;
   if (!commit({date:p.date, tpl:UI.tpl, p:fp, party:p.party || '', ref:p.ref || '', memoUser:p.memo || '', memo:p.memo || safeMemo(t, fp), adj:isAdjTpl(t), groups:r.groups, calc:r.calc || '', shares:r.shares || 0})) return;
   const keep = {date:p.date}; startTpl(UI.tpl); Object.assign(UI.params, keep);
-  renderBench();
+  renderBench(); focusEntry();
 }
 function addCustom(){
   const c = UI.custom, r = buildCustom(c);
@@ -2053,11 +2206,11 @@ function addCustom(){
   const old = UI.editing && S.txns.find(t => t.id === UI.editing);
   if (!commit({date:c.date, tpl:'custom', party:c.party || '', ref:c.ref || '', memo:c.memo || '自定义分录', memoUser:c.memo, adj:!!c.adj, groups:r.groups, calc:'', shares:old && old.shares || 0, note:old && old.note || '', src:old && old.src || ''})) return;
   UI.custom = blankCustom(); UI.custom.date = c.date;
-  renderBench();
+  renderBench(); focusEntry();
 }
 function editTx(id){
   const t = S.txns.find(x => x.id === id); if (!t) return;
-  UI.editing = id; UI.sel = id;
+  UI.editing = id; UI.sel = id; UIP.benchTab = 'entry'; saveUIP();
   if (t.tpl && TPL[t.tpl]) { UI.mode = 'tpl'; UI.tpl = t.tpl; UI.params = {...defaults(t.tpl), ...t.p, date:t.date, memo:t.memoUser || '', party:t.party || '', ref:t.ref || ''}; if(t.tpl==='payExpense') { UI.params.expenseName=expenseSpec(t.p || {}).name; delete UI.params.acct; } }
   else {
     UI.mode = 'custom';
@@ -2750,8 +2903,8 @@ document.addEventListener('click', ev => {
   const qid = el.dataset.q, q = qid ? findQ(qid) : null;
   switch (act) {
     case 'purpose': switchPurpose(v); break;
-    case 'workspaceJump': { const target=document.getElementById(v); if(target) { if(v==='bench') target.scrollTop=0; target.scrollIntoView({block:'start',behavior:'smooth'}); } break; }
-    case 'view': if (v==='quiz' && purpose==='record' && !switchPurpose('learn')) break; S.settings.view = v; save(); $('#trace').hidden = true; renderAll(); window.scrollTo(0, 0); break;
+    case 'workspaceJump': { if (v === 'bench' || v === 'recordTools') { UIP.benchTab = v === 'bench' ? 'entry' : 'list'; saveUIP(); renderBench(); } const target = document.getElementById(v === 'recordTools' ? 'bench' : v); if (target) { if (v !== 'board') target.scrollTop = 0; target.scrollIntoView({block:'start', behavior:'smooth'}); } break; }
+    case 'view': if (v==='quiz' && purpose==='record' && !switchPurpose('learn')) break; UI.viewScroll[S.settings.view] = window.scrollY; S.settings.view = v; save(); $('#trace').hidden = true; renderAll(); window.scrollTo(0, UI.viewScroll[v] || 0); break;
     case 'guidedJournal': S.settings.tab='journal'; S.settings.practice=false; R.entries.forEach(e=>UI.openWhy.add(e.id)); save(); renderAll(); $('#board').scrollIntoView({block:'start',behavior:'smooth'}); break;
     case 'guidedReports': S.settings.tab='pl'; S.settings.practice=false; save(); renderAll(); $('#board').scrollIntoView({block:'start',behavior:'smooth'}); break;
     case 'quickTpl': UI.editing=null; UI.tplQuery=''; UI.mode='tpl'; startTpl(v); UI.draftDirty=true; saveDraft(); renderBench(); $('#f-amt')?.focus(); break;
@@ -2778,11 +2931,17 @@ document.addEventListener('click', ev => {
     case 'qAiDel': { const snapA = JSON.stringify(QZ.ai), snapAns = QZ.ans[qid]; QZ.ai = QZ.ai.filter(x => x.id !== qid); delete QZ.ans[qid]; qSave(); renderQuiz(); renderHeader(); toast('已删除这道 AI 题', () => { QZ.ai = JSON.parse(snapA); if (snapAns) QZ.ans[qid] = snapAns; qSave(); renderQuiz(); renderHeader(); }); break; }
     case 'labBack': labBack(); break;
     case 'labKeep': { const f = UI.labFrom; UI.labFrom = null; try { localStorage.removeItem(RKEY); } catch (e) {} renderAll(); if (f) toast('已保留这个情景，原来的数据已被替换。', () => restore(f.snap)); break; }
-    case 'tab': S.settings.tab = v; save(); renderBoard(); break;
+    case 'tab': if (S.settings.view === 'quiz') { S.settings.view = 'lab'; save(); renderAll(); } goTab(v, el.closest('#tabs') ? 'memory' : el.closest('.stepnav') ? 'top' : 'reveal'); break;
+    case 'benchTab': UIP.benchTab = v === 'list' ? 'list' : 'entry'; saveUIP(); renderBench(); document.getElementById('btab-' + UIP.benchTab)?.focus(); break;
+    case 'menu': UI.menuOpen = !UI.menuOpen; renderHeader(); renderSaveStatus(); if (UI.menuOpen) $('#menu .mi, #menu button')?.focus(); break;
+    case 'checks': openChecks(); break;
+    case 'dismissStarter': UIP.starterHidden[purpose] = true; saveUIP(); renderTaskEntry(); toast('已收起。需要时可在「更多」里重新打开。'); break;
+    case 'showStarter': UIP.starterHidden[purpose] = false; saveUIP(); renderTaskEntry(); window.scrollTo({top:0, behavior:'smooth'}); break;
+    case 'toastView': if (UI.toastView) { const f = UI.toastView; UI.toastView = null; clearTimeout(toast._t); $('#toast').hidden = true; f(); } break;
     case 'mode': if (UI.editing && v!==UI.mode) { UI.editing=null; startTpl(UI.tpl); UI.custom=blankCustom(); } UI.mode = v; if (v === 'custom' && !UI.custom) UI.custom = blankCustom(); UI.draftDirty=true; saveDraft(); renderBench(); break;
     case 'lang': S.settings.lang = v; save(); renderAll(); break;
     case 'practice': S.settings.practice = !S.settings.practice; save(); $('#trace').hidden = true; renderAll(); break;
-    case 'settings': UI.showSettings = !UI.showSettings; renderHeader(); break;
+    case 'settings': UI.showSettings = !UI.showSettings; UI.menuOpen = false; renderHeader(); renderSaveStatus(); if (UI.showSettings) { $('#settingsBar').scrollIntoView({block:'nearest', behavior:'smooth'}); $('#set-name')?.focus({preventScroll:true}); } break;
     case 'aiConnection': openAIConnection(); break;
     case 'aiLogin': openAIConnection(false); if (!UI.aiConnected) startAILogin(); break;
     case 'aiStartLogin': startAILogin(); break;
@@ -2831,7 +2990,14 @@ document.addEventListener('click', ev => {
     case 'aiEdit': { const r = UI.ai.res; if (!r || r.empty) break; UI.custom = {date:r.date, memo:r.memo, adj:r.adj, rows:r.groups.flat().map(l => ({a:l.a, dr:l.s > 0 ? String(l.s / 100) : '', cr:l.s < 0 ? String(-l.s / 100) : '', fn:l.fn || ''}))}; UI.mode = 'custom'; UI.draftDirty=true; saveDraft(); renderBench(); break; }
   }
 });
+// Close the 更多 menu on any click outside it (language buttons inside keep it open)
+document.addEventListener('click', ev => {
+  if (!UI.menuOpen || ev.target.closest('#menuBtn')) return;
+  if (ev.target.closest('#menu') && !ev.target.closest('[data-act]:not([data-act="lang"])')) return;
+  UI.menuOpen = false; $('#menu')?.remove(); $('#menuBtn')?.setAttribute('aria-expanded', 'false');
+}, true);
 document.addEventListener('keydown', ev => {
+  if (ev.key === 'Escape' && UI.menuOpen) { UI.menuOpen = false; renderHeader(); renderSaveStatus(); $('#menuBtn')?.focus(); return; }
   if (ev.key === 'Escape') { if (!$('#modal').hidden) { stopLoginPolling(); $('#modal').hidden = true; UI.pendingImport=null; } else if (!$('#trace').hidden) $('#trace').hidden = true; return; }
   if (!$('#modal').hidden && ev.key==='Tab') {
     const nodes=[...$('#modal').querySelectorAll('button:not([disabled]),input:not([hidden]),textarea,select,a[href],summary')].filter(n=>!n.hidden && n.offsetParent);
@@ -2933,7 +3099,10 @@ qLoad();
 if (purpose==='learn') { try { const lf = JSON.parse(localStorage.getItem(RKEY) || 'null'); if (lf && lf.snap && lf.qid) UI.labFrom = lf; } catch (e) {} }
 resetEntryUI(); loadDraft();
 renderAll();
-window.addEventListener('pagehide',()=>{clearTimeout(saveDraft._t); saveDraft();});
+syncTopH();
+if (window.ResizeObserver) new ResizeObserver(syncTopH).observe($('#top')); else window.addEventListener('resize', syncTopH);
+{ const sc = UIP.scroll; if (sc && sc.p === purpose && sc.view === S.settings.view && sc.tab === S.settings.tab) requestAnimationFrame(() => window.scrollTo(0, sc.y || 0)); }
+window.addEventListener('pagehide',()=>{clearTimeout(saveDraft._t); saveDraft(); UIP.scroll = {p:purpose, view:S.settings.view, tab:S.settings.tab, y:Math.round(window.scrollY)}; saveUIP();});
 window.addEventListener('beforeunload',ev=>{saveDraft(); if (UI.storageError && !UI.loadBlocked) { ev.preventDefault(); ev.returnValue=''; }});
 const use = window.claude && typeof window.claude.use === 'function' ? n => window.claude.use(n).catch(() => null) : () => Promise.resolve(null);
 refreshAIConnection();
